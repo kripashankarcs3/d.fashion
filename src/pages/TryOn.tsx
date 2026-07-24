@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'wouter';
 import TryOnComponent from '@/components/TryOn';
-import { RotateCw, Check, ArrowRight, Sparkles, ScanFace, Layers } from 'lucide-react';
+import { useTryOn } from '@/hooks/useTryOn';
+import { useStyleStore } from '@/store/useStyleStore';
+import { RotateCw, Check, ArrowRight, Sparkles, ScanFace, Layers, Loader2 } from 'lucide-react';
 
 const howItWorks = [
   { step: '01', title: 'Select Your Item', desc: 'Choose any garment from your wardrobe or browse our catalog of 10,000+ pieces.' },
@@ -25,8 +27,34 @@ export default function TryOn() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedItem, setSelectedItem] = useState<number | null>(null);
+  const [tryOnResults, setTryOnResults] = useState<Record<number, string>>({});
+  const [error, setError] = useState<string | null>(null);
+  const { clothes } = useTryOn();
+  const referenceImageUrl = useStyleStore((s) => s.referenceImageUrl);
 
   const filtered = activeCategory === 'All' ? garments : garments.filter(g => g.category === activeCategory);
+  const selectedGarment = garments.find(g => g.id === selectedItem);
+
+  const handleTryOn = () => {
+    if (!selectedGarment || !referenceImageUrl) return;
+    setError(null);
+    clothes.mutate(
+      { garmentUrl: selectedGarment.img, garmentName: selectedGarment.name },
+      {
+        onSuccess: (response) => {
+          setTryOnResults((prev) => ({ ...prev, [selectedGarment.id]: response.data.resultUrl }));
+        },
+        onError: () => {
+          setError('Try-on failed. Please try again.');
+        },
+      },
+    );
+  };
+
+  const handleSelectItem = (id: number) => {
+    setSelectedItem(selectedItem === id ? null : id);
+    setError(null);
+  };
 
   return (
     <div className="w-full overflow-hidden">
@@ -101,34 +129,46 @@ export default function TryOn() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {filtered.map((item, i) => (
-              <motion.div
-                key={item.id}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.05 }}
-                onClick={() => setSelectedItem(selectedItem === item.id ? null : item.id)}
-                className={`group cursor-pointer rounded-2xl overflow-hidden border transition-all duration-300 ${
-                  selectedItem === item.id ? 'border-primary shadow-lg shadow-primary/20 scale-105' : 'border-border hover:border-primary/40 hover:shadow-md'
-                }`}
-              >
-                <div className="aspect-[3/4] relative overflow-hidden">
-                  <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  {selectedItem === item.id && (
-                    <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                        <Check className="w-4 h-4 text-primary-foreground" />
+            {filtered.map((item, i) => {
+              const isSelected = selectedItem === item.id;
+              const resultUrl = tryOnResults[item.id];
+              const isPendingItem = isSelected && clothes.isPending;
+              const displayImg = resultUrl || item.img;
+
+              return (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.05 }}
+                  onClick={() => handleSelectItem(item.id)}
+                  className={`group cursor-pointer rounded-2xl overflow-hidden border transition-all duration-300 ${
+                    isSelected ? 'border-primary shadow-lg shadow-primary/20 scale-105' : 'border-border hover:border-primary/40 hover:shadow-md'
+                  }`}
+                >
+                  <div className="aspect-[3/4] relative overflow-hidden">
+                    <img src={displayImg} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {isSelected && (
+                      <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                          <Check className="w-4 h-4 text-primary-foreground" />
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-                <div className="p-3 bg-white">
-                  <p className="font-serif text-sm leading-snug">{item.name}</p>
-                  <p className="text-primary text-xs font-accent font-medium mt-1">{item.price}</p>
-                </div>
-              </motion.div>
-            ))}
+                    )}
+                    {isPendingItem && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 text-white animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 bg-white">
+                    <p className="font-serif text-sm leading-snug">{item.name}</p>
+                    <p className="text-primary text-xs font-accent font-medium mt-1">{item.price}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
 
           {selectedItem && (
@@ -137,10 +177,33 @@ export default function TryOn() {
               animate={{ opacity: 1, y: 0 }}
               className="mt-8 text-center"
             >
-              <button className="inline-flex items-center gap-3 bg-foreground text-background px-8 py-4 rounded-full font-accent font-medium hover:bg-foreground/90 transition-colors shadow-lg">
-                <RotateCw className="w-4 h-4" /> Try On Selected Item
+              <button
+                onClick={handleTryOn}
+                disabled={!referenceImageUrl || clothes.isPending}
+                title={!referenceImageUrl ? 'Upload your selfie first' : ''}
+                className="inline-flex items-center gap-3 bg-foreground text-background px-8 py-4 rounded-full font-accent font-medium hover:bg-foreground/90 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {clothes.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RotateCw className="w-4 h-4" />
+                )}
+                {clothes.isPending ? 'Trying On...' : 'Try On Selected Item'}
               </button>
+              {!referenceImageUrl && (
+                <p className="text-sm text-muted-foreground font-accent mt-2">Upload your selfie first</p>
+              )}
             </motion.div>
+          )}
+
+          {error && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-6 text-center text-sm text-red-500 font-accent"
+            >
+              {error}
+            </motion.p>
           )}
         </div>
       </section>

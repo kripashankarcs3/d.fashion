@@ -1,52 +1,79 @@
+import React, { Suspense, lazy } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import NotFound from '@/pages/not-found';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
-import Home from '@/pages/Home';
-import Upload from '@/pages/Upload';
-import Dashboard from '@/pages/Dashboard';
-import Report from '@/pages/Report';
-import Chat from '@/pages/Chat';
-import TryOn from '@/pages/TryOn';
-import Pricing from '@/pages/Pricing';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
-const queryClient = new QueryClient();
+import Home from '@/pages/Home';
+import NotFound from '@/pages/not-found';
+
+const Upload = lazy(() => import('@/pages/Upload'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Report = lazy(() => import('@/pages/Report'));
+const Chat = lazy(() => import('@/pages/Chat'));
+const TryOn = lazy(() => import('@/pages/TryOn'));
+const Pricing = lazy(() => import('@/pages/Pricing'));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: 1, staleTime: 5 * 60 * 1000 },
+    mutations: { retry: 0 },
+  },
+});
+
+const PageFallback = () => (
+  <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+  </div>
+);
 
 function Router() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/upload" component={Upload} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/report" component={Report} />
-          <Route path="/chat" component={Chat} />
-          <Route path="/tryon" component={TryOn} />
-          <Route path="/pricing" component={Pricing} />
-          <Route component={NotFound} />
-        </Switch>
+        <Suspense fallback={<PageFallback />}>
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/upload">
+              <ErrorBoundary pageName="Upload"><Upload /></ErrorBoundary>
+            </Route>
+            <Route path="/dashboard">
+              <ErrorBoundary pageName="Dashboard"><Dashboard /></ErrorBoundary>
+            </Route>
+            <Route path="/report">
+              <ErrorBoundary pageName="Report"><Report /></ErrorBoundary>
+            </Route>
+            <Route path="/chat">
+              <ErrorBoundary pageName="AI Stylist"><Chat /></ErrorBoundary>
+            </Route>
+            <Route path="/tryon">
+              <ErrorBoundary pageName="Try-On"><TryOn /></ErrorBoundary>
+            </Route>
+            <Route path="/pricing">
+              <ErrorBoundary pageName="Pricing"><Pricing /></ErrorBoundary>
+            </Route>
+            <Route component={NotFound} />
+          </Switch>
+        </Suspense>
       </main>
       <Footer />
     </div>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter>
           <Router />
         </WouterRouter>
-        <Toaster />
+        <Toaster richColors position="top-right" />
       </TooltipProvider>
     </QueryClientProvider>
   );
 }
-
-export default App;

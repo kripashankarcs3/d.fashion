@@ -1,24 +1,57 @@
-import { useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadCloud, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
+import { useAnalysis } from '@/hooks/useAnalysis';
+
+const PHASES = ['enhancing', 'analyzing', 'generating'] as const;
+type AnalysisPhase = typeof PHASES[number] | null;
+
+const PHASE_LABELS: Record<NonNullable<AnalysisPhase>, string> = {
+  enhancing: 'Enhancing image quality…',
+  analyzing: 'Analyzing skin & color…',
+  generating: 'Generating recommendations…',
+};
 
 export default function UploadFlow() {
-  const [step, setStep] = useState(1);
-  const [isSimulating, setIsSimulating] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { mutate, isPending } = useAnalysis();
+  const [analysisPhase, setAnalysisPhase] = useState<AnalysisPhase>(null);
 
-  const handleNext = () => {
-    if (step === 1) {
-      setIsSimulating(true);
-      setTimeout(() => {
-        setIsSimulating(false);
-        setStep(2);
-      }, 2000);
-    } else if (step === 2) {
-      setStep(3);
-    } else {
-      setStep(1);
+  useEffect(() => {
+    if (!isPending) {
+      setAnalysisPhase(null);
+      return;
+    }
+    const interval = setInterval(() => {
+      setAnalysisPhase((prev) => {
+        if (!prev) return 'enhancing';
+        const idx = PHASES.indexOf(prev);
+        return idx < PHASES.length - 1 ? PHASES[idx + 1] : prev;
+      });
+    }, 500);
+    return () => clearInterval(interval);
+  }, [isPending]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
     }
   };
+
+  const handleDropZoneClick = () => {
+    inputRef.current?.click();
+  };
+
+  const handleStartAnalysis = () => {
+    if (selectedFile) {
+      setAnalysisPhase('enhancing');
+      mutate(selectedFile);
+    }
+  };
+
+  const currentStep = analysisPhase ? PHASES.indexOf(analysisPhase) + 1 : selectedFile ? 1 : 1;
 
   return (
     <section className="py-24 bg-white relative">
@@ -29,42 +62,63 @@ export default function UploadFlow() {
         </div>
 
         <div className="glass-panel rounded-3xl p-6 md:p-12 shadow-xl border-primary/20">
-          
+
           {/* Progress Indicators */}
           <div className="flex items-center justify-between mb-12 relative">
             <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-secondary -z-10 -translate-y-1/2" />
             {[1, 2, 3].map((s) => (
-              <div 
-                key={s} 
+              <div
+                key={s}
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-accent font-medium text-sm transition-colors duration-500 ${
-                  step >= s ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
+                  currentStep >= s ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
                 }`}
               >
-                {step > s ? <CheckCircle2 className="w-5 h-5" /> : s}
+                {currentStep > s ? <CheckCircle2 className="w-5 h-5" /> : s}
               </div>
+            ))}
+          </div>
+
+          {/* Analysis phase labels */}
+          <div className="flex items-center justify-between mb-8 text-xs font-accent">
+            {PHASES.map((phase, idx) => (
+              <span
+                key={phase}
+                className={`transition-colors duration-300 ${
+                  currentStep > idx + 1
+                    ? 'text-green-600'
+                    : currentStep === idx + 1
+                      ? 'text-primary font-semibold'
+                      : 'text-muted-foreground'
+                }`}
+              >
+                {idx + 1}. {PHASE_LABELS[phase]}
+              </span>
             ))}
           </div>
 
           <div className="min-h-[400px] flex items-center justify-center relative">
             <AnimatePresence mode="wait">
-              {step === 1 && (
+              {!isPending && !selectedFile && (
                 <motion.div
-                  key="step1"
+                  key="dropzone"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   className="w-full max-w-2xl"
                 >
-                  <div 
-                    onClick={handleNext}
+                  <input
+                    ref={inputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/heic"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <div
+                    onClick={handleDropZoneClick}
                     className="border-2 border-dashed border-primary/40 rounded-3xl p-16 text-center cursor-pointer hover:bg-primary/5 hover:border-primary transition-all duration-300 group"
                   >
                     <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
-                      {isSimulating ? (
-                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                      ) : (
-                        <UploadCloud className="w-8 h-8 text-primary" />
-                      )}
+                      <UploadCloud className="w-8 h-8 text-primary" />
                     </div>
                     <h3 className="font-serif text-2xl text-foreground mb-2">Drop Your Photos</h3>
                     <p className="font-accent text-muted-foreground">Or click to browse your files. JPEG, PNG, HEIC up to 10MB.</p>
@@ -72,80 +126,55 @@ export default function UploadFlow() {
                 </motion.div>
               )}
 
-              {step === 2 && (
+              {!isPending && selectedFile && (
                 <motion.div
-                  key="step2"
+                  key="file-selected"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   className="w-full max-w-md text-center"
                 >
-                  <div className="relative w-48 h-64 mx-auto bg-secondary rounded-2xl overflow-hidden mb-8 shadow-inner border border-primary/10">
-                    <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=500&q=80" alt="Jacket" className="w-full h-full object-cover opacity-50" />
-                    <motion.div 
-                      className="absolute left-0 right-0 h-1 bg-primary/80 shadow-[0_0_15px_rgba(201,168,76,0.8)] z-10"
-                      animate={{ top: ['0%', '100%', '0%'] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    />
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle2 className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="font-serif text-2xl text-foreground mb-4">AI Analyzes Your Style</h3>
-                  <div className="space-y-4 text-left font-accent">
-                    <div className="flex items-center gap-3 text-muted-foreground">
-                      <Loader2 className="w-4 h-4 animate-spin text-primary" /> Extracting silhouette...
-                    </div>
-                    <div className="flex items-center gap-3 text-muted-foreground">
-                      <Loader2 className="w-4 h-4 animate-spin text-primary" /> Mapping color palette...
-                    </div>
-                    <div className="flex items-center gap-3 text-muted-foreground">
-                      <Loader2 className="w-4 h-4 animate-spin text-primary" /> Tagging occasion...
-                    </div>
-                  </div>
-                  <button onClick={handleNext} className="mt-8 px-6 py-2 rounded-full border border-border text-foreground hover:bg-secondary transition-colors font-accent text-sm">
-                    Skip Analysis
+                  <h3 className="font-serif text-2xl text-foreground mb-2">File Selected</h3>
+                  <p className="font-accent text-muted-foreground mb-6 truncate max-w-full">{selectedFile.name}</p>
+                  <button
+                    onClick={handleStartAnalysis}
+                    className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-accent font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 mx-auto"
+                  >
+                    Start Analysis <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedFile(null)}
+                    className="mt-4 px-6 py-2 rounded-full border border-border text-muted-foreground hover:bg-secondary transition-colors font-accent text-sm"
+                  >
+                    Choose different file
                   </button>
                 </motion.div>
               )}
 
-              {step === 3 && (
+              {isPending && (
                 <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="w-full max-w-3xl glass-panel bg-white p-8 rounded-2xl shadow-2xl flex flex-col md:flex-row gap-8 items-center"
+                  key="analyzing"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="w-full max-w-md text-center"
                 >
-                  <div className="w-full md:w-1/2 aspect-[3/4] rounded-xl overflow-hidden relative">
-                    <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80" alt="Analyzed Jacket" className="w-full h-full object-cover" />
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
                   </div>
-                  <div className="w-full md:w-1/2 text-left">
-                    <div className="inline-block px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-bold tracking-wider mb-4 font-accent">VERIFIED MATCH</div>
-                    <h3 className="font-serif text-3xl text-foreground mb-2">Vintage Leather Blazer</h3>
-                    <p className="text-muted-foreground font-accent mb-6">Added to "Outerwear" category</p>
-                    
-                    <div className="space-y-6">
-                      <div>
-                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 font-accent">Detected Palette</h4>
-                        <div className="flex gap-2">
-                          <div className="w-8 h-8 rounded-full bg-[#3d2f2b] shadow-sm border border-border" />
-                          <div className="w-8 h-8 rounded-full bg-[#8b7355] shadow-sm border border-border" />
-                          <div className="w-8 h-8 rounded-full bg-[#e6e2d8] shadow-sm border border-border" />
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 font-accent">Style Tags</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {['Autumn', 'Smart Casual', 'Vintage', 'Layering'].map(tag => (
-                            <span key={tag} className="px-3 py-1 bg-secondary rounded-md text-xs font-medium font-accent text-foreground">{tag}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button onClick={handleNext} className="mt-8 w-full bg-primary text-primary-foreground py-3 rounded-xl font-accent font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
-                      View in Dashboard <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <h3 className="font-serif text-2xl text-foreground mb-2">
+                    {analysisPhase ? PHASE_LABELS[analysisPhase] : 'Processing…'}
+                  </h3>
+                  <p className="font-accent text-muted-foreground">Please wait while we analyze your image.</p>
+                  <button
+                    disabled
+                    className="mt-8 w-full bg-primary/50 text-primary-foreground py-3 rounded-xl font-accent font-medium flex items-center justify-center gap-2 cursor-not-allowed"
+                  >
+                    <Loader2 className="w-4 h-4 animate-spin" /> Analyzing…
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>

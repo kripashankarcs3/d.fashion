@@ -1,25 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
+import { formatDistanceToNow } from 'date-fns';
 import DashboardPreview from '@/components/DashboardPreview';
-import { Search, Bell, Filter, Plus, Layers, TrendingUp, Shirt, Star, ArrowRight, BarChart2 } from 'lucide-react';
-
-const stats = [
-  { label: 'Total Items', value: '142', icon: Layers, change: '+12 this week' },
-  { label: 'Style Score', value: '87', icon: Star, change: '+4 from last week' },
-  { label: 'Outfits Created', value: '34', icon: Shirt, change: '6 new combinations' },
-  { label: 'Trend Match', value: '91%', icon: TrendingUp, change: 'Top 5% of users' },
-];
-
-const recentActivity = [
-  { action: 'Added', item: 'Beige Linen Blazer', time: '2h ago', color: '#C9A84C' },
-  { action: 'Tried On', item: 'Silk Midi Dress', time: '5h ago', color: '#8B7355' },
-  { action: 'Styled', item: 'Outfit #34 — Parisian Evening', time: '1d ago', color: '#2F4F4F' },
-  { action: 'Report', item: 'Weekly Style Intelligence Vol. 42', time: '2d ago', color: '#4A5D23' },
-];
+import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
+import { useStyleStore } from '@/store/useStyleStore';
+import { Layers, Star, Shirt, TrendingUp, Plus, BarChart2, ArrowRight, Search, Bell, Filter } from 'lucide-react';
 
 export default function Dashboard() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  const wardrobeItems = useStyleStore((s) => s.wardrobeItems);
+  const activityLog = useStyleStore((s) => s.activityLog);
+  const analysisResult = useStyleStore((s) => s.analysisResult);
+  const userPreferences = useStyleStore((s) => s.userPreferences);
+
+  const totalItems = wardrobeItems.length;
+  const styleScore = analysisResult ? 87 : 0;
+
+  const stats = [
+    { label: 'Total Items', value: String(totalItems), icon: Layers, change: `${totalItems} items in wardrobe` },
+    { label: 'Style Score', value: String(styleScore), icon: Star, change: analysisResult ? 'Analysis complete' : 'Upload to get score' },
+    { label: 'Outfits Created', value: '0', icon: Shirt, change: 'Coming soon' },
+    { label: 'Trend Match', value: analysisResult ? 'Available' : '--', icon: TrendingUp, change: 'Based on your analysis' },
+  ];
+
+  const recentItems = activityLog.slice(0, 10);
 
   return (
     <div className="w-full overflow-hidden">
@@ -32,8 +38,17 @@ export default function Dashboard() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <p className="text-primary font-accent text-sm font-bold tracking-widest mb-2">YOUR DIGITAL ATELIER</p>
-              <h1 className="text-4xl md:text-5xl font-serif text-foreground">Welcome back, <span className="italic text-gradient-gold">Emma</span></h1>
-              <p className="text-muted-foreground font-accent mt-2">Your wardrobe is performing exceptionally this week.</p>
+              <h1 className="text-4xl md:text-5xl font-serif text-foreground">
+                Welcome back,{' '}
+                <span className="italic text-gradient-gold">
+                  {userPreferences.displayName || 'Your Wardrobe'}
+                </span>
+              </h1>
+              <p className="text-muted-foreground font-accent mt-2">
+                {totalItems > 0
+                  ? 'Your wardrobe is performing exceptionally this week.'
+                  : 'Upload your first item to get started.'}
+              </p>
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex gap-3">
               <Link href="/upload" className="flex items-center gap-2 bg-foreground text-background px-5 py-2.5 rounded-full font-accent text-sm font-medium hover:bg-foreground/90 transition-colors">
@@ -70,11 +85,41 @@ export default function Dashboard() {
               </motion.div>
             ))}
           </div>
+
+          {/* Color profile swatch when analysis exists */}
+          {analysisResult && (
+            <div className="mt-4 flex items-center gap-4 glass-panel p-4 rounded-2xl">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider font-accent">Skin Tone</span>
+              <div
+                className="w-10 h-10 rounded-full border-2 border-border"
+                style={{ backgroundColor: analysisResult.colorProfile.skinToneHex }}
+              />
+              <span className="font-accent text-sm text-muted-foreground">{analysisResult.colorProfile.skinToneHex}</span>
+              <span className="text-xs font-accent text-muted-foreground">|</span>
+              <span className="text-xs font-accent capitalize text-muted-foreground">{analysisResult.colorProfile.undertone} undertone</span>
+              <span className="text-xs font-accent text-muted-foreground">|</span>
+              <span className="text-xs font-accent text-muted-foreground">Eyes: {analysisResult.colorProfile.eyeColor}</span>
+            </div>
+          )}
         </div>
       </section>
 
+      {/* Empty state when no wardrobe items */}
+      {wardrobeItems.length === 0 && (
+        <section className="py-16 bg-background">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="glass-panel p-12 rounded-3xl">
+              <EmptyAnalysisState
+                title="Your wardrobe is empty"
+                description="Upload your clothing items to build your digital atelier and unlock personalized style insights."
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Main Dashboard Preview */}
-      <DashboardPreview />
+      {wardrobeItems.length > 0 && <DashboardPreview />}
 
       {/* Recent Activity + Quick Actions */}
       <section className="py-16 bg-background">
@@ -89,23 +134,29 @@ export default function Dashboard() {
               className="glass-panel p-8 rounded-3xl"
             >
               <h3 className="font-serif text-2xl mb-6">Recent Activity</h3>
-              <div className="space-y-4">
-                {recentActivity.map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
-                    <div className="w-10 h-10 rounded-full flex-shrink-0 border border-border" style={{ backgroundColor: item.color + '30' }}>
-                      <div className="w-full h-full rounded-full flex items-center justify-center">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+              {recentItems.length === 0 ? (
+                <p className="text-muted-foreground font-accent text-sm">No activity yet. Upload a selfie or explore the app to get started.</p>
+              ) : (
+                <div className="space-y-4">
+                  {recentItems.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
+                      <div className="w-10 h-10 rounded-full flex-shrink-0 border border-border" style={{ backgroundColor: (item.color ?? '#C9A84C') + '30' }}>
+                        <div className="w-full h-full rounded-full flex items-center justify-center">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color ?? '#C9A84C' }} />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          <span className="text-muted-foreground font-accent capitalize">{item.action}: </span>{item.label}
+                        </p>
+                        <p className="text-xs text-muted-foreground font-accent">
+                          {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+                        </p>
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        <span className="text-muted-foreground font-accent">{item.action}: </span>{item.item}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-accent">{item.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
 
             {/* Quick Actions */}

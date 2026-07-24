@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 import StylistChat from '@/components/StylistChat';
@@ -22,6 +22,7 @@ const samplePrompts = [
 
 export default function Chat() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
+  const [activePrompt, setActivePrompt] = useState('');
 
   return (
     <div className="w-full overflow-hidden">
@@ -71,7 +72,7 @@ export default function Chat() {
       {/* Chat Interface */}
       <section className="py-12 bg-background">
         <div className="max-w-4xl mx-auto px-6">
-          <StylistChat />
+          <StylistChat initialPrompt={activePrompt} />
         </div>
       </section>
 
@@ -89,6 +90,7 @@ export default function Chat() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.06 }}
                 whileHover={{ x: 4 }}
+                onClick={() => setActivePrompt(prompt)}
                 className="glass-panel p-4 rounded-xl text-left text-sm font-accent text-foreground hover:border-primary/40 hover:text-primary transition-all flex items-start gap-3 group"
               >
                 <span className="text-primary flex-shrink-0 mt-0.5">→</span>
