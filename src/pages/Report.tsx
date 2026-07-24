@@ -2,14 +2,26 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 import ReportPreview from '@/components/ReportPreview';
+import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
+import { useStyleStore } from '@/store/useStyleStore';
 import { TrendingUp, Calendar, Download, ArrowRight, BarChart2, PieChart, Zap } from 'lucide-react';
 
-const pastReports = [
-  { vol: 41, week: 'Oct 5, 2023', score: 83, change: '+2', highlight: 'Monochrome week — strong identity.' },
-  { vol: 40, week: 'Sep 28, 2023', score: 81, change: '+5', highlight: 'Introduced earth tones successfully.' },
-  { vol: 39, week: 'Sep 21, 2023', score: 76, change: '-1', highlight: 'Over-relied on neutrals.' },
-  { vol: 38, week: 'Sep 14, 2023', score: 77, change: '+3', highlight: 'Great layering combinations.' },
-];
+const SKIN_CONCERN_LABELS: Record<string, string> = {
+  acne: 'Acne',
+  darkSpots: 'Dark Spots',
+  wrinkles: 'Wrinkles',
+  pores: 'Pores',
+  oiliness: 'Oiliness',
+  dryness: 'Dryness',
+  redness: 'Redness',
+  eyeBags: 'Eye Bags',
+  darkCircles: 'Dark Circles',
+  uneven: 'Uneven Tone',
+  sensitivity: 'Sensitivity',
+  texture: 'Texture',
+  firmness: 'Firmness',
+  radiance: 'Radiance',
+};
 
 const insightTypes = [
   { icon: BarChart2, title: 'Wear Frequency', desc: 'See which items you reach for most — and which are collecting dust.' },
@@ -21,6 +33,8 @@ const insightTypes = [
 export default function Report() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
+  const analysisResult = useStyleStore((s) => s.analysisResult);
+
   return (
     <div className="w-full overflow-hidden">
       {/* Hero */}
@@ -31,13 +45,15 @@ export default function Report() {
         <div className="max-w-5xl mx-auto px-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel border-primary/30 text-sm font-accent font-medium mb-6">
-              <Calendar className="w-4 h-4 text-primary" /> Weekly Style Intelligence
+              <Calendar className="w-4 h-4 text-primary" /> Style Analysis Report
             </span>
             <h1 className="text-5xl md:text-7xl font-serif text-foreground leading-tight mb-6">
               Insights That <br /><span className="italic text-gradient-gold">Elevate.</span>
             </h1>
             <p className="text-xl text-muted-foreground font-accent max-w-2xl">
-              Magazine-quality style reports, delivered every Monday. Understand your wear patterns, discover your strengths, and get AI-curated style upgrades.
+              {analysisResult
+                ? `Analyzed on ${new Date(analysisResult.analyzedAt).toLocaleDateString()}`
+                : 'Upload your selfie to unlock your personalized skin & color analysis report.'}
             </p>
           </motion.div>
         </div>
@@ -68,56 +84,246 @@ export default function Report() {
         </div>
       </section>
 
-      {/* Latest Report */}
-      <div className="py-4 bg-background">
-        <div className="max-w-6xl mx-auto px-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-serif">Latest Report</h2>
-              <p className="text-muted-foreground font-accent text-sm mt-1">Vol. 42 — Week of October 12, 2023</p>
+      {!analysisResult ? (
+        <section className="py-20 bg-background">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="glass-panel p-12 rounded-3xl">
+              <EmptyAnalysisState
+                title="No report yet"
+                description="Complete your style analysis to view your report."
+              />
             </div>
-            <button className="flex items-center gap-2 glass-panel px-5 py-2.5 rounded-full font-accent text-sm font-medium hover:border-primary/40 transition-colors">
-              <Download className="w-4 h-4" /> Download PDF
-            </button>
           </div>
-        </div>
-      </div>
-      <ReportPreview />
+        </section>
+      ) : (
+        <>
+          {/* Latest Report — Skin Concerns */}
+          <section className="py-16 bg-background">
+            <div className="max-w-6xl mx-auto px-6">
+              <h2 className="text-3xl font-serif mb-6">Skin Analysis</h2>
+              <div className="glass-panel p-8 rounded-3xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {Object.entries(SKIN_CONCERN_LABELS).map(([key, label]) => {
+                    const value = (analysisResult.skinConcerns as any)[key] ?? 0;
+                    const percent = Math.round(value * 100);
+                    return (
+                      <div key={key}>
+                        <div className="flex justify-between text-sm font-accent mb-1">
+                          <span className="text-foreground">{label}</span>
+                          <span className="text-muted-foreground">{percent}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary rounded-full transition-all duration-700"
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </section>
 
-      {/* Report History */}
-      <section className="py-20 bg-background">
-        <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-3xl font-serif mb-8">Report History</h2>
-          <div className="space-y-4">
-            {pastReports.map((report, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="glass-panel p-5 rounded-2xl flex items-center gap-4 cursor-pointer hover:border-primary/40 hover:shadow-md transition-all group"
-              >
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex flex-col items-center justify-center flex-shrink-0">
-                  <span className="font-serif text-lg text-primary font-bold leading-none">{report.vol}</span>
-                  <span className="text-[9px] text-muted-foreground font-accent uppercase tracking-wider">Vol.</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-serif text-lg truncate">Style Intelligence — {report.week}</p>
-                  <p className="text-sm text-muted-foreground font-accent truncate">{report.highlight}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <div className="font-serif text-2xl">{report.score}</div>
-                  <div className={`text-xs font-accent font-bold ${report.change.startsWith('+') ? 'text-green-600' : 'text-red-500'}`}>{report.change}</div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+          {/* Color Profile */}
+          <section className="py-16 bg-secondary/20 border-y border-border">
+            <div className="max-w-6xl mx-auto px-6">
+              <h2 className="text-3xl font-serif mb-6">Color Profile</h2>
+              <div className="glass-panel p-8 rounded-3xl">
+                <div className="flex flex-wrap gap-8 items-center">
+                  {/* Skin Tone Swatch */}
+                  <div className="text-center">
+                    <div
+                      className="w-16 h-16 rounded-full border-2 border-border mx-auto mb-2"
+                      style={{ backgroundColor: analysisResult.colorProfile.skinToneHex }}
+                    />
+                    <p className="text-xs font-accent text-muted-foreground">Skin</p>
+                    <p className="text-sm font-accent font-medium">{analysisResult.colorProfile.skinToneHex}</p>
+                  </div>
 
-      {/* Upgrade CTA */}
+                  {/* Undertone */}
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-border mx-auto mb-2 flex items-center justify-center">
+                      <span className="font-serif text-lg capitalize">{analysisResult.colorProfile.undertone[0]}</span>
+                    </div>
+                    <p className="text-xs font-accent text-muted-foreground">Undertone</p>
+                    <p className="text-sm font-accent font-medium capitalize">{analysisResult.colorProfile.undertone}</p>
+                  </div>
+
+                  {/* Eye Color */}
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full border-2 border-border mx-auto mb-2 flex items-center justify-center bg-secondary">
+                      <span className="text-xs font-accent">👁</span>
+                    </div>
+                    <p className="text-xs font-accent text-muted-foreground">Eyes</p>
+                    <p className="text-sm font-accent font-medium capitalize">{analysisResult.colorProfile.eyeColor}</p>
+                  </div>
+
+                  {/* Hair Color */}
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full border-2 border-border mx-auto mb-2 flex items-center justify-center bg-secondary">
+                      <span className="text-xs font-accent">💇</span>
+                    </div>
+                    <p className="text-xs font-accent text-muted-foreground">Hair</p>
+                    <p className="text-sm font-accent font-medium capitalize">{analysisResult.colorProfile.hairColor}</p>
+                  </div>
+
+                  {/* Lip Color */}
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full border-2 border-border mx-auto mb-2 flex items-center justify-center bg-secondary">
+                      <span className="text-xs font-accent">💋</span>
+                    </div>
+                    <p className="text-xs font-accent text-muted-foreground">Lips</p>
+                    <p className="text-sm font-accent font-medium capitalize">{analysisResult.colorProfile.lipColor}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Outfit Palette + Makeup Shades */}
+          <section className="py-16 bg-background">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Outfit Palette */}
+                <div className="glass-panel p-8 rounded-3xl">
+                  <h3 className="font-serif text-2xl mb-4">Recommended Palette</h3>
+                  <div className="flex flex-wrap gap-3 mb-6">
+                    {analysisResult.recommendations.outfitPalette.map((hex, i) => (
+                      <div key={i} className="text-center">
+                        <div
+                          className="w-12 h-12 rounded-full border-2 border-border shadow-sm"
+                          style={{ backgroundColor: hex }}
+                        />
+                        <p className="text-xs font-accent text-muted-foreground mt-1">{hex}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {analysisResult.recommendations.avoidColors.length > 0 && (
+                    <>
+                      <h4 className="font-serif text-lg mb-2 text-red-600">Avoid Colors</h4>
+                      <div className="flex flex-wrap gap-3">
+                        {analysisResult.recommendations.avoidColors.map((hex, i) => (
+                          <div key={i} className="text-center">
+                            <div
+                              className="w-10 h-10 rounded-full border-2 border-border opacity-60"
+                              style={{ backgroundColor: hex }}
+                            />
+                            <p className="text-xs font-accent text-muted-foreground mt-1">{hex}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Makeup Shades */}
+                <div className="glass-panel p-8 rounded-3xl">
+                  <h3 className="font-serif text-2xl mb-4">Makeup Shades</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-10 h-10 rounded-full border-2 border-border"
+                        style={{ backgroundColor: analysisResult.recommendations.makeupShades.foundation }}
+                      />
+                      <div>
+                        <p className="text-sm font-accent font-medium">Foundation</p>
+                        <p className="text-xs font-accent text-muted-foreground">{analysisResult.recommendations.makeupShades.foundation}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-10 h-10 rounded-full border-2 border-border"
+                        style={{ backgroundColor: analysisResult.recommendations.makeupShades.blush }}
+                      />
+                      <div>
+                        <p className="text-sm font-accent font-medium">Blush</p>
+                        <p className="text-xs font-accent text-muted-foreground">{analysisResult.recommendations.makeupShades.blush}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-10 h-10 rounded-full border-2 border-border"
+                        style={{ backgroundColor: analysisResult.recommendations.makeupShades.lip }}
+                      />
+                      <div>
+                        <p className="text-sm font-accent font-medium">Lip</p>
+                        <p className="text-xs font-accent text-muted-foreground">{analysisResult.recommendations.makeupShades.lip}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Hair Color Options */}
+          <section className="py-16 bg-secondary/20 border-y border-border">
+            <div className="max-w-6xl mx-auto px-6">
+              <h2 className="text-3xl font-serif mb-6">Recommended Hair Colors</h2>
+              <div className="glass-panel p-8 rounded-3xl">
+                <div className="flex flex-wrap gap-6">
+                  {analysisResult.recommendations.hairColorOptions.map((hex, i) => (
+                    <div key={i} className="text-center">
+                      <div
+                        className="w-14 h-14 rounded-full border-2 border-border shadow-sm"
+                        style={{ backgroundColor: hex }}
+                      />
+                      <p className="text-xs font-accent text-muted-foreground mt-1">{hex}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Skincare Routine */}
+          <section className="py-16 bg-background">
+            <div className="max-w-6xl mx-auto px-6">
+              <h2 className="text-3xl font-serif mb-6">Recommended Skincare Routine</h2>
+              <div className="glass-panel p-8 rounded-3xl">
+                <div className="space-y-4">
+                  {analysisResult.recommendations.skincareRoutine.map((step) => (
+                    <div key={step.step} className="flex gap-4 items-start">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-accent font-bold text-primary">{step.step}</span>
+                      </div>
+                      <div>
+                        <p className="font-accent font-medium text-foreground">{step.product}</p>
+                        <p className="text-sm text-muted-foreground font-accent">{step.reason}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Style Insight */}
+          <section className="py-16 bg-secondary/30 border-t border-border">
+            <div className="max-w-4xl mx-auto px-6 text-center">
+              <h2 className="text-3xl font-serif mb-4">Style Insight</h2>
+              <p className="text-lg text-muted-foreground font-accent leading-relaxed italic">
+                &ldquo;{analysisResult.recommendations.styleInsight}&rdquo;
+              </p>
+            </div>
+          </section>
+
+          {/* ReportPreview */}
+          <ReportPreview />
+
+          {/* Report History — replaced with static text */}
+          <section className="py-20 bg-background">
+            <div className="max-w-4xl mx-auto px-6 text-center">
+              <h2 className="text-3xl font-serif mb-4">Report History</h2>
+              <p className="text-muted-foreground font-accent">Report history will appear here after multiple analyses.</p>
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* CTA */}
       <section className="py-20 bg-secondary/30 border-t border-border">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-serif mb-4">Get Your First Report</h2>
