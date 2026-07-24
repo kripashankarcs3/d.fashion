@@ -20,7 +20,7 @@
 | `/chat` | AI Stylist | 24/7 styling chat + sample prompts |
 | `/pricing` | Pricing | Plans, FAQ, annual/monthly toggle |
 
-## Setup (Kiro AI)
+## Setup
 
 ```bash
 npm install
