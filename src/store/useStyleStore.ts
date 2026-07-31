@@ -84,11 +84,15 @@ export interface UserPreferences {
 
 interface StyleStore {
   analysisResult: AnalysisResult | null;
+  analysisHistory: AnalysisResult[];
+  savedReports: AnalysisResult[];
   wardrobeItems: WardrobeItem[];
   activityLog: ActivityEvent[];
   userPreferences: UserPreferences;
   referenceImageUrl: string | null;
 
+  recordAnalysis: (result: AnalysisResult) => void;
+  saveReport: (result: AnalysisResult) => boolean;
   setAnalysisResult: (result: AnalysisResult) => void;
   addWardrobeItem: (item: WardrobeItem) => void;
   addActivityEvent: (event: Omit<ActivityEvent, 'id'>) => void;
@@ -112,11 +116,38 @@ export const useStyleStore = create<StyleStore>()(
   persist(
     (set) => ({
       analysisResult: cachedAnalysis,
+      analysisHistory: [],
+      savedReports: [],
       wardrobeItems: [],
       activityLog: [],
       userPreferences: { displayName: '', theme: 'system' },
       referenceImageUrl: cachedAnalysis?.enhancedImageUrl ?? null,
 
+      recordAnalysis: (result) =>
+        set((state) => ({
+          analysisResult: result,
+          analysisHistory: state.analysisResult
+            ? [
+                ...state.analysisHistory.filter(
+                  (a) => a.analyzedAt !== state.analysisResult?.analyzedAt,
+                ),
+                state.analysisResult,
+              ].slice(0, 5)
+            : state.analysisHistory,
+        })),
+      saveReport: (result) => {
+        let saved = false;
+        set((state) => {
+          if (state.savedReports.some((a) => a.analyzedAt === result.analyzedAt)) {
+            return state;
+          }
+          saved = true;
+          return {
+            savedReports: [result, ...state.savedReports].slice(0, 10),
+          };
+        });
+        return saved;
+      },
       setAnalysisResult: (result) => set({ analysisResult: result }),
       addWardrobeItem: (item) =>
         set((state) => ({ wardrobeItems: [...state.wardrobeItems, item] })),
@@ -135,7 +166,14 @@ export const useStyleStore = create<StyleStore>()(
     }),
     {
       name: 'dfashion_analysis_result',
-      partialize: (state) => ({ analysisResult: state.analysisResult }),
+      partialize: (state) => ({
+        analysisResult: state.analysisResult,
+        analysisHistory: state.analysisHistory,
+        savedReports: state.savedReports,
+        wardrobeItems: state.wardrobeItems,
+        activityLog: state.activityLog,
+        referenceImageUrl: state.referenceImageUrl,
+      }),
     },
   ),
 );

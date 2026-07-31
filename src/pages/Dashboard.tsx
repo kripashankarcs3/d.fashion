@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { Link } from 'wouter';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import { ArrowRight, MessageSquare, Shirt, Sparkles, Upload } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ColorSwatch } from '@/components/ui/color-swatch';
 import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
-import { useStyleStore } from '@/store/useStyleStore';
+import { useStyleStore, type AnalysisResult } from '@/store/useStyleStore';
 import { getSeasonInfo } from '@/lib/colour-data';
 
 const ACTION_LABEL: Record<string, string> = {
@@ -16,12 +17,56 @@ const ACTION_LABEL: Record<string, string> = {
   report: 'Report viewed',
 };
 
+async function copyHex(hex: string) {
+  try {
+    await navigator.clipboard.writeText(hex);
+    toast.success(`Hex copied: ${hex}`);
+  } catch {
+    toast.error('Could not copy the hex value');
+  }
+}
+
+function PaletteRow({ colours }: { colours: { name: string; hex: string }[] }) {
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      {colours.map((colour) => (
+        <button
+          key={colour.hex + colour.name}
+          type="button"
+          onClick={() => void copyHex(colour.hex)}
+          aria-label={`Copy ${colour.name} hex`}
+          title={`${colour.name} · ${colour.hex}`}
+          className="h-7 w-7 rounded-sm shadow-[var(--shadow-swatch)] transition-transform duration-200 ease-out hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-primary"
+          style={{ backgroundColor: colour.hex }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function compareSummary(current: AnalysisResult, previous: AnalysisResult) {
+  const currentSeason = getSeasonInfo(
+    current.colourSeason,
+    current.colorProfile.undertone,
+  );
+  const previousSeason = getSeasonInfo(
+    previous.colourSeason,
+    previous.colorProfile.undertone,
+  );
+  if (previousSeason.season === currentSeason.season) {
+    return `Your season stayed ${currentSeason.season}. Your palette is consistent with your last analysis.`;
+  }
+  return `Your season shifted from ${previousSeason.season} to ${currentSeason.season}. Update your wardrobe staples to your current palette.`;
+}
+
 export default function Dashboard() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   const analysisResult = useStyleStore((s) => s.analysisResult);
+  const analysisHistory = useStyleStore((s) => s.analysisHistory);
+  const savedReports = useStyleStore((s) => s.savedReports);
   const wardrobeItems = useStyleStore((s) => s.wardrobeItems);
   const activityLog = useStyleStore((s) => s.activityLog);
 
@@ -149,6 +194,91 @@ export default function Dashboard() {
                 </div>
               )}
             </section>
+
+            {/* Saved reports */}
+            {savedReports.length > 0 && (
+              <section className="mt-16">
+                <SectionHeading title="Saved Reports" />
+                <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {savedReports.map((report) => {
+                    const reportSeason = getSeasonInfo(
+                      report.colourSeason,
+                      report.colorProfile.undertone,
+                    );
+                    return (
+                      <Card key={report.analyzedAt} variant="report" className="p-8">
+                        <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                          Saved report
+                        </p>
+                        <h3 className="mt-2 font-serif text-[length:var(--text-h5)] text-espresso">
+                          {reportSeason.season}
+                        </h3>
+                        <p className="mt-1 text-[length:var(--text-caption)] text-espresso-muted">
+                          Analysed {format(new Date(report.analyzedAt), 'MMMM yyyy')}
+                        </p>
+                        <PaletteRow colours={reportSeason.palette} />
+                      </Card>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* Compare with previous */}
+            {analysisHistory.length > 0 &&
+              analysisHistory[analysisHistory.length - 1] && (
+                <section className="mt-16">
+                  <SectionHeading title="Compare with Previous" />
+                  <Card variant="report" className="mt-6 p-8">
+                    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
+                      {(() => {
+                        const previous =
+                          analysisHistory[analysisHistory.length - 1];
+                        const previousSeason = getSeasonInfo(
+                          previous.colourSeason,
+                          previous.colorProfile.undertone,
+                        );
+                        return (
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                              Previous analysis
+                            </p>
+                            <h3 className="mt-2 font-serif text-[length:var(--text-h4)] text-espresso">
+                              {previousSeason.season}
+                            </h3>
+                            <p className="mt-1 text-[length:var(--text-caption)] text-espresso-muted">
+                              Analysed{' '}
+                              {format(new Date(previous.analyzedAt), 'MMMM yyyy')}
+                            </p>
+                            <PaletteRow colours={previousSeason.palette} />
+                          </div>
+                        );
+                      })()}
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                          Current analysis
+                        </p>
+                        <h3 className="mt-2 font-serif text-[length:var(--text-h4)] text-espresso">
+                          {seasonInfo.season}
+                        </h3>
+                        <p className="mt-1 text-[length:var(--text-caption)] text-espresso-muted">
+                          Analysed{' '}
+                          {format(new Date(analysisResult.analyzedAt), 'MMMM yyyy')}
+                        </p>
+                        <PaletteRow colours={seasonInfo.palette} />
+                      </div>
+                    </div>
+                    <div className="mt-8 border-t border-border pt-6">
+                      <p className="max-w-2xl text-[length:var(--text-body-sm)] text-espresso-light">
+                        {compareSummary(
+                          analysisResult,
+                          analysisHistory[analysisHistory.length - 1],
+                        )}
+                      </p>
+                    </div>
+                  </Card>
+                </section>
+              )}
 
             {/* Analysis history */}
             <section className="mt-16">

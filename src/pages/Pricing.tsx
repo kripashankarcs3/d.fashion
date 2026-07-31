@@ -185,7 +185,7 @@ export default function Pricing() {
           {PLANS.map((plan) => {
             const annualPayable = plan.monthly === 0 ? 0 : plan.monthly * 10;
             const monthlyEquivalent =
-              plan.monthly === 0 ? 0 : Math.round(annualPayable / 12);
+              plan.monthly === 0 ? 0 : Math.floor(annualPayable / 12);
             const savings =
               plan.monthly === 0 ? 0 : plan.monthly * 12 - annualPayable;
             const price = annual ? monthlyEquivalent : plan.monthly;

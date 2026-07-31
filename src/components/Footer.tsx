@@ -8,7 +8,7 @@ import Container from '@/components/Container';
 const productLinks = [
   { href: '/try-on', label: 'Virtual Try-On' },
   { href: '/report', label: 'Style Report' },
-  { href: '/chat', label: 'AI Stylist' },
+  { href: '/chat', label: 'Stylist' },
   { href: '/pricing', label: 'Pricing' },
 ];
 
@@ -145,7 +145,7 @@ export default function Footer() {
               SSL secured
             </span>
             <span className="text-caption text-cream-primary/60">
-              Powered by YouCam AI
+              Colour rendering by YouCam
             </span>
           </div>
         </div>
