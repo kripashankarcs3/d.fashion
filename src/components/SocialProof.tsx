@@ -1,24 +1,57 @@
-import { motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { Star } from 'lucide-react';
 import Container from '@/components/Container';
 
 const stats = [
   {
-    value: '50,000',
+    value: 50000,
     suffix: '+',
     label: 'colour profiles created',
   },
   {
-    value: '4.9',
+    value: 4.9,
     suffix: '/5',
     label: 'average satisfaction',
   },
   {
-    value: '12',
+    value: 12,
     suffix: '',
     label: 'colour seasons covered',
   },
 ];
+
+function CountUp({ target, suffix }: { target: number; suffix: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.5 });
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    let raf = 0;
+    const duration = 1000;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(target * eased);
+      if (progress < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, target]);
+
+  const formatted = Number.isInteger(target)
+    ? Math.round(value).toLocaleString('en-IN')
+    : (Math.round(value * 10) / 10).toString();
+
+  return (
+    <span ref={ref}>
+      {formatted}
+      {suffix && <span className="align-super text-5xl">{suffix}</span>}
+    </span>
+  );
+}
 
 const testimonials = [
   {
@@ -99,10 +132,7 @@ export default function SocialProof() {
             {stats.map((stat) => (
               <div key={stat.label}>
                 <p className="font-serif text-7xl font-light text-gold-primary">
-                  {stat.value}
-                  {stat.suffix && (
-                    <span className="align-super text-5xl">{stat.suffix}</span>
-                  )}
+                  <CountUp target={stat.value} suffix={stat.suffix} />
                 </p>
                 <p className="mt-2 text-body-sm text-espresso-muted">
                   {stat.label}

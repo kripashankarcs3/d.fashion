@@ -3,7 +3,20 @@ import type { AnalysisResult, WardrobeItem } from '@/store/useStyleStore';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001/api';
 
-export const api = axios.create({ baseURL: BASE });
+export const api = axios.create({ baseURL: BASE, timeout: 30000 });
+
+api.interceptors.request.use((config) => {
+  const raw = localStorage.getItem('dfashion_auth');
+  if (raw) {
+    try {
+      const token = JSON.parse(raw)?.state?.token as string | undefined;
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+    } catch {
+      // Corrupt persisted session — proceed without a token.
+    }
+  }
+  return config;
+});
 
 export const analyzeImage = (
   file: File,
@@ -39,3 +52,11 @@ export const sendChatMessage = (
   message: string,
   context: { analysisResult: AnalysisResult | null; wardrobeItems: WardrobeItem[] }
 ) => api.post<{ reply: string }>('/chat', { message, context });
+
+export const fetchReports = () =>
+  api.get<{
+    history: { _id: string; report: AnalysisResult | null; season?: string; createdAt: string }[];
+  }>('/history');
+
+export const saveReportToCloud = (report: AnalysisResult) =>
+  api.post('/history', { report });

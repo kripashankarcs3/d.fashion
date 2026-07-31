@@ -19,7 +19,7 @@ const startServer = async () => {
     }
 
     const server = app.listen(env.PORT, () => {
-      console.log(`dYs? Server running on http://localhost:${env.PORT}`);
+      console.log(`Server running on http://localhost:${env.PORT}`);
     });
 
     const cleanup = async () => {

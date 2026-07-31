@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { error } from '@/lib/toast';
 import { tryOnClothes, tryOnMakeup, tryOnHair } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
 
@@ -19,7 +19,7 @@ export function useTryOn() {
         timestamp: new Date().toISOString(),
       });
     },
-    onError: () => toast.error('Try-on failed. Please try again.'),
+    onError: () => error('Try-on failed. Please try again.'),
   });
 
   const makeup = useMutation({
@@ -28,7 +28,7 @@ export function useTryOn() {
       if (!url) throw new Error("No reference image.");
       return tryOnMakeup(url, productId);
     },
-    onError: () => toast.error('Makeup try-on failed.'),
+    onError: () => error('Makeup try-on failed.'),
   });
 
   const hair = useMutation({
@@ -37,7 +37,7 @@ export function useTryOn() {
       if (!url) throw new Error("No reference image.");
       return tryOnHair(url, styleId);
     },
-    onError: () => toast.error('Hair try-on failed.'),
+    onError: () => error('Hair try-on failed.'),
   });
 
   return { clothes, makeup, hair };

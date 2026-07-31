@@ -5,6 +5,14 @@ import { Check, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -91,6 +99,21 @@ const PLANS: Plan[] = [
       'Personal style archetypes',
     ],
   },
+];
+
+const COMPARE: { feature: string; starter: boolean; essentials: boolean; atelier: boolean }[] = [
+  { feature: 'Colour season analysis', starter: true, essentials: true, atelier: true },
+  { feature: 'Personal colour palette', starter: true, essentials: true, atelier: true },
+  { feature: 'Skin undertone report', starter: true, essentials: true, atelier: true },
+  { feature: 'Colours to avoid', starter: true, essentials: true, atelier: true },
+  { feature: 'Full wardrobe report', starter: false, essentials: true, atelier: true },
+  { feature: 'Colour palette download', starter: false, essentials: true, atelier: true },
+  { feature: 'Best neutrals guide', starter: false, essentials: true, atelier: true },
+  { feature: 'Saved analysis history', starter: false, essentials: true, atelier: true },
+  { feature: 'Virtual try-on', starter: false, essentials: false, atelier: true },
+  { feature: 'AI stylist chat', starter: false, essentials: false, atelier: true },
+  { feature: 'Priority updates', starter: false, essentials: false, atelier: true },
+  { feature: 'Early access to new features', starter: false, essentials: false, atelier: true },
 ];
 
 const faqs = [
@@ -255,7 +278,10 @@ export default function Pricing() {
                   )}
                 </div>
 
-                <Link href="/upload" className="mt-8">
+                <Link
+                  href={`/signup?plan=${encodeURIComponent(plan.name)}`}
+                  className="mt-8"
+                >
                   <Button
                     variant={plan.popular ? 'primary' : 'secondary'}
                     size="lg"
@@ -295,6 +321,67 @@ export default function Pricing() {
               </motion.div>
             );
           })}
+        </div>
+
+        {/* Feature comparison */}
+        <div className="mx-auto mt-16 w-full max-w-4xl">
+          <h2 className="text-center font-serif text-[length:var(--text-h3)] text-espresso">
+            Compare the Plans
+          </h2>
+          <div className="mt-8 overflow-x-auto rounded-lg border border-border bg-white shadow-card">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border">
+                  <TableHead className="w-[45%] text-left text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-espresso-muted">
+                    Feature
+                  </TableHead>
+                  {PLANS.map((plan) => (
+                    <TableHead
+                      key={plan.name}
+                      className="text-center text-[length:var(--text-caption)] font-medium uppercase tracking-[var(--tracking-label)] text-espresso"
+                    >
+                      {plan.name}
+                      {plan.popular && (
+                        <span className="ml-1 text-gold-primary">· Most Popular</span>
+                      )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {COMPARE.map((row) => (
+                  <TableRow key={row.feature} className="border-border">
+                    <TableCell className="text-[length:var(--text-body-sm)] text-espresso">
+                      {row.feature}
+                    </TableCell>
+                    {[row.starter, row.essentials, row.atelier].map(
+                      (included, index) => (
+                        <TableCell key={index} className="text-center">
+                          {included ? (
+                            <span className="inline-flex items-center justify-center">
+                              <Check
+                                className="h-4 w-4 text-gold-primary"
+                                aria-hidden="true"
+                              />
+                              <span className="sr-only">Included</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center justify-center">
+                              <Minus
+                                className="h-4 w-4 text-espresso-muted/50"
+                                aria-hidden="true"
+                              />
+                              <span className="sr-only">Not included</span>
+                            </span>
+                          )}
+                        </TableCell>
+                      ),
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
 
         {/* What's included */}
@@ -367,7 +454,7 @@ export default function Pricing() {
             Your colour analysis is free forever. Upgrade only when you&rsquo;re
             ready.
           </p>
-          <Link href="/upload" className="mt-8 inline-block">
+          <Link href="/signup?plan=Starter" className="mt-8 inline-block">
             <Button size="lg">Get Started Free</Button>
           </Link>
         </div>

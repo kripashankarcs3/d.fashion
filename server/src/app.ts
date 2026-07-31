@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
@@ -20,7 +21,21 @@ import { env } from "./config/env";
 const app = express();
 
 // Security
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "https://images.unsplash.com",
+          "https://*.youcamcdn.com",
+        ],
+      },
+    },
+  })
+);
 
 // Enable CORS
 const allowedOrigins = env.CLIENT_ORIGIN.split(",")
@@ -53,6 +68,27 @@ app.use("/api/favorites", favoriteRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/recommend", recommendationRoutes);
 app.use("/api/tryon", tryOnRoutes);
+
+// Serve the built frontend if it exists (production deployments)
+const distDir = path.join(__dirname, "../../dist");
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir));
+}
+
+// SPA fallback: unknown GET routes serve index.html, API routes return 404
+app.use((req, res) => {
+  if (req.method !== "GET" || req.path.startsWith("/api/")) {
+    res.status(404).json({ success: false, message: "Endpoint not found" });
+    return;
+  }
+  const indexHtml = path.join(distDir, "index.html");
+  if (fs.existsSync(indexHtml)) {
+    res.sendFile(indexHtml);
+    return;
+  }
+  res.status(404).send("Not found");
+});
+
 app.use(errorHandler);
 
 export default app;

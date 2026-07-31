@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import sharp from "sharp";
 
 const TMP_DIR = path.resolve(__dirname, "../../tmp");
@@ -44,6 +45,18 @@ export class ImageService {
     }
   }
 
+  static async saveRemoteImage(url: string, prefix: string) {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Failed to download remote image: HTTP ${res.status}`);
+    }
+    const buf = Buffer.from(await res.arrayBuffer());
+
+    const outputPath = path.join(TMP_DIR, `${prefix}-${crypto.randomUUID()}.jpg`);
+    await sharp(buf).jpeg({ quality: 92 }).toFile(outputPath);
+    return outputPath;
+  }
+
   static async cleanupStaleUploads(maxAgeMs: number) {
     let files: string[];
     try {
@@ -53,7 +66,7 @@ export class ImageService {
     }
 
     const now = Date.now();
-    const stale = files.filter((f) => /^optimized-.+\.(jpg|jpeg|png)$/i.test(f));
+    const stale = files.filter((f) => /^(optimized|enhanced)-.+\.(jpg|jpeg|png)$/i.test(f));
 
     let removed = 0;
     for (const f of stale) {

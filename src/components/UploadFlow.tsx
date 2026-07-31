@@ -10,6 +10,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 10 * 1024 * 1024;
@@ -65,6 +73,132 @@ function errorMessageFor(err: unknown): string {
   return message ?? 'Something went wrong on our end. Please try again in a moment.';
 }
 
+function CameraCapture({
+  onCapture,
+  onCancel,
+  onFallback,
+}: {
+  onCapture: (file: File) => void;
+  onCancel: () => void;
+  onFallback: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+  const [capturing, setCapturing] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function start() {
+      try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error('Camera API unavailable');
+        }
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: false,
+        });
+        if (cancelled) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+        setReady(true);
+      } catch {
+        if (!cancelled) {
+          setError('Camera unavailable. Please allow camera access, or use your system camera instead.');
+        }
+      }
+    }
+    void start();
+    return () => {
+      cancelled = true;
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    };
+  }, []);
+
+  const handleCapture = () => {
+    const video = videoRef.current;
+    if (!video || !ready) return;
+    setCapturing(true);
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      setCapturing(false);
+      return;
+    }
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (blob) {
+        onCapture(new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' }));
+      }
+      setCapturing(false);
+    }, 'image/jpeg', 0.92);
+  };
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onCancel(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Take a photo</DialogTitle>
+          <DialogDescription>
+            Face the camera in natural light, with your face fully visible.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md border border-border bg-espresso">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="h-full w-full object-cover"
+          />
+          {!ready && !error && (
+            <div className="absolute inset-0 flex items-center justify-center text-cream-primary/70">
+              Starting camera…
+            </div>
+          )}
+        </div>
+
+        {error && (
+          <p role="alert" className="text-[length:var(--text-body-sm)] text-error">
+            {error}
+          </p>
+        )}
+
+        <div className="flex items-center justify-center gap-4">
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            Cancel
+          </Button>
+          {error ? (
+            <Button type="button" onClick={onFallback}>
+              Use system camera
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleCapture}
+              disabled={!ready}
+              loading={capturing}
+            >
+              Capture
+            </Button>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function UploadFlow() {
   const inputRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -72,6 +206,7 @@ export default function UploadFlow() {
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previousPhoto, setPreviousPhoto] = useState<string | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const { mutate, isPending, isError, error: mutationError, reset, uploadProgress } = useAnalysis();
 
   useEffect(() => {
@@ -301,7 +436,7 @@ export default function UploadFlow() {
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
           <button
             type="button"
-            onClick={() => cameraRef.current?.click()}
+            onClick={() => setCameraOpen(true)}
             className="inline-flex min-h-11 items-center gap-2 text-nav text-espresso-light transition-colors duration-200 ease-out hover:text-espresso hover:underline"
           >
             <Camera className="h-4 w-4 text-gold-primary" aria-hidden="true" />
@@ -318,6 +453,20 @@ export default function UploadFlow() {
             </button>
           )}
         </div>
+      )}
+
+      {cameraOpen && (
+        <CameraCapture
+          onCapture={(file) => {
+            setCameraOpen(false);
+            handleFile(file);
+          }}
+          onCancel={() => setCameraOpen(false)}
+          onFallback={() => {
+            setCameraOpen(false);
+            cameraRef.current?.click();
+          }}
+        />
       )}
 
       {/* Guidelines accordion */}

@@ -113,22 +113,77 @@ class YouCamService {
 
   // ── Skin Analysis ──
 
+  private static readonly SKIN_BASE_ACTIONS = [
+    "acne", "wrinkle", "pore",
+    "redness", "eye_bag", "texture",
+  ];
+
+  private static readonly SKIN_EXTENDED_ACTIONS = [
+    ...YouCamService.SKIN_BASE_ACTIONS,
+    "oiliness", "moisture", "firmness", "radiance",
+    "age_spot", "dark_circle", "skin_type",
+  ];
+
   async analyzeSkin(filePath: string) {
     const fileId = await this.uploadAndGetFileId("skin-analysis", filePath);
 
-    const task = await this.startTask("skin-analysis", {
+    const run = async (dstActions: string[]) => {
+      const task = await this.startTask("skin-analysis", {
+        src_file_id: fileId,
+        dst_actions: dstActions,
+        format: "json",
+      });
+
+      const taskId = task?.data?.task_id;
+      if (!taskId) throw new Error("Failed to start skin-analysis task");
+
+      return this.pollTaskResult("skin-analysis", taskId, 60, 3000);
+    };
+
+    try {
+      // Ask for the full concern set; fall back to the base six if the
+      // extended actions are rejected (validation errors do not cost units).
+      return await run(YouCamService.SKIN_EXTENDED_ACTIONS);
+    } catch (err: any) {
+      const msg = String(err?.message ?? "");
+      if (/invalid|action|parameter|not.?support|unknown|fail/i.test(msg)) {
+        return run(YouCamService.SKIN_BASE_ACTIONS);
+      }
+      throw err;
+    }
+  }
+
+  // ── AI Facial Color Tones Analyzer ──
+
+  async analyzeColorTones(filePath: string) {
+    const fileId = await this.uploadAndGetFileId("skin-tone-analysis", filePath);
+
+    const task = await this.startTask("skin-tone-analysis", {
       src_file_id: fileId,
-      dst_actions: [
-        "acne", "wrinkle", "pore",
-        "redness", "eye_bag", "texture",
-      ],
-      format: "json",
     });
 
     const taskId = task?.data?.task_id;
-    if (!taskId) throw new Error("Failed to start skin-analysis task");
+    if (!taskId) throw new Error("Failed to start skin-tone-analysis task");
 
-    return this.pollTaskResult("skin-analysis", taskId, 60, 3000);
+    const result = await this.pollTaskResult("skin-tone-analysis", taskId, 60, 3000);
+    return result?.data?.results ?? null;
+  }
+
+  // ── AI Photo Enhance ──
+
+  async enhancePhoto(filePath: string, scale = 1) {
+    const fileId = await this.uploadAndGetFileId("enhance", filePath);
+
+    const task = await this.startTask("enhance", {
+      src_file_id: fileId,
+      scale,
+    });
+
+    const taskId = task?.data?.task_id;
+    if (!taskId) throw new Error("Failed to start enhance task");
+
+    const result = await this.pollTaskResult("enhance", taskId, 60, 3000);
+    return result?.data?.results?.url ?? null;
   }
 
   // ── Try-On methods (URL-based — works with public image URLs) ──

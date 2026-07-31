@@ -68,7 +68,7 @@ export default function Hero() {
             alt="A woman in a neutral-toned outfit, photographed in warm natural light against a cream background"
             width={1600}
             height={2000}
-            fetchPriority="high"
+            fetchpriority="high"
             loading="eager"
             decoding="async"
             className="aspect-[3/4] h-full w-full object-cover lg:aspect-auto"

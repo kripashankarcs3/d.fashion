@@ -1,13 +1,16 @@
 import { Router } from "express";
+import { generateStylistReply, StylistContext } from "../services/stylist.service";
 
 const router = Router();
 
-router.post("/", (_req, res) => {
-  res.json({
-    success: true,
-    reply:
-      "Hello! I'm your AI Beauty Assistant. Ask me anything about skincare, makeup or fashion.",
-  });
+router.post("/", (req, res) => {
+  const { message, context } = (req.body ?? {}) as {
+    message?: string;
+    context?: StylistContext;
+  };
+
+  const reply = generateStylistReply(message ?? "", context);
+  res.json({ success: true, reply });
 });
 
 export default router;

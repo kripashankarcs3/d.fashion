@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
-import { toast } from 'sonner';
+import { success, error } from '@/lib/toast';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Bookmark, Check, Copy, Share2, X } from 'lucide-react';
+import { Bookmark, Check, Copy, Printer, Share2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   ColorSwatch,
   type ColorSwatchItem,
@@ -59,24 +64,50 @@ function Section({ label, title, children }: SectionProps) {
 }
 
 function AvoidSwatch({ colour }: { colour: ColourItem }) {
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(colour.hex);
+      success(`${colour.name} hex copied`);
+    } catch {
+      error('Could not copy the hex value');
+    }
+  };
+
   return (
-    <div className="group inline-flex flex-col items-start gap-1.5">
-      <span
-        aria-hidden="true"
-        className="block h-20 w-20 rounded-md shadow-[var(--shadow-swatch)]"
-        style={{
-          backgroundColor: colour.hex,
-          backgroundImage:
-            'linear-gradient(to top right, transparent calc(50% - 1px), rgba(192,57,43,0.75) calc(50% - 1px), rgba(192,57,43,0.75) calc(50% + 1px), transparent calc(50% + 1px))',
-        }}
-      />
-      <span className="text-[length:var(--text-caption)] text-espresso-muted">
-        {colour.name}
-      </span>
-      <span className="text-[length:var(--text-micro)] tabular-nums text-espresso-muted/70">
-        {colour.hex}
-      </span>
-    </div>
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={() => void handleCopy()}
+          aria-label={`${colour.name}, hex ${colour.hex}, avoid`}
+          className="group inline-flex flex-col items-start gap-1.5 rounded-md transition-colors duration-[var(--duration-fast)] ease-out"
+        >
+          <span
+            aria-hidden="true"
+            className="block h-20 w-20 rounded-md shadow-[var(--shadow-swatch)] transition-[transform,box-shadow] duration-[var(--duration-fast)] ease-out group-hover:scale-[1.03] group-hover:shadow-[var(--shadow-swatch-hover)] group-focus-visible:scale-[1.03] group-focus-visible:shadow-[var(--shadow-swatch-hover)]"
+            style={{
+              backgroundColor: colour.hex,
+              backgroundImage:
+                'linear-gradient(to top right, transparent calc(50% - 1px), rgba(192,57,43,0.75) calc(50% - 1px), rgba(192,57,43,0.75) calc(50% + 1px), transparent calc(50% + 1px))',
+            }}
+          />
+          <span className="text-[length:var(--text-caption)] text-espresso-muted">
+            {colour.name}
+          </span>
+          <span className="text-[length:var(--text-micro)] tabular-nums text-espresso-muted/70">
+            {colour.hex}
+          </span>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent
+        className="flex flex-col gap-0.5 text-[length:var(--text-label)]"
+        side="top"
+      >
+        <span className="font-medium text-espresso">{colour.name}</span>
+        <span className="text-espresso-muted">{colour.hex}</span>
+        <span className="text-espresso-muted">Avoid — keep away from your face</span>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -172,18 +203,18 @@ export default function Report() {
       await navigator.clipboard.writeText(colour.hex);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
-      toast.success(`${colour.name} hex copied`);
+      success(`${colour.name} hex copied`);
     } catch {
-      toast.error('Could not copy the hex value');
+      error('Could not copy the hex value');
     }
   };
 
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success('Report link copied to clipboard');
+      success('Report link copied to clipboard');
     } catch {
-      toast.error('Could not copy the link');
+      error('Could not copy the link');
     }
   };
 
@@ -191,19 +222,23 @@ export default function Report() {
     if (!analysisResult) return;
     const didSave = saveReport(analysisResult);
     setSaved(true);
-    toast.success(
+    success(
       didSave
         ? 'Report saved to your dashboard'
         : 'Report is already on your dashboard',
     );
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="w-full pt-16 pb-28">
       <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-12 print:grid-cols-1">
           {/* Left column — sticky colour profile card */}
-          <aside className="lg:sticky lg:top-24">
+          <aside className="lg:sticky lg:top-24 print:static">
             <Card variant="report" className="p-8">
               {analysisResult.enhancedImageUrl && (
                 <div className="mb-6 overflow-hidden rounded-md border border-border">
@@ -271,6 +306,10 @@ export default function Report() {
                   <Share2 aria-hidden="true" />
                   Share Report
                 </Button>
+                <Button variant="ghost" className="w-full" onClick={handlePrint}>
+                  <Printer aria-hidden="true" />
+                  Print / Save as PDF
+                </Button>
               </div>
             </Card>
           </aside>
@@ -282,9 +321,14 @@ export default function Report() {
               <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
                 Your Colour Season
               </p>
-              <h1 className="mt-3 font-serif text-[40px] leading-[1.05] text-espresso md:text-[64px]">
+              <motion.h1
+                initial={{ clipPath: 'inset(0 0 100% 0)', opacity: 0.001 }}
+                animate={{ clipPath: 'inset(0 0 0% 0)', opacity: 1 }}
+                transition={{ duration: 0.9, ease: [0, 0, 0.2, 1] }}
+                className="mt-3 font-serif text-[40px] leading-[1.05] text-espresso md:text-[64px]"
+              >
                 {seasonInfo.season}
-              </h1>
+              </motion.h1>
               <p className="mt-3 font-serif text-[length:var(--text-h5)] italic text-espresso-light">
                 {seasonInfo.tagline}
               </p>
@@ -502,6 +546,15 @@ export default function Report() {
                 >
                   <Share2 aria-hidden="true" />
                   Share Report
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-cream-primary/40 bg-transparent text-cream-primary hover:bg-cream-primary/10 hover:text-cream-primary"
+                  onClick={handlePrint}
+                >
+                  <Printer aria-hidden="true" />
+                  Print / Save as PDF
                 </Button>
                 <Button
                   variant="ghost"

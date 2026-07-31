@@ -20,7 +20,7 @@ export default function FinalCTA() {
         <div className="mt-10">
           <Link
             href="/upload"
-            className="inline-flex min-h-11 min-w-[var(--size-cta-min-width)] items-center justify-center rounded-md bg-gold-light px-10 py-3.5 text-nav font-semibold tracking-button text-espresso transition-all duration-200 ease-out hover:scale-[1.01] hover:bg-gold-primary hover:shadow-cta-hover active:scale-[0.98] active:bg-gold-dark"
+            className="inline-flex min-h-11 min-w-[var(--size-cta-min-width)] items-center justify-center rounded-md bg-primary px-10 py-3.5 text-nav font-semibold tracking-button text-primary-foreground transition-all duration-200 ease-out hover:scale-[1.01] hover:bg-gold-light hover:shadow-cta-hover active:scale-[0.98] active:bg-gold-dark"
           >
             Start for Free
           </Link>
