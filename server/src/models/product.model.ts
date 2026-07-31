@@ -59,6 +59,11 @@ const ProductSchema = new Schema<IProduct>(
   }
 );
 
+ProductSchema.index({ category: 1 });
+ProductSchema.index({ name: "text", brand: "text", category: "text" });
+ProductSchema.index({ skinType: 1 });
+ProductSchema.index({ skinTone: 1 });
+
 export default mongoose.model<IProduct>(
   "Product",
   ProductSchema

@@ -3,8 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import AppShell from '@/components/AppShell';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 import Home from '@/pages/Home';
@@ -32,36 +31,35 @@ const PageFallback = () => (
 
 function Router() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-1">
-        <Suspense fallback={<PageFallback />}>
-          <Switch>
-            <Route path="/" component={Home} />
-            <Route path="/upload">
-              <ErrorBoundary pageName="Upload"><Upload /></ErrorBoundary>
-            </Route>
-            <Route path="/dashboard">
-              <ErrorBoundary pageName="Dashboard"><Dashboard /></ErrorBoundary>
-            </Route>
-            <Route path="/report">
-              <ErrorBoundary pageName="Report"><Report /></ErrorBoundary>
-            </Route>
-            <Route path="/chat">
-              <ErrorBoundary pageName="AI Stylist"><Chat /></ErrorBoundary>
-            </Route>
-            <Route path="/tryon">
-              <ErrorBoundary pageName="Try-On"><TryOn /></ErrorBoundary>
-            </Route>
-            <Route path="/pricing">
-              <ErrorBoundary pageName="Pricing"><Pricing /></ErrorBoundary>
-            </Route>
-            <Route component={NotFound} />
-          </Switch>
-        </Suspense>
-      </main>
-      <Footer />
-    </div>
+    <AppShell>
+      <Suspense fallback={<PageFallback />}>
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/upload">
+            <ErrorBoundary pageName="Upload"><Upload /></ErrorBoundary>
+          </Route>
+          <Route path="/report">
+            <ErrorBoundary pageName="Report"><Report /></ErrorBoundary>
+          </Route>
+          <Route path="/try-on">
+            <ErrorBoundary pageName="Try-On"><TryOn /></ErrorBoundary>
+          </Route>
+          <Route path="/tryon">
+            <ErrorBoundary pageName="Try-On"><TryOn /></ErrorBoundary>
+          </Route>
+          <Route path="/chat">
+            <ErrorBoundary pageName="D'Style"><Chat /></ErrorBoundary>
+          </Route>
+          <Route path="/dashboard">
+            <ErrorBoundary pageName="Dashboard"><Dashboard /></ErrorBoundary>
+          </Route>
+          <Route path="/pricing">
+            <ErrorBoundary pageName="Pricing"><Pricing /></ErrorBoundary>
+          </Route>
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
+    </AppShell>
   );
 }
 

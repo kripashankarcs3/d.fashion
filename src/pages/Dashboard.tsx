@@ -1,200 +1,264 @@
 import { useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Link } from 'wouter';
-import { formatDistanceToNow } from 'date-fns';
-import DashboardPreview from '@/components/DashboardPreview';
+import { format } from 'date-fns';
+import { ArrowRight, MessageSquare, Shirt, Sparkles, Upload } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ColorSwatch } from '@/components/ui/color-swatch';
 import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
 import { useStyleStore } from '@/store/useStyleStore';
-import { Layers, Star, Shirt, TrendingUp, Plus, BarChart2, ArrowRight, Search, Bell, Filter } from 'lucide-react';
+import { getSeasonInfo } from '@/lib/colour-data';
+
+const ACTION_LABEL: Record<string, string> = {
+  upload: 'Colour analysis',
+  tryon: 'Virtual try-on',
+  chat: 'Stylist conversation',
+  report: 'Report viewed',
+};
 
 export default function Dashboard() {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
+  const analysisResult = useStyleStore((s) => s.analysisResult);
   const wardrobeItems = useStyleStore((s) => s.wardrobeItems);
   const activityLog = useStyleStore((s) => s.activityLog);
-  const analysisResult = useStyleStore((s) => s.analysisResult);
-  const userPreferences = useStyleStore((s) => s.userPreferences);
 
-  const totalItems = wardrobeItems.length;
-  const styleScore = analysisResult ? 87 : 0;
+  const seasonInfo = analysisResult
+    ? getSeasonInfo(analysisResult.colourSeason, analysisResult.colorProfile.undertone)
+    : null;
 
-  const stats = [
-    { label: 'Total Items', value: String(totalItems), icon: Layers, change: `${totalItems} items in wardrobe` },
-    { label: 'Style Score', value: String(styleScore), icon: Star, change: analysisResult ? 'Analysis complete' : 'Upload to get score' },
-    { label: 'Outfits Created', value: '0', icon: Shirt, change: 'Coming soon' },
-    { label: 'Trend Match', value: analysisResult ? 'Available' : '--', icon: TrendingUp, change: 'Based on your analysis' },
-  ];
-
-  const recentItems = activityLog.slice(0, 10);
+  const history = activityLog.slice(0, 8);
 
   return (
-    <div className="w-full overflow-hidden">
-      {/* Page Header */}
-      <section className="pt-36 pb-10 bg-background border-b border-border relative">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-primary/5 rounded-full blur-[120px] -translate-y-1/3 translate-x-1/4" />
-        </div>
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <p className="text-primary font-accent text-sm font-bold tracking-widest mb-2">YOUR DIGITAL ATELIER</p>
-              <h1 className="text-4xl md:text-5xl font-serif text-foreground">
-                Welcome back,{' '}
-                <span className="italic text-gradient-gold">
-                  {userPreferences.displayName || 'Your Wardrobe'}
-                </span>
-              </h1>
-              <p className="text-muted-foreground font-accent mt-2">
-                {totalItems > 0
-                  ? 'Your wardrobe is performing exceptionally this week.'
-                  : 'Upload your first item to get started.'}
-              </p>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex gap-3">
-              <Link href="/upload" className="flex items-center gap-2 bg-foreground text-background px-5 py-2.5 rounded-full font-accent text-sm font-medium hover:bg-foreground/90 transition-colors">
-                <Plus className="w-4 h-4" /> Add Items
-              </Link>
-              <Link href="/report" className="flex items-center gap-2 glass-panel px-5 py-2.5 rounded-full font-accent text-sm font-medium hover:bg-white/60 transition-colors">
-                <BarChart2 className="w-4 h-4" /> View Report
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Row */}
-      <section className="py-8 bg-secondary/20 border-b border-border">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((stat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className="glass-panel p-5 rounded-2xl"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider font-accent">{stat.label}</span>
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <stat.icon className="w-4 h-4 text-primary" />
-                  </div>
-                </div>
-                <div className="text-3xl font-serif text-foreground mb-1">{stat.value}</div>
-                <div className="text-xs text-primary font-accent font-medium">{stat.change}</div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Color profile swatch when analysis exists */}
-          {analysisResult && (
-            <div className="mt-4 flex items-center gap-4 glass-panel p-4 rounded-2xl">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider font-accent">Skin Tone</span>
-              <div
-                className="w-10 h-10 rounded-full border-2 border-border"
-                style={{ backgroundColor: analysisResult.colorProfile.skinToneHex }}
-              />
-              <span className="font-accent text-sm text-muted-foreground">{analysisResult.colorProfile.skinToneHex}</span>
-              <span className="text-xs font-accent text-muted-foreground">|</span>
-              <span className="text-xs font-accent capitalize text-muted-foreground">{analysisResult.colorProfile.undertone} undertone</span>
-              <span className="text-xs font-accent text-muted-foreground">|</span>
-              <span className="text-xs font-accent text-muted-foreground">Eyes: {analysisResult.colorProfile.eyeColor}</span>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Empty state when no wardrobe items */}
-      {wardrobeItems.length === 0 && (
-        <section className="py-16 bg-background">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="glass-panel p-12 rounded-3xl">
+    <div className="w-full pt-28 pb-24">
+      <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
+        {!analysisResult || !seasonInfo ? (
+          <>
+            <Card variant="report" className="p-8">
               <EmptyAnalysisState
-                title="Your wardrobe is empty"
-                description="Upload your clothing items to build your digital atelier and unlock personalized style insights."
+                title="Your colour identity is waiting"
+                description="Upload your first photo to begin. Your season, palette, and saved looks will live here."
               />
+            </Card>
+
+            <QuickActions />
+          </>
+        ) : (
+          <>
+            {/* Header */}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                Your Colour Identity
+              </p>
+              <h1 className="mt-3 font-serif text-[length:var(--text-h2)] text-espresso">
+                {seasonInfo.season}
+              </h1>
+              <p className="mt-3 text-[length:var(--text-body-sm)] text-espresso-light">
+                Analysed {format(new Date(analysisResult.analyzedAt), 'MMMM yyyy')} ·{' '}
+                {analysisResult.colorProfile.undertone} undertone
+              </p>
             </div>
-          </div>
-        </section>
-      )}
 
-      {/* Main Dashboard Preview */}
-      {wardrobeItems.length > 0 && <DashboardPreview />}
+            {/* Full colour palette */}
+            <section className="mt-12">
+              <SectionHeading title="Your Colour Palette" />
+              <Card variant="report" className="mt-6 p-8">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+                  {seasonInfo.palette.map((colour) => (
+                    <ColorSwatch key={colour.hex + colour.name} {...colour} />
+                  ))}
+                </div>
+              </Card>
+            </section>
 
-      {/* Recent Activity + Quick Actions */}
-      <section className="py-16 bg-background">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Saved items */}
+            <section className="mt-16">
+              <div className="flex items-end justify-between gap-4">
+                <SectionHeading title="Saved Looks" />
+                <Link
+                  href="/try-on"
+                  className="inline-flex min-h-11 items-center gap-2 text-nav text-espresso-light transition-colors duration-200 ease-out hover:text-espresso hover:underline"
+                >
+                  Try on new looks
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
 
-            {/* Recent Activity */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="glass-panel p-8 rounded-3xl"
-            >
-              <h3 className="font-serif text-2xl mb-6">Recent Activity</h3>
-              {recentItems.length === 0 ? (
-                <p className="text-muted-foreground font-accent text-sm">No activity yet. Upload a selfie or explore the app to get started.</p>
+              {wardrobeItems.length === 0 ? (
+                <Card variant="report" className="mt-6 p-8">
+                  <p className="font-serif text-[length:var(--text-h5)] text-espresso">
+                    No saved looks yet.
+                  </p>
+                  <p className="mt-2 max-w-md text-[length:var(--text-body-sm)] text-espresso-light">
+                    When you try on an outfit, save it here to build your
+                    personal wardrobe archive.
+                  </p>
+                  <Link href="/try-on" className="mt-6 inline-block">
+                    <Button variant="secondary" size="lg">
+                      Explore Virtual Try-On
+                    </Button>
+                  </Link>
+                </Card>
               ) : (
-                <div className="space-y-4">
-                  {recentItems.map((item) => (
-                    <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
-                      <div className="w-10 h-10 rounded-full flex-shrink-0 border border-border" style={{ backgroundColor: (item.color ?? '#C9A84C') + '30' }}>
-                        <div className="w-full h-full rounded-full flex items-center justify-center">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color ?? '#C9A84C' }} />
+                <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {wardrobeItems.map((item) => (
+                    <Card
+                      key={item.id}
+                      variant="report"
+                      className="overflow-hidden p-0"
+                    >
+                      {item.imageUrl && (
+                        <div className="aspect-[4/5] w-full overflow-hidden border-b border-border">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            width={480}
+                            height={600}
+                            loading="lazy"
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
                         </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          <span className="text-muted-foreground font-accent capitalize">{item.action}: </span>{item.label}
+                      )}
+                      <div className="p-8 pt-6">
+                        <p className="font-serif text-[length:var(--text-h5)] text-espresso">
+                          {item.name}
                         </p>
-                        <p className="text-xs text-muted-foreground font-accent">
-                          {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+                        <p className="mt-1 text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-espresso-muted">
+                          {item.category}
                         </p>
+                        {item.palette.length > 0 && (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {item.palette.map((hex) => (
+                              <span
+                                key={hex}
+                                aria-hidden="true"
+                                className="h-6 w-6 rounded-sm shadow-[var(--shadow-swatch)]"
+                                style={{ backgroundColor: hex }}
+                              />
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    </Card>
                   ))}
                 </div>
               )}
-            </motion.div>
+            </section>
 
-            {/* Quick Actions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="space-y-4"
-            >
-              <h3 className="font-serif text-2xl mb-6">Quick Actions</h3>
-              {[
-                { href: '/tryon', title: 'Virtual Try-On', desc: 'Try outfits before buying', icon: '👗' },
-                { href: '/chat', title: 'Ask AI Stylist', desc: 'Get personalized advice', icon: '✨' },
-                { href: '/report', title: 'Weekly Report', desc: 'View your style analytics', icon: '📊' },
-                { href: '/upload', title: 'Add New Items', desc: 'Expand your wardrobe', icon: '➕' },
-              ].map((action, i) => (
-                <Link key={i} href={action.href}>
-                  <motion.div
-                    whileHover={{ x: 4 }}
-                    className="glass-panel p-5 rounded-2xl flex items-center gap-4 cursor-pointer hover:border-primary/40 transition-colors group"
-                  >
-                    <div className="text-2xl w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      {action.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-serif text-lg">{action.title}</h4>
-                      <p className="text-sm text-muted-foreground font-accent">{action.desc}</p>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                  </motion.div>
-                </Link>
-              ))}
-            </motion.div>
+            {/* Analysis history */}
+            <section className="mt-16">
+              <SectionHeading title="Analysis History" />
+              <Card variant="report" className="mt-6 p-8">
+                {history.length === 0 ? (
+                  <p className="text-[length:var(--text-body-sm)] text-espresso-light">
+                    Your analysis history will appear here after your next
+                    analysis.
+                  </p>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {history.map((event) => (
+                      <li
+                        key={event.id}
+                        className="flex items-center gap-4 py-4 first:pt-0 last:pb-0"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-cream-dark text-gold-primary"
+                        >
+                          {event.action === 'upload' ? (
+                            <Sparkles className="h-4 w-4" />
+                          ) : event.action === 'tryon' ? (
+                            <Shirt className="h-4 w-4" />
+                          ) : event.action === 'chat' ? (
+                            <MessageSquare className="h-4 w-4" />
+                          ) : (
+                            <Sparkles className="h-4 w-4" />
+                          )}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[length:var(--text-body-sm)] font-medium text-espresso">
+                            {event.label}
+                          </p>
+                          <p className="text-[length:var(--text-caption)] text-espresso-muted">
+                            {ACTION_LABEL[event.action] ?? 'Activity'}
+                          </p>
+                        </div>
+                        <time
+                          className="shrink-0 text-[length:var(--text-caption)] tabular-nums text-espresso-muted"
+                          dateTime={event.timestamp}
+                        >
+                          {format(new Date(event.timestamp), 'MMM yyyy')}
+                        </time>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+            </section>
 
-          </div>
-        </div>
-      </section>
+            <QuickActions />
+          </>
+        )}
+      </div>
     </div>
+  );
+}
+
+function SectionHeading({ title }: { title: string }) {
+  return (
+    <h2 className="font-serif text-[length:var(--text-h3)] text-espresso">
+      {title}
+    </h2>
+  );
+}
+
+function QuickActions() {
+  const actions = [
+    { href: '/upload', title: 'New Analysis', description: 'Upload another selfie', icon: Upload },
+    { href: '/try-on', title: 'Virtual Try-On', description: 'See colours on you', icon: Shirt },
+    { href: '/chat', title: 'AI Stylist', description: 'Get personalised advice', icon: MessageSquare },
+    { href: '/report', title: 'Full Report', description: 'Revisit your analysis', icon: Sparkles },
+  ];
+
+  return (
+    <section className="mt-16">
+      <SectionHeading title="Quick Actions" />
+      <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {actions.map((action) => (
+          <Link key={action.href} href={action.href}>
+            <Card
+              variant="report"
+              interactive
+              className="group flex h-full flex-col p-8"
+            >
+              <span
+                aria-hidden="true"
+                className="flex h-11 w-11 items-center justify-center rounded-md bg-cream-dark text-gold-primary transition-colors duration-200 ease-out group-hover:bg-gold-primary group-hover:text-espresso"
+              >
+                <action.icon className="h-5 w-5" />
+              </span>
+              <h3 className="mt-6 font-serif text-[length:var(--text-h5)] text-espresso">
+                {action.title}
+              </h3>
+              <p className="mt-1 text-[length:var(--text-body-sm)] text-espresso-light">
+                {action.description}
+              </p>
+              <span className="mt-4 inline-flex items-center gap-1.5 text-nav text-gold-primary">
+                Open
+                <ArrowRight
+                  className="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
+              </span>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }

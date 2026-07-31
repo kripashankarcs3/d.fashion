@@ -1,86 +1,226 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Sparkles } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import Container from '@/components/Container';
 
 const navLinks = [
-  { href: '/upload', label: 'How It Works' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/tryon', label: 'Try-On' },
-  { href: '/report', label: 'Reports' },
-  { href: '/chat', label: 'AI Stylist' },
+  { href: '/try-on', label: 'Try On' },
+  { href: '/chat', label: 'Chat' },
   { href: '/pricing', label: 'Pricing' },
+  { href: '/dashboard', label: 'Dashboard' },
 ];
+
+const drawerVariants = {
+  open: { x: 0, transition: { duration: 0.35, ease: [0, 0, 0.2, 1] } },
+  closed: { x: '100%', transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } },
+};
+
+function Hamburger({ open }: { open: boolean }) {
+  return (
+    <span aria-hidden="true" className="relative block h-[18px] w-6">
+      <span
+        className={cn(
+          'absolute left-0 top-0 h-0.5 w-6 bg-current transition-transform duration-300 ease-out',
+          open && 'top-1/2 -translate-y-1/2 rotate-45',
+        )}
+      />
+      <span
+        className={cn(
+          'absolute left-0 top-1/2 h-0.5 w-6 -translate-y-1/2 bg-current transition-opacity duration-300 ease-out',
+          open && 'opacity-0',
+        )}
+      />
+      <span
+        className={cn(
+          'absolute bottom-0 left-0 h-0.5 w-6 bg-current transition-transform duration-300 ease-out',
+          open && 'bottom-1/2 translate-y-1/2 -rotate-45',
+        )}
+      />
+    </span>
+  );
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [location] = useLocation();
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
-    setMobileMenuOpen(false);
+    setMenuOpen(false);
   }, [location]);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        return;
+      }
+      if (event.key !== 'Tab' || !drawerRef.current) return;
+      const focusable = Array.from(
+        drawerRef.current.querySelectorAll<HTMLElement>('a[href], button'),
+      ).filter((el) => !el.hasAttribute('disabled'));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
+
   return (
-    <header className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? 'py-4' : 'py-6'}`}>
-      <div className="max-w-7xl mx-auto px-6">
-        <nav className={`glass-panel rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${scrolled ? 'shadow-lg shadow-black/5' : ''}`}>
-          <Link href="/" className="flex items-center gap-2 group cursor-pointer z-50">
-            <div className="relative w-8 h-8 flex items-center justify-center rounded-full bg-foreground text-background overflow-hidden">
-              <span className="font-serif text-xl font-bold relative z-10">D</span>
-              <motion.div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </div>
-            <span className="font-serif text-xl tracking-wide font-medium">DeeStyle</span>
-            <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+    <header
+      className={cn(
+        'fixed inset-x-0 top-0 z-[var(--z-navbar)] transition-[background-color,backdrop-filter] duration-300 ease-out',
+        scrolled
+          ? 'bg-cream-primary/80 backdrop-blur-[20px]'
+          : 'bg-transparent',
+      )}
+    >
+      <Container>
+        <nav className="flex h-18 items-center justify-between" aria-label="Primary">
+          <Link
+            href="/"
+            className="flex items-center gap-3"
+            aria-label="D'Fashion — home"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-cream-dark">
+              <span className="font-editorial text-xl font-medium leading-none text-espresso">
+                D
+              </span>
+            </span>
+            <span
+              className="whitespace-nowrap font-editorial text-wordmark leading-none font-medium text-espresso"
+              style={{ width: 'var(--size-wordmark)' }}
+            >
+              D&rsquo;Fashion
+            </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-accent transition-colors ${location === link.href ? 'text-primary font-medium' : 'text-foreground hover:text-primary'}`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <div className="hidden items-center lg:flex lg:gap-8">
+            {navLinks.map((link) => {
+              const active = location === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'group relative inline-flex min-h-11 items-center text-nav text-espresso-light transition-colors duration-200 ease-out hover:text-espresso',
+                  )}
+                >
+                  {link.label}
+                  <span
+                    className={cn(
+                      'absolute inset-x-0 bottom-0 h-px origin-left bg-gold-primary transition-transform duration-200 ease-out',
+                      active
+                        ? 'scale-x-100'
+                        : 'scale-x-0 group-hover:scale-x-100',
+                    )}
+                  />
+                </Link>
+              );
+            })}
           </div>
 
-          <div className="hidden md:flex items-center">
-            <Link href="/upload" className="relative group overflow-hidden rounded-full bg-foreground text-background px-6 py-2.5 text-sm font-accent tracking-wide transition-all hover:shadow-lg hover:shadow-primary/20">
-              <span className="relative z-10 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-gold transition-all duration-300">Get Early Access</span>
+          <div className="flex items-center gap-2 lg:gap-8">
+            <Link
+              href="/upload"
+              className="hidden min-h-11 items-center justify-center rounded-md bg-primary px-8 text-nav font-semibold tracking-button text-primary-foreground transition-all duration-200 ease-out hover:bg-gold-light hover:shadow-gold-glow hover:scale-[1.01] active:scale-[0.98] active:bg-gold-dark lg:inline-flex"
+            >
+              Get Started
             </Link>
+            <button
+              ref={toggleRef}
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              className="flex h-11 w-11 items-center justify-center rounded-md text-espresso transition-colors duration-200 ease-out hover:text-gold-primary lg:hidden"
+            >
+              <Hamburger open={menuOpen} />
+            </button>
           </div>
-
-          <button className="md:hidden z-50 p-2 text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </nav>
-      </div>
+      </Container>
 
       <AnimatePresence>
-        {mobileMenuOpen && (
+        {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 w-full px-6 pt-4 pb-8"
+            id="mobile-menu"
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile navigation"
+            variants={drawerVariants}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            className="fixed inset-0 z-[var(--z-navbar)] flex flex-col bg-espresso text-cream-primary lg:hidden"
           >
-            <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 shadow-xl">
-              {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} className={`text-lg font-serif ${location === link.href ? 'text-primary' : 'text-foreground'}`}>
-                  {link.label}
-                </Link>
-              ))}
-              <div className="h-px bg-border w-full my-2" />
-              <Link href="/upload" className="w-full text-center bg-foreground text-background py-3 rounded-xl font-accent">
-                Get Early Access
+            <div className="flex h-18 items-center justify-between px-5">
+              <span className="whitespace-nowrap font-editorial text-wordmark leading-none font-medium text-cream-primary">
+                D&rsquo;Fashion
+              </span>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                aria-label="Close menu"
+                className="flex h-11 w-11 items-center justify-center rounded-md text-cream-primary transition-colors duration-200 ease-out hover:text-gold-light"
+              >
+                <Hamburger open />
+              </button>
+            </div>
+            <nav
+              className="flex flex-1 flex-col overflow-y-auto px-5"
+              aria-label="Mobile"
+            >
+              {navLinks.map((link) => {
+                const active = location === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'flex min-h-11 items-center border-b border-cream-primary/10 py-6 text-body text-cream-primary transition-colors duration-200 ease-out hover:text-gold-light',
+                      active && 'text-gold-primary',
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="px-5 pb-8">
+              <Link
+                href="/upload"
+                className="flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-8 py-3.5 text-nav font-semibold tracking-button text-primary-foreground transition-all duration-200 ease-out hover:bg-gold-light hover:scale-[1.01] active:scale-[0.98] active:bg-gold-dark"
+              >
+                Get Started
               </Link>
             </div>
           </motion.div>

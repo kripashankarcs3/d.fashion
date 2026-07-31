@@ -1,8 +1,8 @@
-
 import Favorite from "../models/favorite.model";
+import type { AddFavoriteDto } from "../types/dto";
 
 class FavoriteService {
-  async addFavorite(data: any) {
+  async addFavorite(data: AddFavoriteDto) {
     return Favorite.create(data);
   }
 

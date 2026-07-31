@@ -1,6 +1,6 @@
+import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { toast } from 'sonner';
 import { analyzeImage } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
 
@@ -9,20 +9,25 @@ export function useAnalysis() {
   const setReferenceImageUrl = useStyleStore((s) => s.setReferenceImageUrl);
   const addActivityEvent = useStyleStore((s) => s.addActivityEvent);
   const [, navigate] = useLocation();
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  return useMutation({
-    mutationFn: analyzeImage,
+  const mutation = useMutation({
+    mutationFn: (file: File) =>
+      analyzeImage(file, (percent) => setUploadProgress(percent)),
+    onMutate: () => setUploadProgress(0),
     onSuccess: (response) => {
-      const result = response.data;
+      setUploadProgress(100);
+      const result = response.data.data;
       setAnalysisResult(result);
       setReferenceImageUrl(result.enhancedImageUrl);
-      addActivityEvent({ action: 'upload', label: 'Selfie analyzed', timestamp: new Date().toISOString() });
+      addActivityEvent({
+        action: 'upload',
+        label: 'Selfie analysed',
+        timestamp: new Date().toISOString(),
+      });
       navigate('/report');
     },
-    onError: (error: any) => {
-      const phase = error?.response?.data?.phase ?? 'Analysis';
-      const message = error?.response?.data?.message ?? 'Something went wrong.';
-      toast.error(`${phase} failed: ${message}`);
-    },
   });
+
+  return { ...mutation, uploadProgress };
 }

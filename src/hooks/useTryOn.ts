@@ -5,11 +5,13 @@ import { useStyleStore } from '@/store/useStyleStore';
 
 export function useTryOn() {
   const addActivityEvent = useStyleStore((s) => s.addActivityEvent);
-  const referenceImageUrl = useStyleStore((s) => s.referenceImageUrl);
 
   const clothes = useMutation({
-    mutationFn: ({ garmentUrl, garmentName }: { garmentUrl: string; garmentName: string }) =>
-      tryOnClothes(referenceImageUrl!, garmentUrl),
+    mutationFn: ({ garmentUrl, garmentName }: { garmentUrl: string; garmentName: string }) => {
+      const url = useStyleStore.getState().referenceImageUrl;
+      if (!url) throw new Error("No reference image. Upload a selfie first.");
+      return tryOnClothes(url, garmentUrl);
+    },
     onSuccess: (_, vars) => {
       addActivityEvent({
         action: 'tryon',
@@ -21,12 +23,20 @@ export function useTryOn() {
   });
 
   const makeup = useMutation({
-    mutationFn: (productId: string) => tryOnMakeup(referenceImageUrl!, productId),
+    mutationFn: (productId: string) => {
+      const url = useStyleStore.getState().referenceImageUrl;
+      if (!url) throw new Error("No reference image.");
+      return tryOnMakeup(url, productId);
+    },
     onError: () => toast.error('Makeup try-on failed.'),
   });
 
   const hair = useMutation({
-    mutationFn: (colorHex: string) => tryOnHair(referenceImageUrl!, colorHex),
+    mutationFn: (styleId: string) => {
+      const url = useStyleStore.getState().referenceImageUrl;
+      if (!url) throw new Error("No reference image.");
+      return tryOnHair(url, styleId);
+    },
     onError: () => toast.error('Hair try-on failed.'),
   });
 

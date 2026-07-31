@@ -1,4 +1,5 @@
 import { Link } from 'wouter';
+import { Button } from '@/components/ui/button';
 
 interface EmptyAnalysisStateProps {
   title?: string;
@@ -6,19 +7,36 @@ interface EmptyAnalysisStateProps {
 }
 
 export function EmptyAnalysisState({
-  title = 'No analysis yet',
-  description = 'Upload a selfie to unlock this feature.',
+  title = 'No report yet',
+  description = 'Upload a selfie to reveal your colour season and personal palette.',
 }: EmptyAnalysisStateProps) {
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 px-6 text-center">
-      <p className="text-4xl">✦</p>
-      <h2 className="font-serif text-2xl">{title}</h2>
-      <p className="text-muted-foreground font-accent max-w-md">{description}</p>
-      <Link
-        href="/upload"
-        className="bg-foreground text-background px-6 py-3 rounded-full font-accent text-sm"
-      >
-        Analyze Your Style →
+      <div className="flex items-end gap-2" aria-hidden="true">
+        {['#F5F0E8', '#D4AF71', '#B8974A', '#8B6B56', '#2C1810'].map(
+          (colour, i) => (
+            <span
+              key={colour}
+              className="h-8 w-8 rounded-sm"
+              style={{
+                backgroundColor: colour,
+                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.08)',
+                opacity: 1 - i * 0.12,
+              }}
+            />
+          ),
+        )}
+      </div>
+      <h2 className="font-serif text-[length:var(--text-h3)] text-espresso">
+        {title}
+      </h2>
+      <p className="max-w-md text-[length:var(--text-body)] text-espresso-light">
+        {description}
+      </p>
+      <Link href="/upload" className="mt-2">
+        <Button variant="primary" size="lg">
+          Analyse My Colours
+        </Button>
       </Link>
     </div>
   );

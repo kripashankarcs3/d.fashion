@@ -36,9 +36,19 @@ class RecommendationService {
 
     return {
       outfitPalette: colorAnalysis.recommendedColors,
-      makeupShades,
-      hairOptions,
-      skincareRoutine,
+      avoidColors: [],
+      makeupShades: {
+        foundation: makeupShades[0] || "#D2A679",
+        blush: makeupShades[1] || "#E8A0B4",
+        lip: makeupShades[2] || "#C97B84",
+      },
+      hairColorOptions: hairOptions,
+      skincareRoutine: skincareRoutine.map((product, i) => ({
+        step: i + 1,
+        product,
+        reason: "Recommended based on your skin analysis",
+      })),
+      styleInsight: "Your warm undertones pair beautifully with earth tones and gold accents.",
     };
   }
 
@@ -51,7 +61,7 @@ class RecommendationService {
     return Product.find({
       skinType: { $in: [skinType] },
       skinTone: { $in: [skinTone] },
-    });
+    }).limit(50);
   }
 }
 

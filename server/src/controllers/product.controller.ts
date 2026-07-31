@@ -1,197 +1,67 @@
 import { Request, Response } from "express";
 import ProductService from "../services/product.service";
+import { asyncHandler } from "../utils/asyncHandler";
 
-// ================= GET ALL PRODUCTS =================
+export const getProducts = asyncHandler(async (req: Request, res: Response) => {
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+  const result = await ProductService.getAllProducts(page, limit);
 
-export const getProducts = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const products = await ProductService.getAllProducts();
+  res.status(200).json({ success: true, ...result });
+});
 
-    res.status(200).json({
-      success: true,
-      products,
-    });
-  } catch (error) {
-    console.error(error);
+export const getProduct = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
+  const product = await ProductService.getProductById(req.params.id);
 
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch products",
-    });
+  if (!product) {
+    res.status(404).json({ success: false, message: "Product not found" });
+    return;
   }
-};
 
-// ================= GET PRODUCT BY ID =================
+  res.status(200).json({ success: true, product });
+});
 
-export const getProduct = async (
-  req: Request<{ id: string }>,
-  res: Response
-): Promise<void> => {
-  try {
-    const product = await ProductService.getProductById(req.params.id);
+export const createProduct = asyncHandler(async (req: Request, res: Response) => {
+  const product = await ProductService.createProduct(req.body);
 
-    if (!product) {
-      res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-      return;
-    }
+  res.status(201).json({ success: true, message: "Product created successfully", product });
+});
 
-    res.status(200).json({
-      success: true,
-      product,
-    });
-  } catch (error) {
-    console.error(error);
+export const updateProduct = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
+  const product = await ProductService.updateProduct(req.params.id, req.body);
 
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch product",
-    });
+  if (!product) {
+    res.status(404).json({ success: false, message: "Product not found" });
+    return;
   }
-};
 
-// ================= CREATE PRODUCT =================
+  res.status(200).json({ success: true, message: "Product updated successfully", product });
+});
 
-export const createProduct = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const product = await ProductService.createProduct(req.body);
+export const deleteProduct = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
+  const product = await ProductService.deleteProduct(req.params.id);
 
-    res.status(201).json({
-      success: true,
-      message: "Product created successfully",
-      product,
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to create product",
-    });
+  if (!product) {
+    res.status(404).json({ success: false, message: "Product not found" });
+    return;
   }
-};
 
-// ================= UPDATE PRODUCT =================
+  res.status(200).json({ success: true, message: "Product deleted successfully" });
+});
 
-export const updateProduct = async (
-  req: Request<{ id: string }>,
-  res: Response
-): Promise<void> => {
-  try {
-    const product = await ProductService.updateProduct(
-      req.params.id,
-      req.body
-    );
+export const getProductsByCategory = asyncHandler(async (req: Request<{ category: string }>, res: Response) => {
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+  const result = await ProductService.getByCategory(req.params.category, page, limit);
 
-    if (!product) {
-      res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-      return;
-    }
+  res.status(200).json({ success: true, ...result });
+});
 
-    res.status(200).json({
-      success: true,
-      message: "Product updated successfully",
-      product,
-    });
-  } catch (error) {
-    console.error(error);
+export const searchProducts = asyncHandler(async (req: Request, res: Response) => {
+  const query = typeof req.query.q === "string" ? req.query.q : "";
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+  const result = await ProductService.searchProducts(query, page, limit);
 
-    res.status(500).json({
-      success: false,
-      message: "Failed to update product",
-    });
-  }
-};
-
-// ================= DELETE PRODUCT =================
-
-export const deleteProduct = async (
-  req: Request<{ id: string }>,
-  res: Response
-): Promise<void> => {
-  try {
-    const product = await ProductService.deleteProduct(req.params.id);
-
-    if (!product) {
-      res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Product deleted successfully",
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete product",
-    });
-  }
-};
-
-// ================= GET PRODUCTS BY CATEGORY =================
-
-export const getProductsByCategory = async (
-  req: Request<{ category: string }>,
-  res: Response
-): Promise<void> => {
-  try {
-    const products = await ProductService.getByCategory(
-      req.params.category
-    );
-
-    res.status(200).json({
-      success: true,
-      products,
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch category products",
-    });
-  }
-};
-
-// ================= SEARCH PRODUCTS =================
-
-export const searchProducts = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const query =
-      typeof req.query.q === "string" ? req.query.q : "";
-
-    const products = await ProductService.searchProducts(query);
-
-    res.status(200).json({
-      success: true,
-      products,
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to search products",
-    });
-  }
-};
+  res.status(200).json({ success: true, ...result });
+});

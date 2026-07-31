@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authenticate } from "../middleware/auth.middleware";
 
 import {
   createProduct,
@@ -20,10 +21,10 @@ router.get("/category/:category", getProductsByCategory);
 
 router.get("/:id", getProduct);
 
-router.post("/", createProduct);
+router.post("/", authenticate, createProduct);
 
-router.put("/:id", updateProduct);
+router.put("/:id", authenticate, updateProduct);
 
-router.delete("/:id", deleteProduct);
+router.delete("/:id", authenticate, deleteProduct);
 
 export default router;

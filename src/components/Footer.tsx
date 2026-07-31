@@ -1,66 +1,155 @@
-import { Sparkles } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
+import { Link } from 'wouter';
+import { toast } from 'sonner';
+import { Lock } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import Container from '@/components/Container';
+
+const productLinks = [
+  { href: '/try-on', label: 'Virtual Try-On' },
+  { href: '/report', label: 'Style Report' },
+  { href: '/chat', label: 'AI Stylist' },
+  { href: '/pricing', label: 'Pricing' },
+];
+
+const companyLinks = [
+  { href: '/', label: 'About' },
+  { href: '/upload', label: 'Upload a Selfie' },
+  { href: '/dashboard', label: 'Dashboard' },
+];
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+
+  const handleSubscribe = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!email.trim()) return;
+    toast.success('You are on the list');
+    setEmail('');
+  };
+
   return (
-    <footer className="bg-[#1A1209] text-white pt-20 pb-10 relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-gold" />
-      
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-          
-          <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-6 text-white">
-              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10">
-                <span className="font-serif text-xl font-bold">D</span>
-              </div>
-              <span className="font-serif text-xl tracking-wide">DeeStyle</span>
-              <Sparkles className="w-4 h-4 text-primary" />
-            </div>
-            <p className="text-white/50 font-accent text-sm leading-relaxed mb-6">
-              The intersection of haute couture and artificial intelligence. Elevating personal style through code.
+    <footer className="bg-espresso text-cream-primary">
+      <Container>
+        <div className="grid grid-cols-1 gap-12 pt-20 md:grid-cols-[2fr_1fr_1fr_1fr] md:gap-12">
+          <div>
+            <Link href="/" className="inline-flex items-center gap-3" aria-label="D'Fashion — home">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-cream-primary">
+                <span className="font-editorial text-xl leading-none font-medium text-espresso">
+                  D
+                </span>
+              </span>
+              <span className="whitespace-nowrap font-editorial text-wordmark leading-none font-medium text-cream-primary">
+                D&rsquo;Fashion
+              </span>
+            </Link>
+            <p className="mt-6 text-body-sm leading-[1.6] text-cream-primary/70">
+              Colour Intelligence, Personalised.
+            </p>
+            <p className="mt-3 max-w-xs text-body-sm leading-[1.6] text-cream-primary/60">
+              Discover the colours that were made for you.
             </p>
           </div>
 
-          <div>
-            <h4 className="font-serif text-lg mb-6">Product</h4>
-            <ul className="space-y-4 font-accent text-sm text-white/60">
-              <li><a href="#" className="hover:text-primary transition-colors">Virtual Try-On</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Style Analytics</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">AI Stylist</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
+          <nav aria-label="Product">
+            <h2 className="text-footer-label font-semibold uppercase tracking-label">
+              Product
+            </h2>
+            <ul className="mt-6 space-y-2">
+              {productLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="inline-flex min-h-11 items-center text-body-sm text-cream-primary/80 transition-colors duration-200 ease-out hover:text-gold-light"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
-          </div>
+          </nav>
+
+          <nav aria-label="Company">
+            <h2 className="text-footer-label font-semibold uppercase tracking-label">
+              Company
+            </h2>
+            <ul className="mt-6 space-y-2">
+              {companyLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="inline-flex min-h-11 items-center text-body-sm text-cream-primary/80 transition-colors duration-200 ease-out hover:text-gold-light"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
           <div>
-            <h4 className="font-serif text-lg mb-6">Company</h4>
-            <ul className="space-y-4 font-accent text-sm text-white/60">
-              <li><a href="#" className="hover:text-primary transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Press</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
-            </ul>
+            <h2 className="text-footer-label font-semibold uppercase tracking-label">
+              Newsletter
+            </h2>
+            <form
+              className="mt-6"
+              onSubmit={handleSubscribe}
+              aria-label="Newsletter signup"
+            >
+              <div className="flex gap-2">
+                <label htmlFor="newsletter-email" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="newsletter-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="Your email"
+                  autoComplete="email"
+                  className={cn(
+                    'min-w-0 flex-1 rounded-md border border-cream-primary/40 bg-espresso px-4 text-body text-cream-primary',
+                    'placeholder:text-cream-primary/50',
+                    'transition-colors duration-200 ease-out',
+                    'focus:border-gold-light focus:outline-none focus:ring-1 focus:ring-gold-light',
+                  )}
+                />
+                <button
+                  type="submit"
+                  className={cn(
+                    'inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-6 text-nav font-semibold tracking-button text-primary-foreground',
+                    'transition-all duration-200 ease-out',
+                    'hover:bg-gold-light hover:scale-[1.01] hover:shadow-gold-glow',
+                    'active:scale-[0.98] active:bg-gold-dark',
+                  )}
+                >
+                  Subscribe
+                </button>
+              </div>
+            </form>
+            <p className="mt-4 text-caption leading-[1.5] text-cream-primary/50">
+              No spam. Unsubscribe anytime.
+            </p>
           </div>
-
-          <div>
-            <h4 className="font-serif text-lg mb-6">Legal</h4>
-            <ul className="space-y-4 font-accent text-sm text-white/60">
-              <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Data Ethics</a></li>
-            </ul>
-          </div>
-
         </div>
 
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 font-accent text-sm text-white/40">
-          <p>© {new Date().getFullYear()} DeeStyle. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-white transition-colors">Instagram</a>
-            <a href="#" className="hover:text-white transition-colors">Twitter</a>
-            <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
+        <div className="mt-12 flex flex-col items-center gap-3 border-t border-cream-primary/15 pt-6 pb-12 md:flex-row md:justify-between">
+          <p className="text-caption text-cream-primary/60">
+            &copy; {new Date().getFullYear()} D&rsquo;Fashion. All rights
+            reserved.
+          </p>
+          <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-6">
+            <span className="inline-flex items-center gap-1.5 text-caption text-cream-primary/60">
+              <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+              SSL secured
+            </span>
+            <span className="text-caption text-cream-primary/60">
+              Powered by YouCam AI
+            </span>
           </div>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }

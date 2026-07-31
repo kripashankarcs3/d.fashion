@@ -1,116 +1,110 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'wouter';
+import { Card } from '@/components/ui/card';
 import StylistChat from '@/components/StylistChat';
-import { Sparkles, ArrowRight, MessageSquare, Zap, Brain, Heart } from 'lucide-react';
-
-const capabilities = [
-  { icon: Brain, title: 'Knows Your Wardrobe', desc: 'Every suggestion is based on what you actually own — not generic advice.' },
-  { icon: Zap, title: 'Instant Answers', desc: 'No waiting. Real-time responses to any styling question, 24/7.' },
-  { icon: Heart, title: 'Learns Your Taste', desc: 'The more you chat, the better it understands your aesthetic preferences.' },
-  { icon: MessageSquare, title: 'Any Occasion', desc: 'Date night, job interview, vacation, rooftop party — just describe the event.' },
-];
+import { MessageSquare, Palette, Shirt } from 'lucide-react';
 
 const samplePrompts = [
   'What should I wear to a casual Friday at a creative agency?',
-  'Help me build 5 outfits from my existing wardrobe for a week in Paris.',
-  'Which items in my wardrobe are underused?',
-  'What\'s one item I should buy to unlock the most new combinations?',
-  'I have a black-tie event in 2 weeks. What do I need?',
+  'Help me build 5 outfits for a week in Paris from my palette.',
+  'Which of my saved looks are underused?',
+  "What's one item I should add to unlock the most new combinations?",
   'Style me for a beach wedding in Santorini.',
 ];
 
+const knowledge = [
+  {
+    icon: Palette,
+    title: 'Your colour season',
+    description: 'Every suggestion starts from your personal palette.',
+  },
+  {
+    icon: Shirt,
+    title: 'Your saved looks',
+    description: 'It references the outfits you have already saved.',
+  },
+  {
+    icon: MessageSquare,
+    title: 'Any occasion',
+    description: 'Date night, interview, vacation — just describe the event.',
+  },
+];
+
 export default function Chat() {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const [activePrompt, setActivePrompt] = useState('');
 
   return (
-    <div className="w-full overflow-hidden">
-      {/* Hero */}
-      <section className="pt-40 pb-12 relative">
-        <div className="absolute inset-0 -z-10 bg-background">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[40vw] bg-primary/8 rounded-full blur-[120px]" />
+    <div className="w-full pt-28 pb-24">
+      <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
+        {/* Header */}
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+            AI Stylist
+          </p>
+          <h1 className="mt-3 font-serif text-[length:var(--text-h1)] text-espresso">
+            Ask D&rsquo;Style.
+          </h1>
+          <p className="mx-auto mt-6 max-w-md text-[length:var(--text-body)] text-espresso-light">
+            A knowledgeable, warm stylist who knows your colour season and your
+            wardrobe.
+          </p>
         </div>
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-6">
-              <Sparkles className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <h1 className="text-5xl md:text-6xl font-serif text-foreground leading-tight mb-6">
-              Your Personal Stylist, <br /><span className="italic text-gradient-gold">24/7.</span>
-            </h1>
-            <p className="text-xl text-muted-foreground font-accent max-w-2xl mx-auto">
-              Context-aware styling advice based on your exact wardrobe, your body type, your preferences — and wherever you're going next.
-            </p>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* Capabilities */}
-      <section className="py-10 bg-secondary/20 border-y border-border">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {capabilities.map((cap, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className="text-center p-4"
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <cap.icon className="w-5 h-5 text-primary" />
-                </div>
-                <h3 className="font-serif text-sm mb-1">{cap.title}</h3>
-                <p className="text-xs text-muted-foreground font-accent leading-relaxed">{cap.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Chat Interface */}
-      <section className="py-12 bg-background">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+          {/* Conversation */}
           <StylistChat initialPrompt={activePrompt} />
-        </div>
-      </section>
 
-      {/* Sample Prompts */}
-      <section className="py-16 bg-secondary/20 border-t border-border">
-        <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-2xl font-serif mb-2 text-center">Try Asking...</h2>
-          <p className="text-muted-foreground font-accent text-sm text-center mb-8">Click any prompt to use it</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {samplePrompts.map((prompt, i) => (
-              <motion.button
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.06 }}
-                whileHover={{ x: 4 }}
-                onClick={() => setActivePrompt(prompt)}
-                className="glass-panel p-4 rounded-xl text-left text-sm font-accent text-foreground hover:border-primary/40 hover:text-primary transition-all flex items-start gap-3 group"
-              >
-                <span className="text-primary flex-shrink-0 mt-0.5">→</span>
-                <span>"{prompt}"</span>
-              </motion.button>
-            ))}
+          {/* Quick actions */}
+          <div className="space-y-10">
+            <Card variant="report" className="p-8">
+              <h2 className="font-serif text-[length:var(--text-h5)] text-espresso">
+                Quick Questions
+              </h2>
+              <ul className="mt-5 space-y-3">
+                {samplePrompts.map((prompt) => (
+                  <li key={prompt}>
+                    <button
+                      type="button"
+                      onClick={() => setActivePrompt(prompt)}
+                      className="w-full rounded-md border border-border bg-cream-primary px-4 py-3 text-left text-[length:var(--text-body-sm)] text-espresso-light transition-colors duration-200 ease-out hover:border-gold-primary hover:bg-cream-dark hover:text-espresso"
+                    >
+                      &ldquo;{prompt}&rdquo;
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card variant="report" className="p-8">
+              <h2 className="font-serif text-[length:var(--text-h5)] text-espresso">
+                What D&rsquo;Style Knows
+              </h2>
+              <ul className="mt-5 space-y-5">
+                {knowledge.map((item) => (
+                  <li key={item.title} className="flex gap-3">
+                    <span
+                      aria-hidden="true"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-cream-dark text-gold-primary"
+                    >
+                      <item.icon className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-[length:var(--text-body-sm)] font-medium text-espresso">
+                        {item.title}
+                      </p>
+                      <p className="mt-0.5 text-[length:var(--text-caption)] text-espresso-muted">
+                        {item.description}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Card>
           </div>
         </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-20 bg-[#1A1209] text-white">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-serif mb-4">Better advice starts with your wardrobe</h2>
-          <p className="text-white/60 font-accent mb-8">Upload your clothes so your AI stylist knows exactly what you're working with.</p>
-          <Link href="/upload" className="inline-flex items-center gap-3 bg-primary text-primary-foreground px-8 py-4 rounded-full font-accent font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
-            Upload Your Wardrobe <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }
