@@ -259,7 +259,7 @@ export default function UploadFlow() {
                 onDrop={handleDrop}
                 aria-busy={isPending}
                 className={cn(
-                  'flex min-h-[300px] w-full flex-col items-center justify-center rounded-lg border-[1.5px] border-dashed px-8 text-center',
+                  'flex min-h-[300px] w-full flex-col items-center justify-center rounded-lg border border-dashed px-8 text-center',
                   'transition-all duration-200 ease-out',
                   dragOver
                     ? 'scale-[1.02] border-gold-primary bg-cream-dark'

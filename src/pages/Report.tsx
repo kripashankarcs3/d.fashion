@@ -104,12 +104,21 @@ function Trait({ label, value, swatch }: { label: string; value: string; swatch?
 
 export default function Report() {
   const analysisResult = useStyleStore((s) => s.analysisResult);
+  const savedReports = useStyleStore((s) => s.savedReports);
+  const saveReport = useStyleStore((s) => s.saveReport);
   const [modalColour, setModalColour] = useState<ColourItem | null>(null);
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    setSaved(
+      savedReports.some((r) => r.analyzedAt === analysisResult?.analyzedAt),
+    );
+  }, [savedReports, analysisResult]);
 
   const seasonInfo = useMemo(
     () =>
@@ -179,7 +188,14 @@ export default function Report() {
   };
 
   const handleSave = () => {
-    toast.success('Report saved to your dashboard');
+    if (!analysisResult) return;
+    const didSave = saveReport(analysisResult);
+    setSaved(true);
+    toast.success(
+      didSave
+        ? 'Report saved to your dashboard'
+        : 'Report is already on your dashboard',
+    );
   };
 
   return (
@@ -239,9 +255,17 @@ export default function Report() {
                     Try On Your Colours
                   </Button>
                 </Link>
-                <Button variant="secondary" className="w-full" onClick={handleSave}>
-                  <Bookmark aria-hidden="true" />
-                  Save to Dashboard
+                <Button
+                  variant={saved ? 'ghost' : 'secondary'}
+                  className="w-full"
+                  onClick={handleSave}
+                >
+                  {saved ? (
+                    <Check aria-hidden="true" />
+                  ) : (
+                    <Bookmark aria-hidden="true" />
+                  )}
+                  {saved ? 'Saved to Dashboard' : 'Save to Dashboard'}
                 </Button>
                 <Button variant="ghost" className="w-full" onClick={handleShare}>
                   <Share2 aria-hidden="true" />
@@ -485,8 +509,12 @@ export default function Report() {
                   className="text-cream-primary hover:bg-cream-primary/10 hover:text-cream-primary"
                   onClick={handleSave}
                 >
-                  <Bookmark aria-hidden="true" />
-                  Save to Dashboard
+                  {saved ? (
+                    <Check aria-hidden="true" />
+                  ) : (
+                    <Bookmark aria-hidden="true" />
+                  )}
+                  {saved ? 'Saved to Dashboard' : 'Save to Dashboard'}
                 </Button>
               </div>
             </div>
@@ -504,7 +532,9 @@ export default function Report() {
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-[2000] bg-espresso/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
           <Dialog.Content
-            aria-describedby={undefined}
+            aria-describedby={
+              modalColour ? 'colour-detail-description' : undefined
+            }
             className="fixed inset-0 z-[2000] flex flex-col overflow-y-auto bg-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
           >
             {modalColour && (
@@ -533,13 +563,18 @@ export default function Report() {
                   }}
                 />
 
-                <h2 className="mt-8 font-serif text-[length:var(--text-h2)] text-espresso">
-                  {modalColour.name}
-                </h2>
+                <Dialog.Title asChild>
+                  <h2 className="mt-8 font-serif text-[length:var(--text-h2)] text-espresso">
+                    {modalColour.name}
+                  </h2>
+                </Dialog.Title>
                 <p className="mt-1 text-[length:var(--text-body)] tabular-nums text-espresso-muted">
                   {modalColour.hex}
                 </p>
-                <p className="mt-4 max-w-md text-[length:var(--text-body)] text-espresso-light">
+                <p
+                  id="colour-detail-description"
+                  className="mt-4 max-w-md text-[length:var(--text-body)] text-espresso-light"
+                >
                   {modalColour.recommendation}
                 </p>
 

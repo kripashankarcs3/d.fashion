@@ -5,7 +5,7 @@ import { analyzeImage } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
 
 export function useAnalysis() {
-  const setAnalysisResult = useStyleStore((s) => s.setAnalysisResult);
+  const recordAnalysis = useStyleStore((s) => s.recordAnalysis);
   const setReferenceImageUrl = useStyleStore((s) => s.setReferenceImageUrl);
   const addActivityEvent = useStyleStore((s) => s.addActivityEvent);
   const [, navigate] = useLocation();
@@ -18,7 +18,7 @@ export function useAnalysis() {
     onSuccess: (response) => {
       setUploadProgress(100);
       const result = response.data.data;
-      setAnalysisResult(result);
+      recordAnalysis(result);
       setReferenceImageUrl(result.enhancedImageUrl);
       addActivityEvent({
         action: 'upload',
