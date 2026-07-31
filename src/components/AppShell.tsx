@@ -17,7 +17,7 @@ export default function AppShell({ children }: AppShellProps) {
         Skip to content
       </a>
       <Navbar />
-      <main id="main-content" tabIndex={-1} className="flex-1 scroll-mt-18 outline-none">
+      <main id="main-content" tabIndex={-1} className="flex-1 scroll-mt-16 outline-none">
         {children}
       </main>
       <Footer />
