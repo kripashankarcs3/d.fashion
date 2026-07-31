@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import { toast } from 'sonner';
+import { success } from '@/lib/toast';
 import {
   Bookmark,
   LoaderCircle,
@@ -178,7 +178,7 @@ export default function TryOn() {
       styleTags: [],
       addedAt: new Date().toISOString(),
     });
-    toast.success('Saved to your dashboard');
+    success('Saved to your dashboard');
   };
 
   const ctaLabel = (() => {

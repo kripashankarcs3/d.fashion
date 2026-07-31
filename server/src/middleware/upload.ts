@@ -28,7 +28,9 @@ const fileFilter: multer.Options["fileFilter"] = (
   const allowed = [
     "image/jpeg",
     "image/png",
+    "image/webp",
     "image/heic",
+    "image/heif",
   ];
 
   if (allowed.includes(file.mimetype)) {

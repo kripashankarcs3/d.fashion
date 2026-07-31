@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
-import { Send, Sparkles, MessageSquare, Shirt, Palette, Bookmark } from 'lucide-react';
-import { toast } from 'sonner';
+import { Send, Sparkles } from 'lucide-react';
+import { error } from '@/lib/toast';
 import { sendChatMessage } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
 
@@ -38,7 +38,7 @@ function TypingIndicator() {
         <motion.span
           key={i}
           aria-hidden="true"
-          className="h-1.5 w-1.5 rounded-full bg-gold-primary"
+          className="h-2 w-2 rounded-full bg-gold-primary"
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{
             duration: 1.2,
@@ -72,7 +72,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
       ]);
     },
     onError: () => {
-      toast.error('Stylist is unavailable. Please try again.');
+      error('Stylist is unavailable. Please try again.');
     },
   });
 
@@ -124,7 +124,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-6 overflow-y-auto p-6">
+      <div role="log" aria-live="polite" className="flex-1 space-y-6 overflow-y-auto p-6">
         {messages.map((msg, i) => (
           <motion.div
             key={i}

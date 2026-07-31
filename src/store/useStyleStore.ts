@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useAuthStore } from '@/store/useAuthStore';
+import { saveReportToCloud } from '@/services/api';
 
 export interface SkinConcerns {
   acne: number;
@@ -146,6 +148,11 @@ export const useStyleStore = create<StyleStore>()(
             savedReports: [result, ...state.savedReports].slice(0, 10),
           };
         });
+        if (saved && useAuthStore.getState().token) {
+          void saveReportToCloud(result).catch(() => {
+            // Best-effort sync — the report stays in the local store.
+          });
+        }
         return saved;
       },
       setAnalysisResult: (result) => set({ analysisResult: result }),

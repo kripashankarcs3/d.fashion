@@ -45,7 +45,7 @@ export default function AnalysisProcessing({
             height={256}
             className="aspect-square w-full object-cover"
           />
-          <div className="absolute inset-0 animate-[shimmer_1.5s_infinite] bg-[linear-gradient(90deg,#EDE5D8_25%,#F5F0E8_50%,#EDE5D8_75%)] bg-[length:200%_100%]" />
+          <div className="absolute inset-0 animate-[shimmer_1.5s_infinite] bg-[linear-gradient(90deg,var(--color-cream-dark)_25%,var(--color-cream-primary)_50%,var(--color-cream-dark)_75%)] bg-[length:200%_100%]" />
         </div>
       ) : (
         <div className="mb-8 flex items-end gap-2" aria-hidden="true">

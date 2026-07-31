@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'wouter';
-import { toast } from 'sonner';
+import { success } from '@/lib/toast';
 import { Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Container from '@/components/Container';
@@ -24,7 +24,7 @@ export default function Footer() {
   const handleSubscribe = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!email.trim()) return;
-    toast.success('You are on the list');
+    success('You are on the list');
     setEmail('');
   };
 
@@ -145,7 +145,7 @@ export default function Footer() {
               SSL secured
             </span>
             <span className="text-caption text-cream-primary/60">
-              Colour rendering by YouCam
+              Colour rendering powered by YouCam AI
             </span>
           </div>
         </div>

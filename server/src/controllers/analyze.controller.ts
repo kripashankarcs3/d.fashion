@@ -4,10 +4,19 @@ import { sendSuccess, sendError } from "../utils/response";
 import { ImageService } from "../services/image.service";
 import RecommendationService from "../services/recommendation.service";
 import YouCamService from "../services/youcam.service";
+import {
+  deriveSeason,
+  deriveUndertone,
+  getSeasonProfile,
+  lipColorName,
+} from "../utils/colourAnalysis";
+
+const clamp = (n: number, min = 0, max = 1) => Math.min(max, Math.max(min, n));
 
 export const uploadImage = async (req: Request, res: Response, next: NextFunction) => {
   let originalImage = "";
   let optimizedImage = "";
+  let enhancedImage = "";
 
   try {
     if (!req.file) {
@@ -17,8 +26,24 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     const image = ImageService.processImage(req.file);
     originalImage = image.path;
 
-    optimizedImage = await ImageService.optimizeImage(image.path);
+    // ── 1. AI Photo Enhance (real YouCam, with local fallback) ──
+    let enhancedImageUrl = "";
+    try {
+      const remoteUrl = await YouCamService.enhancePhoto(originalImage, 1);
+      if (remoteUrl) {
+        enhancedImage = await ImageService.saveRemoteImage(remoteUrl, "enhanced");
+        enhancedImageUrl = `/uploads/${path.basename(enhancedImage)}`;
+      }
+    } catch (err: any) {
+      console.warn("YouCam photo enhance failed, using local optimization:", err?.message);
+    }
 
+    if (!enhancedImageUrl) {
+      optimizedImage = await ImageService.optimizeImage(originalImage);
+      enhancedImageUrl = `/uploads/${path.basename(optimizedImage)}`;
+    }
+
+    // ── 2. AI Skin Analysis (real YouCam) ──
     let youcamResult: any = null;
     try {
       youcamResult = await YouCamService.analyzeSkin(originalImage);
@@ -33,51 +58,97 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
       scoreMap[item.type] = (item.ui_score ?? item.raw_score ?? 0) / 100;
     }
 
-    const skinConcerns: Record<string, number> = {
-      acne: scoreMap.acne ?? 0.15,
-      darkSpots: scoreMap.dark_spot ?? 0.05,
-      wrinkles: scoreMap.wrinkle ?? 0.08,
-      pores: scoreMap.pore ?? 0.3,
-      oiliness: scoreMap.oiliness ?? 0.4,
-      dryness: scoreMap.dryness ?? 0.2,
-      redness: scoreMap.redness ?? 0.1,
-      eyeBags: scoreMap.eye_bag ?? 0.2,
-      darkCircles: scoreMap.dark_circle ?? 0.3,
-      uneven: scoreMap.dullness ?? 0.25,
-      sensitivity: scoreMap.sensitivity ?? 0.15,
-      texture: scoreMap.texture ?? 0.3,
-      firmness: 0.7,
-      radiance: 0.6,
+    // ui_score is 0-1 "healthier is higher"; a concern is the inverse for
+    // positive metrics (moisture/firmness/radiance) and direct for negative ones.
+    const concernOf = (key: string, fallback: number) => {
+      const s = scoreMap[key];
+      return typeof s === "number" ? clamp(s) : fallback;
+    };
+    const inverseOf = (key: string, fallback: number) => {
+      const s = scoreMap[key];
+      return typeof s === "number" ? clamp(1 - s) : fallback;
     };
 
-    const imageUrl = `/uploads/${path.basename(optimizedImage)}`;
+    const rednessScore = scoreMap.redness;
+    const radianceScore = scoreMap.radiance;
 
+    const skinConcerns: Record<string, number> = {
+      acne: concernOf("acne", 0.15),
+      darkSpots: concernOf("age_spot", concernOf("dark_spot", 0.05)),
+      wrinkles: concernOf("wrinkle", 0.08),
+      pores: concernOf("pore", 0.3),
+      oiliness: concernOf("oiliness", 0.4),
+      dryness: inverseOf("moisture", 0.2),
+      redness: concernOf("redness", 0.1),
+      eyeBags: concernOf("eye_bag", 0.2),
+      darkCircles: concernOf("dark_circle", 0.3),
+      uneven: typeof radianceScore === "number" ? clamp(1 - radianceScore) : concernOf("dullness", 0.25),
+      sensitivity:
+        typeof rednessScore === "number"
+          ? clamp(rednessScore * 0.8)
+          : concernOf("sensitivity", 0.15),
+      texture: concernOf("texture", 0.3),
+      firmness: inverseOf("firmness", 0.3),
+      radiance: typeof radianceScore === "number" ? clamp(1 - radianceScore) : 0.4,
+    };
+
+    const skinTypeItem = output.find((i: any) => i.type === "skin_type");
+    const skinType =
+      (typeof youcamResult?.data?.results?.skin_type === "string" &&
+        youcamResult.data.results.skin_type) ||
+      (typeof skinTypeItem?.skin_type === "string" && skinTypeItem.skin_type) ||
+      (typeof skinTypeItem?.value === "string" && skinTypeItem.value) ||
+      "Combination";
+
+    // ── 3. AI Facial Color Tones Analyzer (real YouCam) ──
+    let color = {};
+    try {
+      const toneResult = await YouCamService.analyzeColorTones(originalImage);
+      if (toneResult?.color) {
+        color = toneResult.color;
+      }
+    } catch (err: any) {
+      const detail = err?.response?.data ? JSON.stringify(err.response.data) : err.message;
+      console.warn("YouCam color tones analysis failed, using fallback:", detail);
+    }
+
+    const skinToneHex = (color as any).skin_color ?? "#D2A679";
+    const undertone = deriveUndertone(skinToneHex);
+    const season = deriveSeason(undertone);
+    const seasonProfile = getSeasonProfile(season, undertone);
+
+    const colorProfile = {
+      undertone: undertone as "warm" | "cool" | "neutral",
+      skinToneHex,
+      eyeColor: (color as any).eye_color_name ?? "brown",
+      lipColor: (color as any).lip_color ? lipColorName((color as any).lip_color) : "rose",
+      hairColor: (color as any).hair_color_name ?? "brown",
+    };
+
+    // ── 4. Recommendations built from the real analysis ──
     const recommendations = RecommendationService.generateRecommendations({
-      enhancedImage: optimizedImage,
+      enhancedImage: enhancedImage || optimizedImage || originalImage,
       skinAnalysis: {
-        skinTone: "Medium",
-        skinType: "Combination",
+        skinTone: skinToneHex,
+        skinType,
         acne: Math.round(skinConcerns.acne * 100),
         wrinkles: Math.round(skinConcerns.wrinkles * 100),
         darkSpots: Math.round(skinConcerns.darkSpots * 100),
       },
       colorAnalysis: {
-        season: "Autumn",
-        undertone: "Warm",
-        recommendedColors: ["#8B4513", "#D2691E", "#556B2F", "#B8860B"],
+        season,
+        undertone,
+        recommendedColors: seasonProfile.palette,
       },
     });
 
     return sendSuccess(res, "Analysis completed successfully", {
-      enhancedImageUrl: imageUrl,
+      enhancedImageUrl,
       skinConcerns,
-      colorProfile: {
-        undertone: "warm" as const,
-        skinToneHex: "#D2A679",
-        eyeColor: "brown",
-        lipColor: "rose",
-        hairColor: "dark brown",
-      },
+      colorProfile,
+      colourSeason: season,
+      bestNeutrals: seasonProfile.neutrals,
+      styleArchetypes: seasonProfile.archetypes,
       recommendations,
       analyzedAt: new Date().toISOString(),
     });

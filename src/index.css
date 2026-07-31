@@ -83,9 +83,23 @@
   --shadow-cta-hover: 0 4px 24px rgba(184, 151, 74, 0.25);
 
   --size-wordmark: 120px;
-  --size-underline: 1px;
+  --size-underline: 1.5px;
   --size-cta-min-width: 180px;
   --size-field-height: 52px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --space-10: 64px;
+  --space-11: 80px;
+
+  --duration-skeleton: 1.6s;
 
   --text-label: 13px;
   --text-label--line-height: 1.4;
@@ -170,6 +184,11 @@
     font-optical-sizing: auto;
   }
 
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
   h1,
   h2,
   h3,
@@ -225,5 +244,77 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ── Sonner toasts: bottom-centre, brand-styled ── */
+[data-sonner-toaster][data-y-position='bottom'] {
+  bottom: 16px;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+  background: var(--color-cream-dark);
+  border: 1px solid var(--color-gold-primary);
+  color: var(--color-espresso);
+  font-family: var(--font-ui);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'][data-type='error'] {
+  background: var(--color-white);
+  border-color: var(--color-error);
+  color: var(--color-espresso);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-icon] {
+  color: var(--color-gold-primary);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'][data-type='error'] [data-icon] {
+  color: var(--color-error);
+}
+
+/* ── Print: clean black-and-white report output ── */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+
+  header,
+  footer,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  :root {
+    --color-espresso: #000000;
+    --color-espresso-light: #111111;
+    --color-espresso-muted: #333333;
+    --color-gold-primary: #000000;
+    --color-gold-light: #000000;
+    --color-gold-dark: #000000;
+    --color-cream-primary: #ffffff;
+    --color-cream-dark: #ffffff;
+    --color-white: #ffffff;
+    --color-error: #000000;
+  }
+
+  [style*='background-color'] {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    filter: grayscale(1);
+  }
+
+  .shadow-card,
+  .shadow-md,
+  .shadow-swatch,
+  .shadow-swatch-hover,
+  .shadow-cta-hover {
+    box-shadow: none !important;
   }
 }

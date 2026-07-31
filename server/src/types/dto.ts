@@ -20,11 +20,13 @@ export interface AddFavoriteDto {
 
 export interface SaveHistoryDto {
   userId: string;
-  image: string;
-  skinType: string;
-  skinTone: string;
+  image?: string;
+  skinType?: string;
+  skinTone?: string;
   concerns?: string[];
   recommendedProducts?: string[];
+  report?: unknown;
+  season?: string;
 }
 
 export interface RegisterDto {

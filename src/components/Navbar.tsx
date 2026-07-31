@@ -3,6 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import Container from '@/components/Container';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const navLinks = [
   { href: '/try-on', label: 'Try On' },
@@ -44,9 +45,13 @@ function Hamburger({ open }: { open: boolean }) {
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [location] = useLocation();
-  const toggleRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const clearSession = useAuthStore((s) => s.clearSession);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -57,7 +62,45 @@ export default function Navbar() {
 
   useEffect(() => {
     setMenuOpen(false);
+    setAccountOpen(false);
   }, [location]);
+
+  useEffect(() => {
+    if (!accountOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (accountRef.current && !accountRef.current.contains(event.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setAccountOpen(false);
+    };
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [accountOpen]);
+
+  const accountMenu = [
+    { href: '/dashboard', label: 'My Profile' },
+    { href: '/report', label: 'My Reports' },
+    { href: '/pricing', label: 'Subscription' },
+  ];
+
+  const handleSignOut = () => {
+    setAccountOpen(false);
+    clearSession();
+  };
+
+  const initials = (user?.name ?? '')
+    .split(' ')
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -134,7 +177,7 @@ export default function Navbar() {
                   {link.label}
                   <span
                     className={cn(
-                      'absolute inset-x-0 bottom-0 h-px origin-left bg-gold-primary transition-transform duration-200 ease-out',
+                      'absolute inset-x-0 bottom-0 h-[var(--size-underline)] origin-left bg-gold-primary transition-transform duration-200 ease-out',
                       active
                         ? 'scale-x-100'
                         : 'scale-x-0 group-hover:scale-x-100',
@@ -145,7 +188,64 @@ export default function Navbar() {
             })}
           </div>
 
-          <div className="flex items-center gap-2 lg:gap-8">
+          <div className="flex items-center gap-2 lg:gap-6">
+            {!isAuthenticated ? (
+              <Link
+                href="/login"
+                className="hidden min-h-11 items-center text-nav font-medium text-espresso-light transition-colors duration-200 ease-out hover:text-espresso lg:inline-flex"
+              >
+                Sign In
+              </Link>
+            ) : (
+              <div ref={accountRef} className="relative hidden lg:block">
+                <button
+                  type="button"
+                  onClick={() => setAccountOpen((open) => !open)}
+                  aria-expanded={accountOpen}
+                  aria-haspopup="menu"
+                  aria-label="Account menu"
+                  className="flex h-11 w-11 items-center justify-center rounded-md bg-cream-dark font-serif text-lg font-medium text-espresso transition-colors duration-200 ease-out hover:text-gold-primary"
+                >
+                  {initials || '·'}
+                </button>
+                <AnimatePresence>
+                  {accountOpen && (
+                    <motion.div
+                      role="menu"
+                      aria-label="Account"
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      className="absolute right-0 top-[calc(100%+8px)] z-[var(--z-navbar)] w-56 overflow-hidden rounded-lg border border-border bg-white py-2 shadow-card"
+                    >
+                      <p className="border-b border-border px-4 pb-2 text-body-sm text-espresso-muted">
+                        {user?.name}
+                        <span className="block text-caption">{user?.email}</span>
+                      </p>
+                      {accountMenu.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          role="menuitem"
+                          className="flex min-h-11 items-center px-4 text-body-sm text-espresso transition-colors duration-200 ease-out hover:bg-cream-dark hover:text-gold-primary"
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={handleSignOut}
+                        className="flex min-h-11 w-full items-center px-4 text-left text-body-sm text-error transition-colors duration-200 ease-out hover:bg-cream-dark"
+                      >
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
             <Link
               href="/upload"
               className="hidden min-h-11 items-center justify-center rounded-md bg-primary px-8 text-nav font-semibold tracking-button text-primary-foreground transition-all duration-200 ease-out hover:bg-gold-light hover:shadow-gold-glow hover:scale-[1.01] active:scale-[0.98] active:bg-gold-dark lg:inline-flex"
@@ -153,7 +253,6 @@ export default function Navbar() {
               Get Started
             </Link>
             <button
-              ref={toggleRef}
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
               aria-expanded={menuOpen}
@@ -216,6 +315,39 @@ export default function Navbar() {
               })}
             </nav>
             <div className="px-5 pb-8">
+              {!isAuthenticated ? (
+                <Link
+                  href="/login"
+                  className="mb-4 flex min-h-11 w-full items-center justify-center rounded-md border border-cream-primary/20 text-nav font-medium text-cream-primary transition-colors duration-200 ease-out hover:text-gold-light"
+                >
+                  Sign In
+                </Link>
+              ) : (
+                <div className="mb-4 border-b border-cream-primary/10 pb-4">
+                  <p className="text-caption text-cream-primary/70">
+                    {user?.name}
+                    <span className="block">{user?.email}</span>
+                  </p>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {accountMenu.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className="flex min-h-11 items-center justify-center rounded-md border border-cream-primary/20 text-caption text-cream-primary transition-colors duration-200 ease-out hover:text-gold-light"
+                      >
+                        {item.label.replace('My ', '')}
+                      </Link>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="mt-3 w-full text-left text-caption text-error transition-colors duration-200 ease-out hover:text-gold-light"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
               <Link
                 href="/upload"
                 className="flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-8 py-3.5 text-nav font-semibold tracking-button text-primary-foreground transition-all duration-200 ease-out hover:bg-gold-light hover:scale-[1.01] active:scale-[0.98] active:bg-gold-dark"

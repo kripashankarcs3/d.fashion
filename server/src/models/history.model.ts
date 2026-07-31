@@ -2,11 +2,13 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IHistory extends Document {
   userId: mongoose.Types.ObjectId;
-  image: string;
-  skinType: string;
-  skinTone: string;
-  concerns: string[];
-  recommendedProducts: mongoose.Types.ObjectId[];
+  image?: string;
+  skinType?: string;
+  skinTone?: string;
+  concerns?: string[];
+  recommendedProducts?: mongoose.Types.ObjectId[];
+  report?: unknown;
+  season?: string;
 }
 
 const historySchema = new Schema(
@@ -19,17 +21,14 @@ const historySchema = new Schema(
 
     image: {
       type: String,
-      required: true,
     },
 
     skinType: {
       type: String,
-      required: true,
     },
 
     skinTone: {
       type: String,
-      required: true,
     },
 
     concerns: {
@@ -43,6 +42,14 @@ const historySchema = new Schema(
         ref: "Product",
       },
     ],
+
+    report: {
+      type: Schema.Types.Mixed,
+    },
+
+    season: {
+      type: String,
+    },
   },
   {
     timestamps: true,

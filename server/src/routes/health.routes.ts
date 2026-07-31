@@ -11,7 +11,7 @@ router.get("/", (_req, res) => {
 
   res.status(statusCode).json({
     success: dbState === 1,
-    message: dbState === 1 ? "Server is healthy 🚀" : "Database not connected",
+    message: dbState === 1 ? "Server is healthy" : "Database not connected",
     timestamp: new Date().toISOString(),
     database: dbStatus,
   });

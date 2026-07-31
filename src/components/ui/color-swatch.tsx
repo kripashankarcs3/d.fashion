@@ -109,8 +109,8 @@ const ColorSwatch = React.forwardRef<HTMLButtonElement, ColorSwatchProps>(
                   'block h-20 w-20 rounded-md',
                   'shadow-[var(--shadow-swatch)]',
                   'transition-[transform,box-shadow] duration-[var(--duration-fast)] ease-out',
-                  'group-hover:scale-[1.05] group-hover:shadow-[var(--shadow-swatch-hover)]',
-                  'group-focus-visible:scale-[1.05] group-focus-visible:shadow-[var(--shadow-swatch-hover)]',
+                  'group-hover:scale-[1.03] group-hover:shadow-[var(--shadow-swatch-hover)]',
+                  'group-focus-visible:scale-[1.03] group-focus-visible:shadow-[var(--shadow-swatch-hover)]',
                   selected &&
                     'ring-2 ring-gold-primary ring-offset-2 ring-offset-white',
                 )}

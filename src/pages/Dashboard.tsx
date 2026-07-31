@@ -1,13 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { success, error } from '@/lib/toast';
 import { ArrowRight, MessageSquare, Shirt, Sparkles, Upload } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ColorSwatch } from '@/components/ui/color-swatch';
 import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
 import { useStyleStore, type AnalysisResult } from '@/store/useStyleStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { fetchReports } from '@/services/api';
 import { getSeasonInfo } from '@/lib/colour-data';
 
 const ACTION_LABEL: Record<string, string> = {
@@ -20,9 +22,9 @@ const ACTION_LABEL: Record<string, string> = {
 async function copyHex(hex: string) {
   try {
     await navigator.clipboard.writeText(hex);
-    toast.success(`Hex copied: ${hex}`);
+    success(`Hex copied: ${hex}`);
   } catch {
-    toast.error('Could not copy the hex value');
+    error('Could not copy the hex value');
   }
 }
 
@@ -36,7 +38,7 @@ function PaletteRow({ colours }: { colours: { name: string; hex: string }[] }) {
           onClick={() => void copyHex(colour.hex)}
           aria-label={`Copy ${colour.name} hex`}
           title={`${colour.name} · ${colour.hex}`}
-          className="h-7 w-7 rounded-sm shadow-[var(--shadow-swatch)] transition-transform duration-200 ease-out hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-primary"
+          className="h-7 w-7 rounded-sm shadow-[var(--shadow-swatch)] transition-transform duration-200 ease-out hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-primary"
           style={{ backgroundColor: colour.hex }}
         />
       ))}
@@ -69,6 +71,35 @@ export default function Dashboard() {
   const savedReports = useStyleStore((s) => s.savedReports);
   const wardrobeItems = useStyleStore((s) => s.wardrobeItems);
   const activityLog = useStyleStore((s) => s.activityLog);
+  const isAuthed = Boolean(useAuthStore((s) => s.token));
+  const [cloudReports, setCloudReports] = useState<AnalysisResult[]>([]);
+
+  useEffect(() => {
+    if (!isAuthed) return;
+    let cancelled = false;
+    fetchReports()
+      .then((res) => {
+        if (cancelled) return;
+        const reports = res.data.history
+          .map((item) => item.report)
+          .filter((report): report is AnalysisResult => Boolean(report));
+        setCloudReports(reports);
+      })
+      .catch(() => {
+        // Cloud history is best-effort; local reports still render.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthed]);
+
+  const allSavedReports = [
+    ...cloudReports,
+    ...savedReports,
+  ].filter(
+    (report, index, all) =>
+      all.findIndex((other) => other.analyzedAt === report.analyzedAt) === index,
+  );
 
   const seasonInfo = analysisResult
     ? getSeasonInfo(analysisResult.colourSeason, analysisResult.colorProfile.undertone)
@@ -196,11 +227,11 @@ export default function Dashboard() {
             </section>
 
             {/* Saved reports */}
-            {savedReports.length > 0 && (
+            {allSavedReports.length > 0 && (
               <section className="mt-16">
                 <SectionHeading title="Saved Reports" />
                 <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {savedReports.map((report) => {
+                  {allSavedReports.map((report) => {
                     const reportSeason = getSeasonInfo(
                       report.colourSeason,
                       report.colorProfile.undertone,

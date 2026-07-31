@@ -19,12 +19,16 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 px-6 text-center">
-          <p className="text-4xl">⚠️</p>
-          <h2 className="font-serif text-2xl">Something went wrong on this page</h2>
-          <p className="text-muted-foreground font-accent">
-            {this.props.pageName ?? 'This page'} encountered an unexpected error.
+          <h2 className="font-serif text-[length:var(--text-h3)] text-espresso">
+            Something went wrong on this page
+          </h2>
+          <p className="text-[length:var(--text-body)] text-espresso-light">
+            {this.props.pageName ?? 'This page'} encountered an unexpected error. Please try again.
           </p>
-          <Link href="/" className="bg-foreground text-background px-6 py-3 rounded-full font-accent text-sm">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 min-w-[var(--size-cta-min-width)] items-center justify-center rounded-md bg-primary px-10 py-3.5 text-nav font-semibold tracking-button text-primary-foreground transition-all duration-200 ease-out hover:bg-gold-light hover:shadow-cta-hover active:scale-[0.98]"
+          >
             Go Home
           </Link>
         </div>

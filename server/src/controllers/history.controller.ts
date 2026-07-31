@@ -6,7 +6,15 @@ import { asyncHandler } from "../utils/asyncHandler";
 export const saveHistory = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
 
-  const { image, skinType, skinTone, concerns, recommendedProducts } = req.body;
+  const { image, skinType, skinTone, concerns, recommendedProducts, report } = req.body;
+
+  if (!report && !image && !skinType && !skinTone) {
+    res.status(400).json({ success: false, message: "Report data is required" });
+    return;
+  }
+
+  const season =
+    (report as { colourSeason?: string } | undefined)?.colourSeason ?? undefined;
 
   const history = await HistoryService.saveHistory({
     userId,
@@ -15,6 +23,8 @@ export const saveHistory = asyncHandler(async (req: Request, res: Response) => {
     skinTone,
     concerns,
     recommendedProducts,
+    report,
+    season,
   });
 
   res.status(201).json({ success: true, message: "History saved successfully", history });
