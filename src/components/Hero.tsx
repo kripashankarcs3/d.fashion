@@ -65,10 +65,12 @@ export default function Hero() {
         >
           <img
             src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1600&auto=format&fit=crop"
+            srcSet="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=640&auto=format&fit=crop 640w, https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=960&auto=format&fit=crop 960w, https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1280&auto=format&fit=crop 1280w, https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1600&auto=format&fit=crop 1600w"
+            sizes="(min-width: 1024px) 55vw, 100vw"
             alt="A woman in a neutral-toned outfit, photographed in warm natural light against a cream background"
             width={1600}
             height={2000}
-            fetchpriority="high"
+            {...({ fetchpriority: 'high' } as React.ImgHTMLAttributes<HTMLImageElement>)}
             loading="eager"
             decoding="async"
             className="aspect-[3/4] h-full w-full object-cover lg:aspect-auto"

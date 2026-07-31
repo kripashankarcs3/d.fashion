@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 
 interface AppShellProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ export default function AppShell({ children }: AppShellProps) {
         {children}
       </main>
       <Footer />
+      <BackToTop />
     </div>
   );
 }

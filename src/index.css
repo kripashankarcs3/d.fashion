@@ -101,6 +101,9 @@
 
   --duration-skeleton: 1.6s;
 
+  --animate-accordion-down: accordion-down 80ms var(--ease-out);
+  --animate-accordion-up: accordion-up 80ms var(--ease-out);
+
   --text-label: 13px;
   --text-label--line-height: 1.4;
 

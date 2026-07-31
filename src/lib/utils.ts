@@ -13,3 +13,7 @@ export function isAxiosError(error: unknown): error is {
   return typeof error === 'object' && error !== null && (error as { isAxiosError?: boolean }).isAxiosError === true;
 }
 
+export function srcsetFromUrl(url: string, widths: number[]): string {
+  return widths.map((w) => `${url.replace(/w=\d+/, `w=${w}`)} ${w}w`).join(', ');
+}
+

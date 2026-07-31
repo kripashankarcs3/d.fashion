@@ -1,5 +1,6 @@
 import { motion, type Variants } from 'framer-motion';
 import Container from '@/components/Container';
+import { srcsetFromUrl } from '@/lib/utils';
 
 const features = [
   {
@@ -105,6 +106,8 @@ export default function FeatureShowcase() {
                 >
                   <img
                     src={feature.image}
+                    srcSet={srcsetFromUrl(feature.image, [640, 960, 1280, 1600])}
+                    sizes="(min-width: 1024px) 50vw, 100vw"
                     alt={feature.alt}
                     width={1600}
                     height={2000}
