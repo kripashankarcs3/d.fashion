@@ -86,3 +86,18 @@ Playwright smoke + flow tests live in `e2e/`. Requires the dev servers running (
 npx playwright install chromium   # one-time browser download
 npm run test:e2e                  # smoke (all routes) + flow (signup -> chat)
 ```
+
+## Deployment (Docker)
+The Express server serves both the API and the built frontend (SPA fallback included).
+
+```bash
+# Full stack with MongoDB:
+export YOUCAM_API_KEY=your_key_here
+export YOUCAM_API_SECRET=your_secret_here
+docker compose up --build -d
+# App at http://localhost:3001
+
+# Server only:
+docker build -t dfashion .
+docker run -p 3001:3001 -e JWT_SECRET=... -e MONGODB_URI=... -e YOUCAM_API_KEY=... dfashion
+```
