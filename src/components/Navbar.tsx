@@ -6,8 +6,10 @@ import Container from '@/components/Container';
 import { useAuthStore } from '@/store/useAuthStore';
 
 const navLinks = [
-  { href: '/try-on', label: 'Try On' },
-  { href: '/chat', label: 'Chat' },
+  { href: '/upload', label: 'Color Analysis' },
+  { href: '/report', label: 'My Report' },
+  { href: '/try-on', label: 'Virtual Try-On' },
+  { href: '/chat', label: 'AI Stylist' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
@@ -143,7 +145,7 @@ export default function Navbar() {
       )}
     >
       <Container>
-        <nav className="flex h-18 items-center justify-between" aria-label="Primary">
+        <nav className="flex h-16 items-center justify-between" aria-label="Primary">
           <Link
             href="/"
             className="flex items-center gap-3"
@@ -164,7 +166,7 @@ export default function Navbar() {
 
           <div className="hidden items-center lg:flex lg:gap-8">
             {navLinks.map((link) => {
-              const active = location === link.href;
+              const active = location === link.href || (link.href === '/try-on' && location === '/tryon');
               return (
                 <Link
                   key={link.href}
@@ -280,7 +282,7 @@ export default function Navbar() {
             exit="closed"
             className="fixed inset-0 z-[var(--z-navbar)] flex flex-col bg-espresso text-cream-primary lg:hidden"
           >
-            <div className="flex h-18 items-center justify-between px-5">
+            <div className="flex h-16 items-center justify-between px-5">
               <span className="whitespace-nowrap font-editorial text-wordmark leading-none font-medium text-cream-primary">
                 D&rsquo;Fashion
               </span>
@@ -298,7 +300,7 @@ export default function Navbar() {
               aria-label="Mobile"
             >
               {navLinks.map((link) => {
-                const active = location === link.href;
+                const active = location === link.href || (link.href === '/try-on' && location === '/tryon');
                 return (
                   <Link
                     key={link.href}

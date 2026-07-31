@@ -164,9 +164,23 @@ export default function Report() {
 
   if (!analysisResult || !seasonInfo) {
     return (
-      <section className="w-full pt-20 pb-24">
+      <section className="w-full pt-28 pb-24 relative isolate overflow-hidden min-h-[80vh] flex items-center">
+        {/* Background soft glow circles */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <motion.div
+            animate={{ x: [0, 20, -20, 0], y: [0, -20, 20, 0] }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute -left-20 top-10 h-96 w-96 rounded-full bg-white/70 blur-[100px]"
+          />
+          <motion.div
+            animate={{ x: [0, -20, 20, 0], y: [0, 20, -20, 0] }}
+            transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute right-10 bottom-10 h-[30rem] w-[30rem] rounded-full bg-gold-light/10 blur-[120px]"
+          />
+        </div>
+
         <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
-          <Card variant="report" className="p-8">
+          <Card variant="report" className="p-8 shadow-lg border border-border/80">
             <EmptyAnalysisState />
           </Card>
         </div>

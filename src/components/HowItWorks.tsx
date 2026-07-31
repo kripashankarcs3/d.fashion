@@ -37,28 +37,56 @@ const itemVariants: Variants = {
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="scroll-mt-18 py-30">
+    <section id="how-it-works" className="scroll-mt-16 py-30 relative overflow-hidden bg-cream-primary">
+      {/* Background soft glow */}
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[40rem] w-[40rem] rounded-full bg-gold-light/5 blur-[120px] -z-10" />
+
       <Container>
-        <h2 className="sr-only">How it works</h2>
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.15 }}
-          className="grid grid-cols-1 gap-12 md:grid-cols-3"
-        >
-          {steps.map((step) => (
-            <motion.div key={step.number} variants={itemVariants} className="text-center">
-              <p className="font-serif text-h2 text-gold-primary">{step.number}</p>
-              <h3 className="mt-4 font-sans text-h5 font-semibold text-espresso">
-                {step.title}
-              </h3>
-              <p className="mx-auto mt-3 max-w-[38ch] text-body leading-[1.65] text-espresso-light">
-                {step.description}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="text-center mb-16">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-primary">
+            Process
+          </p>
+          <h2 className="mt-4 font-serif text-h2 text-espresso">
+            How It Works
+          </h2>
+        </div>
+
+        <div className="relative">
+          {/* Connecting Line for Timeline (Desktop) */}
+          <div aria-hidden className="absolute top-[3.5rem] left-[15%] right-[15%] h-px bg-gradient-to-r from-gold-light/10 via-gold-primary/30 to-gold-light/10 hidden md:block" />
+
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+            className="grid grid-cols-1 gap-8 md:grid-cols-3 relative z-10"
+          >
+            {steps.map((step) => (
+              <motion.div
+                key={step.number}
+                variants={itemVariants}
+                whileHover="hover"
+                className="group relative rounded-lg border border-border bg-white p-8 shadow-card transition-all duration-300 ease-out hover:border-gold-primary hover:shadow-card-hover text-center"
+              >
+                {/* Visual Step Indicator Bubble */}
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-cream-primary border border-border transition-all duration-300 group-hover:bg-espresso group-hover:border-espresso">
+                  <span className="font-serif text-h3 text-gold-primary transition-transform duration-300 group-hover:scale-110">
+                    {step.number}
+                  </span>
+                </div>
+
+                <h3 className="mt-6 font-sans text-h5 font-semibold text-espresso transition-colors duration-200 group-hover:text-gold-dark">
+                  {step.title}
+                </h3>
+                
+                <p className="mx-auto mt-4 max-w-[32ch] text-body-sm leading-[1.65] text-espresso-light">
+                  {step.description}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </Container>
     </section>
   );
