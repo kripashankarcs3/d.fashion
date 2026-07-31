@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface SkinConcerns {
   acne: number;
@@ -42,12 +43,20 @@ export interface Recommendations {
   styleInsight: string;
 }
 
+export interface StyleArchetype {
+  title: string;
+  description: string;
+}
+
 export interface AnalysisResult {
   enhancedImageUrl: string;
   skinConcerns: SkinConcerns;
   colorProfile: ColorProfile;
   recommendations: Recommendations;
   analyzedAt: string;
+  colourSeason?: string;
+  bestNeutrals?: string[];
+  styleArchetypes?: StyleArchetype[];
 }
 
 export interface WardrobeItem {
@@ -87,26 +96,46 @@ interface StyleStore {
   setReferenceImageUrl: (url: string | null) => void;
 }
 
-export const useStyleStore = create<StyleStore>((set) => ({
-  analysisResult: null,
-  wardrobeItems: [],
-  activityLog: [],
-  userPreferences: { displayName: '', theme: 'system' },
-  referenceImageUrl: null,
+function readCachedAnalysis(): AnalysisResult | null {
+  try {
+    const raw = localStorage.getItem('dfashion_analysis_result');
+    if (!raw) return null;
+    return JSON.parse(raw)?.state?.analysisResult ?? null;
+  } catch {
+    return null;
+  }
+}
 
-  setAnalysisResult: (result) => set({ analysisResult: result }),
-  addWardrobeItem: (item) =>
-    set((state) => ({ wardrobeItems: [...state.wardrobeItems, item] })),
-  addActivityEvent: (event) =>
-    set((state) => ({
-      activityLog: [
-        { ...event, id: crypto.randomUUID() },
-        ...state.activityLog,
-      ].slice(0, 50),
-    })),
-  setUserPreferences: (prefs) =>
-    set((state) => ({
-      userPreferences: { ...state.userPreferences, ...prefs },
-    })),
-  setReferenceImageUrl: (url) => set({ referenceImageUrl: url }),
-}));
+const cachedAnalysis = readCachedAnalysis();
+
+export const useStyleStore = create<StyleStore>()(
+  persist(
+    (set) => ({
+      analysisResult: cachedAnalysis,
+      wardrobeItems: [],
+      activityLog: [],
+      userPreferences: { displayName: '', theme: 'system' },
+      referenceImageUrl: cachedAnalysis?.enhancedImageUrl ?? null,
+
+      setAnalysisResult: (result) => set({ analysisResult: result }),
+      addWardrobeItem: (item) =>
+        set((state) => ({ wardrobeItems: [...state.wardrobeItems, item] })),
+      addActivityEvent: (event) =>
+        set((state) => ({
+          activityLog: [
+            { ...event, id: crypto.randomUUID() },
+            ...state.activityLog,
+          ].slice(0, 50),
+        })),
+      setUserPreferences: (prefs) =>
+        set((state) => ({
+          userPreferences: { ...state.userPreferences, ...prefs },
+        })),
+      setReferenceImageUrl: (url) => set({ referenceImageUrl: url }),
+    }),
+    {
+      name: 'dfashion_analysis_result',
+      partialize: (state) => ({ analysisResult: state.analysisResult }),
+    },
+  ),
+);

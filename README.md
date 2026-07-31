@@ -1,6 +1,6 @@
-# MirrorMind AI — Complete Style Intelligence Platform
+# D'Fashion - Complete Style Intelligence Platform
 
-> YouCam API Hackathon Submission — Category 3: Skin AI + Apparel VTO
+> YouCam API Hackathon Submission - Category 3: Skin AI + Apparel VTO
 
 ## Tech Stack
 - **Frontend**: React 18 + TypeScript + Vite
@@ -12,7 +12,7 @@
 ## Pages
 | Route | Page | Description |
 |---|---|---|
-| `/` | Home | Landing — Hero, Features, Testimonials, CTA |
+| `/` | Home | Landing - Hero, Features, Testimonials, CTA |
 | `/upload` | Upload | 3-step wardrobe digitization + AI Analysis |
 | `/dashboard` | Dashboard | Wardrobe overview, stats, activity, quick actions |
 | `/tryon` | Virtual Try-On | Full catalog browse + interactive try-on |

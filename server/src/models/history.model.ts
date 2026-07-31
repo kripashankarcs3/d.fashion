@@ -49,6 +49,8 @@ const historySchema = new Schema(
   }
 );
 
+historySchema.index({ userId: 1, createdAt: -1 });
+
 export default mongoose.model<IHistory>(
   "History",
   historySchema

@@ -1,19 +1,23 @@
 import { useEffect } from 'react';
 import Hero from '@/components/Hero';
-import TrustedBy from '@/components/TrustedBy';
-import Features from '@/components/Features';
-import Testimonials from '@/components/Testimonials';
-import CTABanner from '@/components/CTABanner';
+import ProblemStrip from '@/components/ProblemStrip';
+import HowItWorks from '@/components/HowItWorks';
+import FeatureShowcase from '@/components/FeatureShowcase';
+import SocialProof from '@/components/SocialProof';
+import FinalCTA from '@/components/FinalCTA';
+import { ResumeAnalysisBanner } from '@/components/ResumeAnalysisBanner';
 
 export default function Home() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
   return (
     <div className="w-full overflow-hidden">
       <Hero />
-      <TrustedBy />
-      <Features />
-      <Testimonials />
-      <CTABanner />
+      <ResumeAnalysisBanner />
+      <ProblemStrip />
+      <HowItWorks />
+      <FeatureShowcase />
+      <SocialProof />
+      <FinalCTA />
     </div>
   );
 }

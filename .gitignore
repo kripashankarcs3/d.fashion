@@ -28,3 +28,11 @@ dist-ssr
 .agents
 .gemini
 
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Server temporary uploads
+server/tmp/
+

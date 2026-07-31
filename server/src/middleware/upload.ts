@@ -1,26 +1,22 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 
-const uploadDir = "tmp";
+const uploadDir = path.join(__dirname, "../../tmp");
 
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    console.log("Destination middleware called");
     cb(null, uploadDir);
   },
 
   filename: (_req, file, cb) => {
-    console.log("Uploading:", file.originalname);
-
-    cb(
-      null,
-      `${Date.now()}${path.extname(file.originalname)}`
-    );
+    const uniqueName = crypto.randomUUID();
+    cb(null, `${uniqueName}${path.extname(file.originalname)}`);
   },
 });
 
@@ -29,8 +25,6 @@ const fileFilter: multer.Options["fileFilter"] = (
   file,
   cb
 ) => {
-  console.log("MIME:", file.mimetype);
-
   const allowed = [
     "image/jpeg",
     "image/png",

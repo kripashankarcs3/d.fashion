@@ -1,338 +1,566 @@
-import { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'wouter';
-import ReportPreview from '@/components/ReportPreview';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import * as Dialog from '@radix-ui/react-dialog';
+import { Bookmark, Check, Copy, Share2, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import {
+  ColorSwatch,
+  type ColorSwatchItem,
+} from '@/components/ui/color-swatch';
 import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
 import { useStyleStore } from '@/store/useStyleStore';
-import { TrendingUp, Calendar, Download, ArrowRight, BarChart2, PieChart, Zap } from 'lucide-react';
+import {
+  getSeasonInfo,
+  mergeAnalysisPalette,
+  sortByGradient,
+  type ColourItem,
+} from '@/lib/colour-data';
 
-const SKIN_CONCERN_LABELS: Record<string, string> = {
-  acne: 'Acne',
-  darkSpots: 'Dark Spots',
-  wrinkles: 'Wrinkles',
-  pores: 'Pores',
-  oiliness: 'Oiliness',
-  dryness: 'Dryness',
-  redness: 'Redness',
-  eyeBags: 'Eye Bags',
-  darkCircles: 'Dark Circles',
-  uneven: 'Uneven Tone',
-  sensitivity: 'Sensitivity',
-  texture: 'Texture',
-  firmness: 'Firmness',
-  radiance: 'Radiance',
+const MAKEUP_SHADE_HEXES: Record<string, string> = {
+  Peach: '#F4C29A',
+  'Warm Nude': '#D9A06F',
+  Coral: '#E8845B',
+  'Deep Red': '#8E1F2F',
+  Rose: '#C0586E',
+  'Soft Pink': '#E8B4C8',
+  'Neutral Beige': '#D9B08C',
+  Taupe: '#B08B6E',
+  'Berry': '#8E3B5A',
+  'Warm Bronze': '#B06A3B',
+  Blush: '#D98A87',
+  Mocha: '#7A4A3B',
+  Nude: '#E3B79C',
+  'Classic Red': '#B22234',
+  Mauve: '#A78B9E',
 };
 
-const insightTypes = [
-  { icon: BarChart2, title: 'Wear Frequency', desc: 'See which items you reach for most — and which are collecting dust.' },
-  { icon: PieChart, title: 'Color Balance', desc: 'Your wardrobe\'s color distribution mapped against seasonal trends.' },
-  { icon: Zap, title: 'Gap Analysis', desc: 'AI identifies what single purchase would unlock the most outfit combinations.' },
-  { icon: TrendingUp, title: 'Style Trajectory', desc: 'How your personal style is evolving week over week.' },
-];
+interface SectionProps {
+  label: string;
+  title: string;
+  children: React.ReactNode;
+}
+
+function Section({ label, title, children }: SectionProps) {
+  return (
+    <Card variant="report" className="p-8">
+      <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+        {label}
+      </p>
+      <h2 className="mt-2 font-serif text-[length:var(--text-h4)] text-espresso">
+        {title}
+      </h2>
+      <div className="mt-6">{children}</div>
+    </Card>
+  );
+}
+
+function AvoidSwatch({ colour }: { colour: ColourItem }) {
+  return (
+    <div className="group inline-flex flex-col items-start gap-1.5">
+      <span
+        aria-hidden="true"
+        className="block h-20 w-20 rounded-md shadow-[var(--shadow-swatch)]"
+        style={{
+          backgroundColor: colour.hex,
+          backgroundImage:
+            'linear-gradient(to top right, transparent calc(50% - 1px), rgba(192,57,43,0.75) calc(50% - 1px), rgba(192,57,43,0.75) calc(50% + 1px), transparent calc(50% + 1px))',
+        }}
+      />
+      <span className="text-[length:var(--text-caption)] text-espresso-muted">
+        {colour.name}
+      </span>
+      <span className="text-[length:var(--text-micro)] tabular-nums text-espresso-muted/70">
+        {colour.hex}
+      </span>
+    </div>
+  );
+}
+
+function Trait({ label, value, swatch }: { label: string; value: string; swatch?: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-[length:var(--text-caption)] font-medium uppercase tracking-[var(--tracking-label)] text-espresso-muted">
+        {label}
+      </span>
+      <span className="flex items-center gap-2">
+        {swatch && (
+          <span
+            aria-hidden="true"
+            className="h-5 w-5 rounded-sm shadow-[var(--shadow-swatch)]"
+            style={{ backgroundColor: swatch }}
+          />
+        )}
+        <span className="text-[length:var(--text-body-sm)] capitalize text-espresso">
+          {value}
+        </span>
+      </span>
+    </div>
+  );
+}
 
 export default function Report() {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
-
   const analysisResult = useStyleStore((s) => s.analysisResult);
+  const [modalColour, setModalColour] = useState<ColourItem | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const seasonInfo = useMemo(
+    () =>
+      analysisResult
+        ? getSeasonInfo(
+            analysisResult.colourSeason,
+            analysisResult.colorProfile.undertone,
+          )
+        : null,
+    [analysisResult],
+  );
+
+  if (!analysisResult || !seasonInfo) {
+    return (
+      <section className="w-full pt-20 pb-24">
+        <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
+          <Card variant="report" className="p-8">
+            <EmptyAnalysisState />
+          </Card>
+        </div>
+      </section>
+    );
+  }
+
+  const palette = mergeAnalysisPalette(
+    seasonInfo.palette,
+    analysisResult.recommendations.outfitPalette ?? [],
+  );
+  const neutrals = sortByGradient(seasonInfo.neutrals);
+  const avoid = sortByGradient(seasonInfo.avoid);
+  const archetypes =
+    analysisResult.styleArchetypes && analysisResult.styleArchetypes.length > 0
+      ? analysisResult.styleArchetypes
+      : seasonInfo.archetypes;
+  const makeupShades = analysisResult.recommendations.makeupShades ?? {
+    foundation: seasonInfo.neutrals[0]?.hex ?? seasonInfo.palette[0].hex,
+    blush: seasonInfo.palette[5]?.hex ?? seasonInfo.palette[0].hex,
+    lip: seasonInfo.palette[6]?.hex ?? seasonInfo.palette[0].hex,
+  };
+  const makeupHexes = {
+    foundation: MAKEUP_SHADE_HEXES[makeupShades.foundation] ?? seasonInfo.neutrals[0]?.hex ?? seasonInfo.palette[0].hex,
+    blush: MAKEUP_SHADE_HEXES[makeupShades.blush] ?? seasonInfo.palette[5]?.hex ?? seasonInfo.palette[0].hex,
+    lip: MAKEUP_SHADE_HEXES[makeupShades.lip] ?? seasonInfo.palette[6]?.hex ?? seasonInfo.palette[0].hex,
+  };
+  const hairOptions = analysisResult.recommendations.hairColorOptions ?? [];
+  const routine = analysisResult.recommendations.skincareRoutine ?? [];
+  const isWarm = analysisResult.colorProfile.undertone === 'warm';
+
+  const copyColour = async (colour: ColourItem) => {
+    try {
+      await navigator.clipboard.writeText(colour.hex);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+      toast.success(`${colour.name} hex copied`);
+    } catch {
+      toast.error('Could not copy the hex value');
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Report link copied to clipboard');
+    } catch {
+      toast.error('Could not copy the link');
+    }
+  };
+
+  const handleSave = () => {
+    toast.success('Report saved to your dashboard');
+  };
 
   return (
-    <div className="w-full overflow-hidden">
-      {/* Hero */}
-      <section className="pt-40 pb-16 bg-background relative">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-primary/8 rounded-full blur-[120px] -translate-x-1/4 translate-y-1/4" />
-        </div>
-        <div className="max-w-5xl mx-auto px-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel border-primary/30 text-sm font-accent font-medium mb-6">
-              <Calendar className="w-4 h-4 text-primary" /> Style Analysis Report
-            </span>
-            <h1 className="text-5xl md:text-7xl font-serif text-foreground leading-tight mb-6">
-              Insights That <br /><span className="italic text-gradient-gold">Elevate.</span>
-            </h1>
-            <p className="text-xl text-muted-foreground font-accent max-w-2xl">
-              {analysisResult
-                ? `Analyzed on ${new Date(analysisResult.analyzedAt).toLocaleDateString()}`
-                : 'Upload your selfie to unlock your personalized skin & color analysis report.'}
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* What's inside */}
-      <section className="py-16 bg-secondary/20 border-y border-border">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-2xl font-serif mb-8">What's Inside Every Report</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {insightTypes.map((insight, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="glass-panel p-6 rounded-2xl"
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <insight.icon className="w-5 h-5 text-primary" />
+    <div className="w-full pt-16 pb-28">
+      <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-12">
+          {/* Left column — sticky colour profile card */}
+          <aside className="lg:sticky lg:top-24">
+            <Card variant="report" className="p-8">
+              {analysisResult.enhancedImageUrl && (
+                <div className="mb-6 overflow-hidden rounded-md border border-border">
+                  <img
+                    src={analysisResult.enhancedImageUrl}
+                    alt="Your analysed photo"
+                    width={640}
+                    height={640}
+                    loading="eager"
+                    className="aspect-square w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
                 </div>
-                <h3 className="font-serif text-lg mb-2">{insight.title}</h3>
-                <p className="text-sm text-muted-foreground font-accent leading-relaxed">{insight.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+              )}
 
-      {!analysisResult ? (
-        <section className="py-20 bg-background">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="glass-panel p-12 rounded-3xl">
-              <EmptyAnalysisState
-                title="No report yet"
-                description="Complete your style analysis to view your report."
-              />
-            </div>
-          </div>
-        </section>
-      ) : (
-        <>
-          {/* Latest Report — Skin Concerns */}
-          <section className="py-16 bg-background">
-            <div className="max-w-6xl mx-auto px-6">
-              <h2 className="text-3xl font-serif mb-6">Skin Analysis</h2>
-              <div className="glass-panel p-8 rounded-3xl">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.entries(SKIN_CONCERN_LABELS).map(([key, label]) => {
-                    const value = (analysisResult.skinConcerns as any)[key] ?? 0;
-                    const percent = Math.round(value * 100);
-                    return (
-                      <div key={key}>
-                        <div className="flex justify-between text-sm font-accent mb-1">
-                          <span className="text-foreground">{label}</span>
-                          <span className="text-muted-foreground">{percent}%</span>
-                        </div>
-                        <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full transition-all duration-700"
-                            style={{ width: `${percent}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+              <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                Your Colour Profile
+              </p>
+              <h2 className="mt-2 font-serif text-[length:var(--text-h4)] text-espresso">
+                {seasonInfo.season}
+              </h2>
+              <p className="mt-1 text-[length:var(--text-caption)] text-espresso-muted">
+                Analysed on{' '}
+                {new Date(analysisResult.analyzedAt).toLocaleDateString()}
+              </p>
+
+              <div className="my-6 h-px bg-border" aria-hidden="true" />
+
+              <div className="space-y-4">
+                <Trait
+                  label="Undertone"
+                  value={analysisResult.colorProfile.undertone}
+                />
+                <Trait
+                  label="Skin tone"
+                  value={analysisResult.colorProfile.skinToneHex}
+                  swatch={analysisResult.colorProfile.skinToneHex}
+                />
+                <Trait label="Eyes" value={analysisResult.colorProfile.eyeColor} />
+                <Trait label="Hair" value={analysisResult.colorProfile.hairColor} />
+                <Trait label="Lips" value={analysisResult.colorProfile.lipColor} />
               </div>
-            </div>
-          </section>
 
-          {/* Color Profile */}
-          <section className="py-16 bg-secondary/20 border-y border-border">
-            <div className="max-w-6xl mx-auto px-6">
-              <h2 className="text-3xl font-serif mb-6">Color Profile</h2>
-              <div className="glass-panel p-8 rounded-3xl">
-                <div className="flex flex-wrap gap-8 items-center">
-                  {/* Skin Tone Swatch */}
-                  <div className="text-center">
-                    <div
-                      className="w-16 h-16 rounded-full border-2 border-border mx-auto mb-2"
-                      style={{ backgroundColor: analysisResult.colorProfile.skinToneHex }}
-                    />
-                    <p className="text-xs font-accent text-muted-foreground">Skin</p>
-                    <p className="text-sm font-accent font-medium">{analysisResult.colorProfile.skinToneHex}</p>
-                  </div>
-
-                  {/* Undertone */}
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-border mx-auto mb-2 flex items-center justify-center">
-                      <span className="font-serif text-lg capitalize">{analysisResult.colorProfile.undertone[0]}</span>
-                    </div>
-                    <p className="text-xs font-accent text-muted-foreground">Undertone</p>
-                    <p className="text-sm font-accent font-medium capitalize">{analysisResult.colorProfile.undertone}</p>
-                  </div>
-
-                  {/* Eye Color */}
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-full border-2 border-border mx-auto mb-2 flex items-center justify-center bg-secondary">
-                      <span className="text-xs font-accent">👁</span>
-                    </div>
-                    <p className="text-xs font-accent text-muted-foreground">Eyes</p>
-                    <p className="text-sm font-accent font-medium capitalize">{analysisResult.colorProfile.eyeColor}</p>
-                  </div>
-
-                  {/* Hair Color */}
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-full border-2 border-border mx-auto mb-2 flex items-center justify-center bg-secondary">
-                      <span className="text-xs font-accent">💇</span>
-                    </div>
-                    <p className="text-xs font-accent text-muted-foreground">Hair</p>
-                    <p className="text-sm font-accent font-medium capitalize">{analysisResult.colorProfile.hairColor}</p>
-                  </div>
-
-                  {/* Lip Color */}
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-full border-2 border-border mx-auto mb-2 flex items-center justify-center bg-secondary">
-                      <span className="text-xs font-accent">💋</span>
-                    </div>
-                    <p className="text-xs font-accent text-muted-foreground">Lips</p>
-                    <p className="text-sm font-accent font-medium capitalize">{analysisResult.colorProfile.lipColor}</p>
-                  </div>
-                </div>
+              <div className="mt-8 flex flex-col gap-3">
+                <Link href="/try-on">
+                  <Button size="lg" className="w-full">
+                    Try On Your Colours
+                  </Button>
+                </Link>
+                <Button variant="secondary" className="w-full" onClick={handleSave}>
+                  <Bookmark aria-hidden="true" />
+                  Save to Dashboard
+                </Button>
+                <Button variant="ghost" className="w-full" onClick={handleShare}>
+                  <Share2 aria-hidden="true" />
+                  Share Report
+                </Button>
               </div>
-            </div>
-          </section>
+            </Card>
+          </aside>
 
-          {/* Outfit Palette + Makeup Shades */}
-          <section className="py-16 bg-background">
-            <div className="max-w-6xl mx-auto px-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Outfit Palette */}
-                <div className="glass-panel p-8 rounded-3xl">
-                  <h3 className="font-serif text-2xl mb-4">Recommended Palette</h3>
-                  <div className="flex flex-wrap gap-3 mb-6">
-                    {analysisResult.recommendations.outfitPalette.map((hex, i) => (
-                      <div key={i} className="text-center">
-                        <div
-                          className="w-12 h-12 rounded-full border-2 border-border shadow-sm"
-                          style={{ backgroundColor: hex }}
-                        />
-                        <p className="text-xs font-accent text-muted-foreground mt-1">{hex}</p>
-                      </div>
-                    ))}
-                  </div>
-                  {analysisResult.recommendations.avoidColors.length > 0 && (
-                    <>
-                      <h4 className="font-serif text-lg mb-2 text-red-600">Avoid Colors</h4>
-                      <div className="flex flex-wrap gap-3">
-                        {analysisResult.recommendations.avoidColors.map((hex, i) => (
-                          <div key={i} className="text-center">
-                            <div
-                              className="w-10 h-10 rounded-full border-2 border-border opacity-60"
-                              style={{ backgroundColor: hex }}
-                            />
-                            <p className="text-xs font-accent text-muted-foreground mt-1">{hex}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Makeup Shades */}
-                <div className="glass-panel p-8 rounded-3xl">
-                  <h3 className="font-serif text-2xl mb-4">Makeup Shades</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="w-10 h-10 rounded-full border-2 border-border"
-                        style={{ backgroundColor: analysisResult.recommendations.makeupShades.foundation }}
-                      />
-                      <div>
-                        <p className="text-sm font-accent font-medium">Foundation</p>
-                        <p className="text-xs font-accent text-muted-foreground">{analysisResult.recommendations.makeupShades.foundation}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="w-10 h-10 rounded-full border-2 border-border"
-                        style={{ backgroundColor: analysisResult.recommendations.makeupShades.blush }}
-                      />
-                      <div>
-                        <p className="text-sm font-accent font-medium">Blush</p>
-                        <p className="text-xs font-accent text-muted-foreground">{analysisResult.recommendations.makeupShades.blush}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="w-10 h-10 rounded-full border-2 border-border"
-                        style={{ backgroundColor: analysisResult.recommendations.makeupShades.lip }}
-                      />
-                      <div>
-                        <p className="text-sm font-accent font-medium">Lip</p>
-                        <p className="text-xs font-accent text-muted-foreground">{analysisResult.recommendations.makeupShades.lip}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Hair Color Options */}
-          <section className="py-16 bg-secondary/20 border-y border-border">
-            <div className="max-w-6xl mx-auto px-6">
-              <h2 className="text-3xl font-serif mb-6">Recommended Hair Colors</h2>
-              <div className="glass-panel p-8 rounded-3xl">
-                <div className="flex flex-wrap gap-6">
-                  {analysisResult.recommendations.hairColorOptions.map((hex, i) => (
-                    <div key={i} className="text-center">
-                      <div
-                        className="w-14 h-14 rounded-full border-2 border-border shadow-sm"
-                        style={{ backgroundColor: hex }}
-                      />
-                      <p className="text-xs font-accent text-muted-foreground mt-1">{hex}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Skincare Routine */}
-          <section className="py-16 bg-background">
-            <div className="max-w-6xl mx-auto px-6">
-              <h2 className="text-3xl font-serif mb-6">Recommended Skincare Routine</h2>
-              <div className="glass-panel p-8 rounded-3xl">
-                <div className="space-y-4">
-                  {analysisResult.recommendations.skincareRoutine.map((step) => (
-                    <div key={step.step} className="flex gap-4 items-start">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-accent font-bold text-primary">{step.step}</span>
-                      </div>
-                      <div>
-                        <p className="font-accent font-medium text-foreground">{step.product}</p>
-                        <p className="text-sm text-muted-foreground font-accent">{step.reason}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Style Insight */}
-          <section className="py-16 bg-secondary/30 border-t border-border">
-            <div className="max-w-4xl mx-auto px-6 text-center">
-              <h2 className="text-3xl font-serif mb-4">Style Insight</h2>
-              <p className="text-lg text-muted-foreground font-accent leading-relaxed italic">
-                &ldquo;{analysisResult.recommendations.styleInsight}&rdquo;
+          {/* Right column — report sections */}
+          <div className="space-y-10">
+            {/* 1. Colour season — headline finding */}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                Your Colour Season
+              </p>
+              <h1 className="mt-3 font-serif text-[40px] leading-[1.05] text-espresso md:text-[64px]">
+                {seasonInfo.season}
+              </h1>
+              <p className="mt-3 font-serif text-[length:var(--text-h5)] italic text-espresso-light">
+                {seasonInfo.tagline}
+              </p>
+              <p className="mt-4 max-w-xl text-[length:var(--text-body)] text-espresso-light">
+                {seasonInfo.description}
               </p>
             </div>
-          </section>
 
-          {/* ReportPreview */}
-          <ReportPreview />
+            {/* 2. Your colour palette */}
+            <Section label="Your Palette" title="Your Colour Palette">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 xl:grid-cols-5">
+                {palette.map((colour, i) => (
+                  <motion.div
+                    key={colour.hex + colour.name}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      delay: i * 0.08,
+                      duration: 0.3,
+                      ease: [0, 0, 0.2, 1],
+                    }}
+                  >
+                    <ColorSwatch
+                      {...colour}
+                      onCopy={() => setModalColour(colour)}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </Section>
 
-          {/* Report History — replaced with static text */}
-          <section className="py-20 bg-background">
-            <div className="max-w-4xl mx-auto px-6 text-center">
-              <h2 className="text-3xl font-serif mb-4">Report History</h2>
-              <p className="text-muted-foreground font-accent">Report history will appear here after multiple analyses.</p>
+            {/* 3. Skin undertone analysis */}
+            <Section label="Your Undertone" title="Skin Undertone Analysis">
+              <p className="max-w-xl text-[length:var(--text-body)] text-espresso-light">
+                {isWarm
+                  ? 'Your skin reads warm. Gold, olive, and terracotta sit harmoniously against you, while silver, grey, and icy pastels tend to flatten your glow.'
+                  : analysisResult.colorProfile.undertone === 'cool'
+                    ? 'Your skin reads cool. Silver, jewel tones, and crisp whites intensify you, while earthy golds can leave you looking muted.'
+                    : 'Your skin sits between warm and cool. Muted, blended tones suit you best — pure extremes on either side can overbalance your natural harmony.'}
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-6">
+                <span className="flex items-center gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="h-10 w-10 rounded-md shadow-[var(--shadow-swatch)]"
+                    style={{ backgroundColor: analysisResult.colorProfile.skinToneHex }}
+                  />
+                  <span>
+                    <span className="block text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-espresso-muted">
+                      Detected tone
+                    </span>
+                    <span className="block text-[length:var(--text-body-sm)] text-espresso">
+                      {analysisResult.colorProfile.skinToneHex}
+                    </span>
+                  </span>
+                </span>
+                <Badge variant="gold" className="uppercase tracking-[var(--tracking-label)]">
+                  {analysisResult.colorProfile.undertone} undertone
+                </Badge>
+              </div>
+            </Section>
+
+            {/* 4. Best neutrals */}
+            <Section label="Your Neutrals" title="Best Neutrals">
+              <p className="max-w-xl text-[length:var(--text-body-sm)] text-espresso-light">
+                Neutrals form the quiet backbone of your wardrobe. These
+                harmonise with your season and pair with everything above.
+              </p>
+              <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 xl:grid-cols-5">
+                {neutrals.map((colour, i) => (
+                  <motion.div
+                    key={colour.hex + colour.name}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      delay: i * 0.08,
+                      duration: 0.3,
+                      ease: [0, 0, 0.2, 1],
+                    }}
+                  >
+                    <ColorSwatch
+                      {...colour}
+                      onCopy={() => setModalColour(colour)}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </Section>
+
+            {/* 5. Colours to avoid */}
+            <Section label="Colours to Avoid" title="Colours to Avoid">
+              <p className="max-w-xl text-[length:var(--text-body-sm)] text-espresso-light">
+                These tones work against your season. Wear them sparingly, or
+                keep them far from your face.
+              </p>
+              <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 xl:grid-cols-5">
+                {avoid.map((colour) => (
+                  <AvoidSwatch key={colour.hex + colour.name} colour={colour} />
+                ))}
+              </div>
+            </Section>
+
+            {/* 6. Style archetypes */}
+            <Section label="Your Archetypes" title="Style Archetypes">
+              <div className="space-y-8">
+                {archetypes.map((archetype) => (
+                  <div key={archetype.title} className="border-l-2 border-gold-primary pl-5">
+                    <h3 className="font-serif text-[length:var(--text-h5)] text-espresso">
+                      {archetype.title}
+                    </h3>
+                    <p className="mt-1.5 max-w-xl text-[length:var(--text-body-sm)] text-espresso-light">
+                      {archetype.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </Section>
+
+            {/* 7. Wardrobe recommendations */}
+            <Section label="Your Wardrobe" title="Wardrobe Recommendations">
+              <div>
+                <h3 className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                  Makeup shades
+                </h3>
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  {[
+                    { label: 'Foundation', hex: makeupHexes.foundation, shade: makeupShades.foundation },
+                    { label: 'Blush', hex: makeupHexes.blush, shade: makeupShades.blush },
+                    { label: 'Lip', hex: makeupHexes.lip, shade: makeupShades.lip },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center gap-3 rounded-md border border-border bg-cream-dark p-3"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="h-10 w-10 shrink-0 rounded-md shadow-[var(--shadow-swatch)]"
+                        style={{ backgroundColor: item.hex }}
+                      />
+                      <span>
+                        <span className="block text-[length:var(--text-body-sm)] font-medium text-espresso">
+                          {item.label} · {item.shade}
+                        </span>
+                        <span className="block text-[length:var(--text-micro)] tabular-nums text-espresso-muted">
+                          {item.hex}
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {hairOptions.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                    Hair colours
+                  </h3>
+                  <ul className="mt-4 flex flex-wrap gap-3">
+                    {hairOptions.map((option) => (
+                      <li
+                        key={option}
+                        className="rounded-md border border-border bg-cream-dark px-4 py-2.5 text-[length:var(--text-body-sm)] text-espresso"
+                      >
+                        {option}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {routine.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                    Skincare routine
+                  </h3>
+                  <ol className="mt-4 space-y-4">
+                    {routine.map((step) => (
+                      <li key={step.step} className="flex gap-4">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gold-primary font-serif text-[length:var(--text-body-sm)] text-espresso">
+                          {step.step}
+                        </span>
+                        <div>
+                          <p className="text-[length:var(--text-body-sm)] font-medium text-espresso">
+                            {step.product}
+                          </p>
+                          <p className="mt-0.5 text-[length:var(--text-caption)] text-espresso-muted">
+                            {step.reason}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+            </Section>
+
+            {/* 8. Share / Save / Try-On CTAs */}
+            <div className="rounded-lg bg-espresso px-8 py-12 text-center">
+              <h2 className="font-serif text-[length:var(--text-h3)] text-cream-primary">
+                Ready to see these colours on you?
+              </h2>
+              <p className="mx-auto mt-3 max-w-md text-[length:var(--text-body)] text-cream-primary/80">
+                Try on outfits in your palette, save your report, and share it
+                with your stylist.
+              </p>
+              <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <Link href="/try-on">
+                  <Button size="lg">Try On Your Colours</Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-cream-primary/40 bg-transparent text-cream-primary hover:bg-cream-primary/10 hover:text-cream-primary"
+                  onClick={handleShare}
+                >
+                  <Share2 aria-hidden="true" />
+                  Share Report
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="text-cream-primary hover:bg-cream-primary/10 hover:text-cream-primary"
+                  onClick={handleSave}
+                >
+                  <Bookmark aria-hidden="true" />
+                  Save to Dashboard
+                </Button>
+              </div>
             </div>
-          </section>
-        </>
-      )}
-
-      {/* CTA */}
-      <section className="py-20 bg-secondary/30 border-t border-border">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-serif mb-4">Get Your First Report</h2>
-          <p className="text-muted-foreground font-accent mb-8">Upload your wardrobe today. Your first Style Intelligence report drops this Monday.</p>
-          <Link href="/upload" className="inline-flex items-center gap-3 bg-foreground text-background px-8 py-4 rounded-full font-accent font-medium hover:bg-foreground/90 transition-colors shadow-lg">
-            Start Uploading <ArrowRight className="w-4 h-4" />
-          </Link>
+          </div>
         </div>
-      </section>
+      </div>
+
+      {/* Colour detail modal */}
+      <Dialog.Root
+        open={modalColour !== null}
+        onOpenChange={(open) => {
+          if (!open) setModalColour(null);
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[2000] bg-espresso/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <Dialog.Content
+            aria-describedby={undefined}
+            className="fixed inset-0 z-[2000] flex flex-col overflow-y-auto bg-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+          >
+            {modalColour && (
+              <div className="mx-auto flex w-full max-w-[var(--container-narrow)] flex-1 flex-col px-6 py-10 md:py-16">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                    Colour Detail
+                  </p>
+                  <Dialog.Close asChild>
+                    <button
+                      type="button"
+                      aria-label="Close colour detail"
+                      className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-cream-dark text-espresso transition-colors duration-200 ease-out hover:border-gold-primary hover:text-gold-primary"
+                    >
+                      <X className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </Dialog.Close>
+                </div>
+
+                <div
+                  className="mt-8 aspect-square w-full rounded-lg shadow-[var(--shadow-md)]"
+                  style={{
+                    backgroundColor: modalColour.hex,
+                    boxShadow:
+                      'inset 0 0 0 1px rgba(0,0,0,0.08), var(--shadow-md)',
+                  }}
+                />
+
+                <h2 className="mt-8 font-serif text-[length:var(--text-h2)] text-espresso">
+                  {modalColour.name}
+                </h2>
+                <p className="mt-1 text-[length:var(--text-body)] tabular-nums text-espresso-muted">
+                  {modalColour.hex}
+                </p>
+                <p className="mt-4 max-w-md text-[length:var(--text-body)] text-espresso-light">
+                  {modalColour.recommendation}
+                </p>
+
+                <div className="mt-10">
+                  <Button
+                    size="lg"
+                    onClick={() => void copyColour(modalColour)}
+                  >
+                    {copied ? (
+                      <Check aria-hidden="true" />
+                    ) : (
+                      <Copy aria-hidden="true" />
+                    )}
+                    {copied ? 'Copied' : 'Copy hex value'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }

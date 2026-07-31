@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Send, Image as ImageIcon, Sparkles, Loader2 } from 'lucide-react';
+import { Link } from 'wouter';
+import { Send, Sparkles, MessageSquare, Shirt, Palette, Bookmark } from 'lucide-react';
 import { toast } from 'sonner';
 import { sendChatMessage } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
@@ -9,24 +10,54 @@ import { useStyleStore } from '@/store/useStyleStore';
 interface Message {
   role: 'user' | 'ai';
   text: string;
+  link?: { href: string; label: string };
 }
 
 interface StylistChatProps {
   initialPrompt?: string;
 }
 
+function initialMessage(hasAnalysis: boolean): Message {
+  if (hasAnalysis) {
+    return {
+      role: 'ai',
+      text: 'Based on your colour season, I can help you find colours and outfits that work for you.',
+    };
+  }
+  return {
+    role: 'ai',
+    text: 'Upload a selfie first to get personalised style advice. ',
+    link: { href: '/upload', label: 'Upload a selfie →' },
+  };
+}
+
+function TypingIndicator() {
+  return (
+    <span className="inline-flex items-center gap-1.5" aria-label="D'Style is typing">
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          aria-hidden="true"
+          className="h-1.5 w-1.5 rounded-full bg-gold-primary"
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{
+            duration: 1.2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: i * 0.18,
+          }}
+        />
+      ))}
+    </span>
+  );
+}
+
 export default function StylistChat({ initialPrompt }: StylistChatProps) {
   const analysisResult = useStyleStore((s) => s.analysisResult);
   const wardrobeItems = useStyleStore((s) => s.wardrobeItems);
-  const [messages, setMessages] = useState<Message[]>(() => {
-    if (!analysisResult) {
-      return [{
-        role: 'ai',
-        text: 'Upload a selfie first to get personalized advice. Your AI stylist works best with your analysis data.',
-      }];
-    }
-    return [];
-  });
+  const [messages, setMessages] = useState<Message[]>(() => [
+    initialMessage(Boolean(analysisResult)),
+  ]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const submittedPromptRef = useRef('');
@@ -35,7 +66,10 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
     mutationFn: (text: string) =>
       sendChatMessage(text, { analysisResult, wardrobeItems }),
     onSuccess: (response) => {
-      setMessages((prev) => [...prev, { role: 'ai', text: response.data.reply }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'ai', text: response.data.reply },
+      ]);
     },
     onError: () => {
       toast.error('Stylist is unavailable. Please try again.');
@@ -47,11 +81,14 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
       submittedPromptRef.current = initialPrompt;
       setInput(initialPrompt);
       if (analysisResult) {
-        setMessages((prev) => [...prev, { role: 'user', text: initialPrompt }]);
+        setMessages((prev) => [
+          ...prev,
+          { role: 'user', text: initialPrompt },
+        ]);
         mutation.mutate(initialPrompt);
       }
     }
-  }, [initialPrompt]);
+  }, [initialPrompt, analysisResult, mutation]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -67,101 +104,107 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
   };
 
   return (
-    <section className="py-24 bg-background relative overflow-hidden">
-      <div className="absolute top-1/2 left-0 w-96 h-96 bg-primary/10 rounded-full blur-[100px] -translate-x-1/2" />
-
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-serif text-foreground mb-4">Your AI Stylist, 24/7.</h2>
-          <p className="font-accent text-muted-foreground text-lg">Context-aware advice based on your exact wardrobe and the occasion.</p>
-        </div>
-
-        <div className="glass-panel bg-white/60 rounded-3xl border-primary/20 shadow-2xl flex flex-col h-[600px] overflow-hidden">
-
-          {/* Header */}
-          <div className="p-4 md:p-6 border-b border-border bg-white/40 flex items-center gap-4 backdrop-blur-md">
-            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-serif text-xl font-medium">Claude (Style Engine)</h3>
-              <p className="text-xs font-accent text-primary font-bold tracking-widest flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> ONLINE
-              </p>
-            </div>
-          </div>
-
-          {/* Chat Area */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
-            {messages.map((msg, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`max-w-[80%] rounded-2xl p-4 md:p-5 ${
-                  msg.role === 'user'
-                    ? 'bg-foreground text-background rounded-tr-sm'
-                    : 'glass-panel bg-white/80 rounded-tl-sm text-foreground shadow-sm'
-                }`}>
-                  <p className={`font-accent text-sm md:text-base leading-relaxed ${
-                    msg.role === 'user' ? 'text-background' : 'text-foreground'
-                  }`}>
-                    {msg.text.split('**').map((part, index) =>
-                      index % 2 === 1 ? <strong key={index} className="font-semibold text-primary">{part}</strong> : part
-                    )}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-
-            {mutation.isPending && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex justify-start"
-              >
-                <div className="glass-panel bg-white/80 rounded-2xl rounded-tl-sm p-4 px-5 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-              </motion.div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Area */}
-          <div className="p-4 bg-white/60 border-t border-border backdrop-blur-md">
-            <form onSubmit={handleSend} className="relative flex items-center">
-              <button type="button" className="absolute left-3 text-muted-foreground hover:text-primary transition-colors">
-                <ImageIcon className="w-5 h-5" />
-              </button>
-              <input
-                type="text"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder={analysisResult ? "Ask for advice..." : "Upload a selfie to get started..."}
-                className="w-full bg-white border border-border rounded-full py-3 pl-12 pr-14 font-accent text-sm focus:outline-none focus:border-primary/50 shadow-sm"
-                disabled={!analysisResult}
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || mutation.isPending || !analysisResult}
-                className="absolute right-2 w-9 h-9 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {mutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4 ml-0.5" />
-                )}
-              </button>
-            </form>
-          </div>
-
+    <div className="flex h-[620px] flex-col overflow-hidden rounded-lg border border-border bg-white shadow-card">
+      {/* Header */}
+      <div className="flex items-center gap-4 border-b border-border p-6">
+        <span
+          aria-hidden="true"
+          className="flex h-11 w-11 items-center justify-center rounded-md bg-gold-primary text-espresso"
+        >
+          <Sparkles className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="text-[13px] font-semibold text-gold-primary">
+            D&rsquo;Style
+          </p>
+          <p className="text-[length:var(--text-caption)] text-espresso-muted">
+            Your personal stylist
+          </p>
         </div>
       </div>
-    </section>
+
+      {/* Messages */}
+      <div className="flex-1 space-y-6 overflow-y-auto p-6">
+        {messages.map((msg, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, ease: [0, 0, 0.2, 1] }}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-[80%] rounded-lg p-4 ${
+                msg.role === 'user'
+                  ? 'bg-espresso text-cream-primary'
+                  : 'border border-border bg-white text-espresso shadow-sm'
+              }`}
+            >
+              <p className="text-[length:var(--text-body-sm)] leading-[1.6]">
+                {msg.text.split('**').map((part, index) =>
+                  index % 2 === 1 ? (
+                    <strong
+                      key={index}
+                      className="font-semibold text-gold-primary"
+                    >
+                      {part}
+                    </strong>
+                  ) : (
+                    part
+                  ),
+                )}
+                {msg.link && (
+                  <Link
+                    href={msg.link.href}
+                    className="ml-0.5 font-medium text-gold-primary underline underline-offset-2 transition-colors duration-200 ease-out hover:text-gold-light"
+                  >
+                    {msg.link.label}
+                  </Link>
+                )}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+
+        {mutation.isPending && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex justify-start"
+          >
+            <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+              <TypingIndicator />
+            </div>
+          </motion.div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div className="border-t border-border p-6">
+        <form onSubmit={handleSend} className="flex items-center gap-3">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={
+              analysisResult
+                ? 'Ask for advice…'
+                : 'Upload a selfie to get started…'
+            }
+            disabled={!analysisResult}
+            className="min-h-11 min-w-0 flex-1 rounded-md border border-input bg-white px-4 text-[length:var(--text-body-sm)] text-espresso placeholder:text-placeholder transition-[border-color,box-shadow] duration-200 ease-out focus:border-gold-primary focus:shadow-[var(--shadow-input-focus)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+          />
+          <button
+            type="submit"
+            disabled={!input.trim() || mutation.isPending || !analysisResult}
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground transition-all duration-200 ease-out hover:bg-gold-light hover:scale-[1.01] hover:shadow-cta-hover active:scale-[0.98] active:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Send className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Send message</span>
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }

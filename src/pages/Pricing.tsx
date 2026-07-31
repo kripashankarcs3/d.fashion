@@ -1,243 +1,377 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'wouter';
-import { Check, ArrowRight, Sparkles, HelpCircle } from 'lucide-react';
+import { Check, Minus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { cn } from '@/lib/utils';
 
-const tiers = [
+interface Plan {
+  name: string;
+  tagline: string;
+  monthly: number;
+  popular?: boolean;
+  cta: string;
+  features: string[];
+  missing: string[];
+  included: string[];
+}
+
+const PLANS: Plan[] = [
   {
-    name: 'Style Explorer',
-    monthly: '0',
-    annual: '0',
-    description: 'For those just beginning to digitize their wardrobe.',
-    cta: 'Start Free',
-    ctaVariant: 'secondary',
+    name: 'Starter',
+    tagline: 'Core colour analysis only.',
+    monthly: 0,
+    cta: 'Get Started with Starter',
     features: [
-      '10 items upload per month',
-      'Basic AI style analysis',
-      '1 monthly style report',
-      'Standard community support',
-      'Mobile app access',
+      'Colour season analysis',
+      'Personal colour palette',
+      'Skin undertone report',
+      'Colours to avoid',
     ],
-    missing: ['Virtual Try-On', 'AI Stylist Chat', 'Unlimited uploads', 'PDF export'],
+    missing: [
+      'Full wardrobe report',
+      'Palette download',
+      'Virtual try-on',
+      'AI stylist chat',
+    ],
+    included: [
+      'One analysis on upload',
+      'Your colour season and palette',
+      'Skin undertone reading',
+      'A clear list of colours to avoid',
+    ],
   },
   {
-    name: 'Style Curator',
-    monthly: '19',
-    annual: '15',
-    description: 'The complete digital atelier experience.',
+    name: 'Essentials',
+    tagline: 'Your complete colour identity.',
+    monthly: 499,
     popular: true,
-    cta: 'Start 14-Day Trial',
-    ctaVariant: 'primary',
+    cta: 'Get Started with Essentials',
     features: [
-      'Unlimited wardrobe uploads',
-      'Full Virtual Try-On access',
-      'Weekly intelligence reports',
-      '24/7 AI Stylist Chat',
-      'Color palette extraction',
-      'PDF report export',
-      'Priority support',
-      'Mobile & desktop apps',
+      'Everything in Starter',
+      'Full wardrobe report',
+      'Colour palette download',
+      'Best neutrals guide',
+      'Analysis history',
     ],
-    missing: ['Multiple profiles', 'Early model access', 'API access'],
+    missing: ['Virtual try-on', 'AI stylist chat'],
+    included: [
+      'Unlimited re-analysis',
+      'Downloadable colour palette',
+      'Best neutrals for your season',
+      'Wardrobe recommendations',
+      'Saved analysis history',
+    ],
   },
   {
-    name: 'Style Director',
-    monthly: '49',
-    annual: '39',
-    description: 'For professionals, stylists, and power users.',
-    cta: 'Get Director Access',
-    ctaVariant: 'dark',
+    name: 'Atelier',
+    tagline: 'The full atelier experience.',
+    monthly: 999,
+    cta: 'Get Started with Atelier',
     features: [
-      'Everything in Curator',
-      'Up to 5 separate profiles',
-      'High-res PDF export',
-      'Early access to new AI models',
-      'REST API access',
-      'White-label reports',
-      'Dedicated account manager',
-      'Custom integrations',
+      'Everything in Essentials',
+      'Virtual try-on',
+      'AI stylist chat',
+      'Priority updates',
+      'Early access to new features',
     ],
     missing: [],
+    included: [
+      'Unlimited virtual try-on',
+      '24/7 AI stylist conversations',
+      'Priority support',
+      'Early access to every new feature',
+      'Personal style archetypes',
+    ],
   },
 ];
 
 const faqs = [
-  { q: 'Can I cancel anytime?', a: 'Yes. Cancel directly from your account settings at any time — no hidden fees, no questions asked.' },
-  { q: 'What happens to my data if I cancel?', a: 'Your wardrobe data is yours. You can export everything before cancelling and we delete it within 30 days after.' },
-  { q: 'How accurate is the Virtual Try-On?', a: 'Our neural rendering achieves 92%+ accuracy on fit prediction for standard body types, based on internal benchmarks.' },
-  { q: 'Does the free plan expire?', a: 'No. Style Explorer is free forever. You get 10 uploads per month indefinitely with no credit card required.' },
-  { q: 'Can I use DeeStyle as a professional stylist?', a: 'Yes! Style Director supports up to 5 client profiles. We\'re also building agency plans — contact us for early access.' },
+  {
+    q: 'Can I cancel anytime?',
+    a: 'Yes. Cancel directly from your account at any time — no hidden fees, no questions asked.',
+  },
+  {
+    q: 'What happens to my analysis if I cancel?',
+    a: 'Your colour identity is yours. Download your palette before you leave and we keep nothing after 30 days.',
+  },
+  {
+    q: 'How accurate is the colour analysis?',
+    a: 'The analysis reads your undertone, depth, and contrast from a clear photo in natural light. The more accurate the photo, the more accurate the season.',
+  },
+  {
+    q: 'Does the free plan ever expire?',
+    a: 'No. Starter is free forever — your colour analysis and palette stay with you, with no credit card required.',
+  },
+  {
+    q: 'Can I use Atelier as a professional stylist?',
+    a: 'Yes. Atelier is built for stylists and power users who want try-on, chat, and early access for their clients.',
+  },
 ];
 
+function formatInr(value: number): string {
+  return `₹${value.toLocaleString('en-IN')}`;
+}
+
 export default function Pricing() {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
-  const [annual, setAnnual] = useState(true);
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  const [annual, setAnnual] = useState(false);
 
   return (
-    <div className="w-full overflow-hidden">
-      {/* Hero */}
-      <section className="pt-40 pb-16 bg-background relative">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50vw] h-[50vw] bg-primary/8 rounded-full blur-[120px]" />
-        </div>
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-5xl md:text-7xl font-serif text-foreground leading-tight mb-6">
-              Invest In Your <br /><span className="italic text-gradient-gold">Aesthetic</span>
-            </h1>
-            <p className="text-xl text-muted-foreground font-accent max-w-2xl mx-auto mb-10">
-              Start free. Upgrade when your wardrobe demands it.
-            </p>
+    <div className="w-full pt-28 pb-24">
+      <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
+        {/* Header */}
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+            Pricing
+          </p>
+          <h1 className="mt-3 font-serif text-[length:var(--text-h1)] text-espresso">
+            A Collection, Not a Menu.
+          </h1>
+          <p className="mx-auto mt-6 max-w-md text-[length:var(--text-body)] text-espresso-light">
+            Start free. Upgrade when your wardrobe demands it.
+          </p>
 
-            {/* Annual / Monthly toggle */}
-            <div className="inline-flex items-center gap-4 glass-panel px-5 py-3 rounded-full">
-              <span className={`text-sm font-accent font-medium transition-colors ${!annual ? 'text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
-              <button
-                onClick={() => setAnnual(!annual)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${annual ? 'bg-primary' : 'bg-border'}`}
-              >
-                <motion.div
-                  animate={{ x: annual ? 24 : 2 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                  className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
-                />
-              </button>
-              <span className={`text-sm font-accent font-medium transition-colors ${annual ? 'text-foreground' : 'text-muted-foreground'}`}>
-                Annual <span className="text-primary font-bold">Save 20%</span>
-              </span>
-            </div>
-          </motion.div>
+          {/* Monthly / annual toggle */}
+          <div className="mt-10 inline-flex items-center gap-4 rounded-md border border-border bg-cream-dark px-5 py-2.5">
+            <span
+              className={cn(
+                'text-nav transition-colors duration-200 ease-out',
+                !annual ? 'text-espresso' : 'text-espresso-muted',
+              )}
+            >
+              Monthly
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={annual}
+              onClick={() => setAnnual((value) => !value)}
+              className={cn(
+                'relative h-6 w-12 rounded-full transition-colors duration-200 ease-out',
+                annual ? 'bg-gold-primary' : 'bg-espresso-muted/40',
+              )}
+            >
+              <motion.span
+                aria-hidden="true"
+                className="absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm"
+                animate={{ left: annual ? 24 : 4 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              />
+            </button>
+            <span
+              className={cn(
+                'text-nav transition-colors duration-200 ease-out',
+                annual ? 'text-espresso' : 'text-espresso-muted',
+              )}
+            >
+              Annual
+              <span className="ml-1 text-gold-primary">Save 2 months</span>
+            </span>
+          </div>
         </div>
-      </section>
 
-      {/* Pricing Cards */}
-      <section className="pb-24 bg-background">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            {tiers.map((tier, i) => (
+        {/* Pricing cards */}
+        <div className="mt-16 grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-stretch">
+          {PLANS.map((plan) => {
+            const annualPayable = plan.monthly === 0 ? 0 : plan.monthly * 10;
+            const monthlyEquivalent =
+              plan.monthly === 0 ? 0 : Math.round(annualPayable / 12);
+            const savings =
+              plan.monthly === 0 ? 0 : plan.monthly * 12 - annualPayable;
+            const price = annual ? monthlyEquivalent : plan.monthly;
+
+            return (
               <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className={`relative rounded-3xl p-8 border transition-all ${
-                  tier.popular
-                    ? 'border-primary shadow-2xl shadow-primary/10 bg-white scale-105'
-                    : 'glass-panel border-border hover:border-primary/30 hover:shadow-lg'
-                }`}
+                key={plan.name}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0, scale: plan.popular ? 1.02 : 1 }}
+                transition={{ duration: 0.4, ease: [0, 0, 0.2, 1] }}
+                className={cn(
+                  'relative flex flex-col rounded-lg p-8',
+                  plan.popular
+                    ? 'border-2 border-gold-primary bg-white shadow-card'
+                    : 'border border-border bg-cream-primary shadow-card',
+                )}
               >
-                {tier.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-primary text-primary-foreground text-xs font-bold font-accent px-4 py-1.5 rounded-full tracking-widest shadow-lg">
-                      MOST POPULAR
-                    </span>
-                  </div>
+                {plan.popular && (
+                  <span className="absolute -top-3 right-6">
+                    <Badge variant="gold" className="uppercase tracking-[var(--tracking-label)]">
+                      Most Popular
+                    </Badge>
+                  </span>
                 )}
 
-                <div className="mb-6">
-                  <h3 className="font-serif text-xl mb-2">{tier.name}</h3>
-                  <p className="text-muted-foreground font-accent text-sm">{tier.description}</p>
-                </div>
+                <h2 className="font-serif text-[length:var(--text-h3)] text-espresso">
+                  {plan.name}
+                </h2>
+                <p className="mt-1 text-[length:var(--text-body-sm)] text-espresso-light">
+                  {plan.tagline}
+                </p>
 
-                <div className="mb-8">
-                  <div className="flex items-end gap-1">
-                    <span className="font-serif text-5xl">${annual ? tier.annual : tier.monthly}</span>
-                    <span className="text-muted-foreground font-accent text-sm mb-2">/month</span>
+                <div className="mt-8 min-h-[96px]">
+                  <div className="flex items-end gap-2">
+                    <span className="relative overflow-hidden text-[length:var(--text-h2)] font-light text-espresso">
+                      <AnimatePresence mode="wait" initial={false}>
+                        <motion.span
+                          key={annual ? 'annual' : 'monthly'}
+                          initial={{ y: 12, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: -12, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: [0, 0, 0.2, 1] }}
+                          className="inline-block"
+                        >
+                          {plan.monthly === 0 ? 'Free' : formatInr(price)}
+                        </motion.span>
+                      </AnimatePresence>
+                    </span>
+                    {plan.monthly !== 0 && (
+                      <span className="mb-1.5 text-[length:var(--text-body-sm)] text-espresso-muted">
+                        /month
+                      </span>
+                    )}
                   </div>
-                  {annual && tier.monthly !== '0' && (
-                    <p className="text-xs text-muted-foreground font-accent mt-1">Billed annually (${parseInt(tier.annual) * 12}/yr)</p>
+                  {annual && plan.monthly !== 0 && (
+                    <p className="mt-2 text-[length:var(--text-caption)] tabular-nums text-espresso-muted">
+                      {formatInr(annualPayable)}/year — {formatInr(monthlyEquivalent)}/month
+                      <span className="ml-1 text-gold-primary">
+                        · Save {formatInr(savings)}
+                      </span>
+                    </p>
+                  )}
+                  {plan.monthly === 0 && (
+                    <p className="mt-2 text-[length:var(--text-caption)] text-espresso-muted">
+                      Free forever. No credit card required.
+                    </p>
                   )}
                 </div>
 
-                <Link href="/upload">
-                  <button className={`w-full py-3 rounded-xl font-accent font-medium text-sm transition-all mb-8 ${
-                    tier.ctaVariant === 'primary'
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20'
-                      : tier.ctaVariant === 'dark'
-                      ? 'bg-foreground text-background hover:bg-foreground/90'
-                      : 'border border-border hover:border-primary/50 hover:bg-secondary text-foreground'
-                  }`}>
-                    {tier.cta}
-                  </button>
+                <Link href="/upload" className="mt-8">
+                  <Button
+                    variant={plan.popular ? 'primary' : 'secondary'}
+                    size="lg"
+                    className="w-full"
+                  >
+                    {plan.cta}
+                  </Button>
                 </Link>
 
-                <div className="space-y-3">
-                  {tier.features.map((f, j) => (
-                    <div key={j} className="flex items-start gap-3">
-                      <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-sm font-accent text-foreground">{f}</span>
-                    </div>
+                <ul className="mt-8 space-y-3">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-3">
+                      <Check
+                        className="mt-0.5 h-4 w-4 shrink-0 text-gold-primary"
+                        aria-hidden="true"
+                      />
+                      <span className="text-[length:var(--text-body-sm)] text-espresso">
+                        {feature}
+                      </span>
+                    </li>
                   ))}
-                  {tier.missing.map((f, j) => (
-                    <div key={j} className="flex items-start gap-3 opacity-40">
-                      <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <div className="w-3 h-0.5 bg-muted-foreground rounded" />
-                      </div>
-                      <span className="text-sm font-accent text-muted-foreground">{f}</span>
-                    </div>
+                  {plan.missing.map((feature) => (
+                    <li
+                      key={feature}
+                      className="flex items-start gap-3 opacity-45"
+                    >
+                      <Minus
+                        className="mt-0.5 h-4 w-4 shrink-0 text-espresso-muted"
+                        aria-hidden="true"
+                      />
+                      <span className="text-[length:var(--text-body-sm)] text-espresso-muted">
+                        {feature}
+                      </span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </motion.div>
-            ))}
-          </div>
-
-          <p className="text-center text-muted-foreground font-accent text-sm mt-10">
-            All plans include 14-day free trial. No credit card required for Explorer.
-          </p>
+            );
+          })}
         </div>
-      </section>
 
-      {/* FAQ */}
-      <section className="py-20 bg-secondary/30 border-t border-border">
-        <div className="max-w-3xl mx-auto px-6">
-          <div className="flex items-center gap-3 mb-10">
-            <HelpCircle className="w-6 h-6 text-primary" />
-            <h2 className="text-3xl font-serif">Frequently Asked</h2>
-          </div>
-          <div className="space-y-3">
-            {faqs.map((faq, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="glass-panel rounded-2xl overflow-hidden"
+        {/* What's included */}
+        <div className="mx-auto mt-16 w-full max-w-3xl">
+          <h2 className="text-center font-serif text-[length:var(--text-h3)] text-espresso">
+            What&rsquo;s Included in Each Plan
+          </h2>
+          <Accordion type="single" collapsible className="mt-8 w-full">
+            {PLANS.map((plan) => (
+              <AccordionItem
+                key={plan.name}
+                value={plan.name}
+                className="border-b border-border"
               >
-                <button
-                  onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
-                  className="w-full p-6 text-left flex items-center justify-between gap-4"
-                >
-                  <span className="font-serif text-lg">{faq.q}</span>
-                  <motion.span
-                    animate={{ rotate: expandedFaq === i ? 45 : 0 }}
-                    className="text-primary text-2xl leading-none flex-shrink-0 font-light"
-                  >+</motion.span>
-                </button>
-                <motion.div
-                  initial={false}
-                  animate={{ height: expandedFaq === i ? 'auto' : 0, opacity: expandedFaq === i ? 1 : 0 }}
-                  className="overflow-hidden"
-                >
-                  <p className="px-6 pb-6 text-muted-foreground font-accent text-sm leading-relaxed">{faq.a}</p>
-                </motion.div>
-              </motion.div>
+                <AccordionTrigger className="text-left text-[length:var(--text-body-sm)] font-medium text-espresso">
+                  {plan.name}
+                  {plan.popular && (
+                    <span className="ml-2 text-gold-primary">· Most Popular</span>
+                  )}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="space-y-2">
+                    {plan.included.map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-start gap-3 text-[length:var(--text-body-sm)] text-espresso-light"
+                      >
+                        <Check
+                          className="mt-0.5 h-4 w-4 shrink-0 text-gold-primary"
+                          aria-hidden="true"
+                        />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+
+        {/* FAQ */}
+        <div className="mx-auto mt-20 w-full max-w-3xl">
+          <h2 className="text-center font-serif text-[length:var(--text-h3)] text-espresso">
+            Frequently Asked
+          </h2>
+          <div className="mt-8 space-y-4">
+            {faqs.map((faq) => (
+              <div
+                key={faq.q}
+                className="rounded-lg border border-border bg-white p-6 shadow-card"
+              >
+                <h3 className="font-serif text-[length:var(--text-h5)] text-espresso">
+                  {faq.q}
+                </h3>
+                <p className="mt-2 text-[length:var(--text-body-sm)] text-espresso-light">
+                  {faq.a}
+                </p>
+              </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Final CTA */}
-      <section className="py-20 bg-[#1A1209] text-white">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <Sparkles className="w-10 h-10 text-primary mx-auto mb-6" />
-          <h2 className="text-3xl md:text-4xl font-serif mb-4">Start free. No credit card.</h2>
-          <p className="text-white/60 font-accent mb-8">10 uploads per month, forever. Upgrade only when you're ready.</p>
-          <Link href="/upload" className="inline-flex items-center gap-3 bg-primary text-primary-foreground px-8 py-4 rounded-full font-accent font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
-            Get Started Free <ArrowRight className="w-4 h-4" />
+        {/* Final CTA */}
+        <div className="mt-20 rounded-lg bg-espresso px-8 py-12 text-center">
+          <h2 className="font-serif text-[length:var(--text-h3)] text-cream-primary">
+            Start free. No credit card.
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-[length:var(--text-body)] text-cream-primary/80">
+            Your colour analysis is free forever. Upgrade only when you&rsquo;re
+            ready.
+          </p>
+          <Link href="/upload" className="mt-8 inline-block">
+            <Button size="lg">Get Started Free</Button>
           </Link>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

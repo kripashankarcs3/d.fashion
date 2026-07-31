@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
@@ -13,6 +14,8 @@ import productRoutes from "./routes/product.routes";
 import favoriteRoutes from "./routes/favorite.routes";
 import historyRoutes from "./routes/history.routes";
 import recommendationRoutes from "./routes/recommendation.routes";
+import tryOnRoutes from "./routes/tryon.routes";
+import { env } from "./config/env";
 
 const app = express();
 
@@ -20,7 +23,13 @@ const app = express();
 app.use(helmet());
 
 // Enable CORS
-app.use(cors());
+const allowedOrigins = env.CLIENT_ORIGIN.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+app.use(cors({ origin: allowedOrigins }));
+
+// Serve uploaded images
+app.use("/uploads", express.static(path.join(__dirname, "../tmp")));
 
 // Compress responses
 app.use(compression());
@@ -43,13 +52,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/recommend", recommendationRoutes);
-// Health Check
-app.get("/api/health", (_req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Server is running 🚀",
-  });
-});
+app.use("/api/tryon", tryOnRoutes);
 app.use(errorHandler);
 
 export default app;
