@@ -18,7 +18,7 @@ import { useStyleStore } from '@/store/useStyleStore';
 import { useTryOn } from '@/hooks/useTryOn';
 import { getSeasonInfo } from '@/lib/colour-data';
 import { listTryOnTemplates } from '@/services/api';
-import { cn } from '@/lib/utils';
+import { cn, srcsetFromUrl } from '@/lib/utils';
 
 type Mode = 'outfits' | 'makeup' | 'hair';
 
@@ -350,6 +350,8 @@ export default function TryOn() {
                             <div className="aspect-[4/5] w-full overflow-hidden border-b border-border">
                               <img
                                 src={garment.img}
+                                srcSet={srcsetFromUrl(garment.img, [400, 800, 1600])}
+                                sizes="(min-width: 1024px) 25vw, 50vw"
                                 alt={garment.name}
                                 width={480}
                                 height={600}
@@ -602,6 +604,8 @@ function TemplateGrid({
               {item.thumb ? (
                 <img
                   src={item.thumb}
+                  srcSet={srcsetFromUrl(item.thumb, [400, 800, 1600])}
+                  sizes="(min-width: 1024px) 25vw, 50vw"
                   alt={item.title}
                   width={480}
                   height={600}

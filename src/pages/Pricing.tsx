@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 
 interface Plan {
   name: string;
+  title: string;
   tagline: string;
   monthly: number;
   popular?: boolean;
@@ -34,6 +35,7 @@ interface Plan {
 const PLANS: Plan[] = [
   {
     name: 'Starter',
+    title: 'Starter Collection',
     tagline: 'Core colour analysis only.',
     monthly: 0,
     cta: 'Get Started with Starter',
@@ -58,6 +60,7 @@ const PLANS: Plan[] = [
   },
   {
     name: 'Essentials',
+    title: 'Essentials Collection',
     tagline: 'Your complete colour identity.',
     monthly: 499,
     popular: true,
@@ -80,6 +83,7 @@ const PLANS: Plan[] = [
   },
   {
     name: 'Atelier',
+    title: 'Atelier Collection',
     tagline: 'The full atelier experience.',
     monthly: 999,
     cta: 'Get Started with Atelier',
@@ -235,7 +239,7 @@ export default function Pricing() {
                 )}
 
                 <h2 className="font-serif text-[length:var(--text-h3)] text-espresso">
-                  {plan.name}
+                  {plan.title}
                 </h2>
                 <p className="mt-1 text-[length:var(--text-body-sm)] text-espresso-light">
                   {plan.tagline}
@@ -340,7 +344,7 @@ export default function Pricing() {
                       key={plan.name}
                       className="text-center text-[length:var(--text-caption)] font-medium uppercase tracking-[var(--tracking-label)] text-espresso"
                     >
-                      {plan.name}
+                      {plan.title}
                       {plan.popular && (
                         <span className="ml-1 text-gold-primary">· Most Popular</span>
                       )}
@@ -397,7 +401,7 @@ export default function Pricing() {
                 className="border-b border-border"
               >
                 <AccordionTrigger className="text-left text-[length:var(--text-body-sm)] font-medium text-espresso">
-                  {plan.name}
+                  {plan.title}
                   {plan.popular && (
                     <span className="ml-2 text-gold-primary">· Most Popular</span>
                   )}
