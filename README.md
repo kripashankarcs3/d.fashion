@@ -2,6 +2,8 @@
 
 > YouCam API Hackathon Submission - Category 3: Skin AI + Apparel VTO
 
+[![CI](https://github.com/kripashankarcs3/DeeStyle/actions/workflows/ci.yml/badge.svg)](https://github.com/kripashankarcs3/DeeStyle/actions/workflows/ci.yml)
+
 ## Tech Stack
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS v4 + shadcn/ui
@@ -77,6 +79,7 @@ YOUCAM_API_SECRET=
 npm run typecheck     # TypeScript check (frontend)
 npm run build         # Production build (frontend)
 cd server && npm run build   # Compile backend
+cd server && npm test        # Backend unit tests (vitest)
 ```
 
 ## End-to-End Tests
@@ -101,3 +104,13 @@ docker compose up --build -d
 docker build -t dfashion .
 docker run -p 3001:3001 -e JWT_SECRET=... -e MONGODB_URI=... -e YOUCAM_API_KEY=... dfashion
 ```
+
+## Continuous Integration
+`.github/workflows/ci.yml` runs on every push/PR to `main`:
+- Frontend: `typecheck` + production build
+- Backend: TypeScript build + vitest unit tests (`server/test/`)
+- E2E: boots MongoDB + the API + Vite, then runs `npm run test:e2e`
+
+> **Note for existing clones:** git history was rewritten to remove a private design
+> document. If you have an old clone, re-sync with:
+> `git fetch origin && git reset --hard origin/main`

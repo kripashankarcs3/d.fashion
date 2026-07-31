@@ -9,10 +9,10 @@ RUN VITE_API_BASE_URL=/api npm run build
 # ---- Stage 2: build backend ----
 FROM node:20-alpine AS backend
 WORKDIR /app/server
-COPY package.json package-lock.json ./
+COPY server/package.json server/package-lock.json ./
 RUN npm ci
-COPY tsconfig.json ./
-COPY src ./src
+COPY server/tsconfig.json ./
+COPY server/src ./src
 RUN npm run build
 
 # ---- Stage 3: runtime (Express serves API + built frontend) ----

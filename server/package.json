@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon --watch src --ext ts --exec ts-node ./src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -40,6 +41,7 @@
     "@types/node": "^26.1.1",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.0"
   }
 }
