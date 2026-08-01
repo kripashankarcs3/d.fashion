@@ -30,20 +30,29 @@
 ### 1. Prerequisites
 - Node.js 18+
 - MongoDB running locally (`mongodb://localhost:27017/deestyle`) or a Mongo Atlas URI
+- A YouCam AI API key & secret (for the real analysis/try-on endpoints)
 
-### 2. Backend (`server/`)
+### 2. Install everything (root + server workspaces)
 ```bash
-cd server
-npm install
-copy .env.example .env   # fill JWT_SECRET, MONGODB_URI, YOUCAM_API_KEY
-npm run dev              # http://localhost:3001
+npm install      # frontend deps + concurrently
+cd server && npm install && cd ..
 ```
 
-### 3. Frontend (`./`)
+### 3. Configure environment
 ```bash
-npm install
-npm run dev              # http://localhost:5173
+cp .env.example .env                 # set VITE_API_BASE_URL if your server uses another port
+cp server/.env.example server/.env   # fill JWT_SECRET, MONGODB_URI, YOUCAM_API_KEY
 ```
+
+### 4. Run development (starts BOTH client and server concurrently)
+```bash
+npm run dev
+# Vite frontend  -> http://localhost:5173
+# Express server  -> http://localhost:3001
+```
+`npm run dev` uses `concurrently` to run the Vite dev server and the Express
+backend (`server/`) together. The server logs a startup warning if the YouCam
+credentials are missing — those keys are required for the AI endpoints to work.
 
 Open http://localhost:5173
 
@@ -56,12 +65,12 @@ Open http://localhost:5173
 6. AI Hair Color Virtual Try-On
 
 ## Environment Variables
-Frontend (`.env`):
+Frontend (`.env` at project root):
 ```
 VITE_API_BASE_URL=http://localhost:3001/api
-VITE_YOUCAM_API_KEY=your_key_here
-VITE_YOUCAM_API_SECRET=your_secret_here
 ```
+The client only knows the API base URL. YouCam credentials are never exposed to
+the browser — the Express server proxies all YouCam calls server-side.
 
 Backend (`server/.env`):
 ```
@@ -71,24 +80,26 @@ CLIENT_ORIGIN=http://localhost:5173
 JWT_SECRET=your-jwt-secret-here
 MONGODB_URI=mongodb://localhost:27017/deestyle
 YOUCAM_API_KEY=your-youcam-api-key-here
-YOUCAM_API_SECRET=
+YOUCAM_API_SECRET=   # optional — the S2S API authenticates with the API key alone
 ```
 
 ## Verification
 ```bash
-npm run typecheck     # TypeScript check (frontend)
-npm run build         # Production build (frontend)
-cd server && npm run build   # Compile backend
-cd server && npm test        # Backend unit tests (vitest)
+npm run typecheck          # TypeScript check (frontend + server)
+npm run build              # Production build (client + server)
+cd server && npm test      # Backend unit tests (vitest)
 ```
 
 ## End-to-End Tests
-Playwright smoke + flow tests live in `e2e/`. Requires the dev servers running (`npm run dev` + backend).
+Playwright smoke + flow tests live in `e2e/`. Start the unified dev server first, then run the suite:
 
 ```bash
-npx playwright install chromium   # one-time browser download
-npm run test:e2e                  # smoke (all routes) + flow (signup -> chat)
+npm run dev                                # boots client + server
+npx playwright install chromium            # one-time browser download
+npm run test:e2e                          # smoke (all routes) + flow (signup -> chat)
 ```
+
+The smoke test checks `http://localhost:5173` by default; point it at a different port with `TARGET_URL=http://localhost:<port> npm run test:e2e`.
 
 ## Deployment (Docker)
 The Express server serves both the API and the built frontend (SPA fallback included).

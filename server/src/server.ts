@@ -11,6 +11,22 @@ const UPLOAD_TTL_MS = 24 * 60 * 60 * 1000;
 
 const startServer = async () => {
   try {
+    if (!env.YOUCAM_API_KEY) {
+      if (env.NODE_ENV === "production") {
+        console.error(
+          "[startup] Missing required YouCam credential: YOUCAM_API_KEY. " +
+            "Set it in server/.env before running in production.",
+        );
+        process.exitCode = 1;
+        process.exit(1);
+      }
+      console.warn(
+        "[startup] WARNING — YOUCAM_API_KEY not configured in server/.env. " +
+          "AI analysis/try-on endpoints will fail until it is added. " +
+          "Copy server/.env.example to server/.env and fill in your YouCam API key.",
+      );
+    }
+
     await connectDB();
 
     const removed = await ImageService.cleanupStaleUploads(UPLOAD_TTL_MS);
