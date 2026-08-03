@@ -48,7 +48,7 @@ export const deleteHistory = asyncHandler(async (req: Request<{ id: string }>, r
     return;
   }
 
-  if (history.userId.toString() !== userId) {
+  if (history.userId !== userId) {
     res.status(403).json({ success: false, message: "Unauthorized to delete this history" });
     return;
   }

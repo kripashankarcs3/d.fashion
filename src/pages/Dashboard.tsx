@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
+import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { success, error } from '@/lib/toast';
 import { ArrowRight, MessageSquare, Shirt, Sparkles, Upload } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ColorSwatch } from '@/components/ui/color-swatch';
 import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
+import EditorialContainer from '@/components/editorial/EditorialContainer';
+import EditorialHeading from '@/components/editorial/EditorialHeading';
+import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import { useStyleStore, type AnalysisResult } from '@/store/useStyleStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { fetchReports } from '@/services/api';
@@ -109,53 +112,78 @@ export default function Dashboard() {
 
   return (
     <div className="w-full pt-28 pb-24">
-      <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
+      <EditorialContainer width="content">
         {!analysisResult || !seasonInfo ? (
           <>
-            <Card variant="report" className="p-8">
+            <div className="border border-gold-hairline bg-surface-3 p-8">
               <EmptyAnalysisState
                 title="Your colour identity is waiting"
                 description="Upload your first photo to begin. Your season, palette, and saved looks will live here."
               />
-            </Card>
+            </div>
 
             <QuickActions />
           </>
         ) : (
           <>
-            {/* Header */}
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
-                Your Colour Identity
-              </p>
-              <h1 className="mt-3 font-serif text-[length:var(--text-h2)] text-espresso">
+            {/* Header — hairline divider, no card */}
+            <motion.header
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="border-b border-gold-hairline pb-10"
+            >
+              <EyebrowLabel tone="gold">Your Colour Identity</EyebrowLabel>
+              <EditorialHeading as="h1" size="lg" className="mt-4">
                 {seasonInfo.season}
-              </h1>
-              <p className="mt-3 text-[length:var(--text-body-sm)] text-espresso-light">
+              </EditorialHeading>
+              <p className="mt-2 eyebrow text-cream-primary/55">
                 Analysed {format(new Date(analysisResult.analyzedAt), 'MMMM yyyy')} ·{' '}
                 {analysisResult.colorProfile.undertone} undertone
               </p>
+            </motion.header>
+
+            {/* Current palette strip */}
+            <div className="mt-10 flex flex-wrap items-center gap-3 border-b border-gold-hairline pb-6">
+              <span className="eyebrow text-cream-primary/55">Current palette</span>
+              <motion.div className="flex flex-wrap gap-2">
+                {seasonInfo.palette.slice(0, 6).map((colour, idx) => (
+                  <motion.span
+                    key={colour.hex}
+                    aria-hidden="true"
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{
+                      duration: 0.35,
+                      ease: [0.22, 1, 0.36, 1],
+                      delay: 0.3 + idx * 0.05,
+                    }}
+                    className="h-8 w-8 rounded-sm border border-gold-hairline"
+                    style={{ backgroundColor: colour.hex }}
+                  />
+                ))}
+              </motion.div>
             </div>
 
             {/* Full colour palette */}
             <section className="mt-12">
-              <SectionHeading title="Your Colour Palette" />
-              <Card variant="report" className="mt-6 p-8">
+              <SectionHeading label="Your Palette" title="Your Colour Palette" />
+              <div className="mt-6 border border-gold-hairline bg-surface-3 p-8">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
                   {seasonInfo.palette.map((colour) => (
                     <ColorSwatch key={colour.hex + colour.name} {...colour} />
                   ))}
                 </div>
-              </Card>
+              </div>
             </section>
 
             {/* Saved items */}
             <section className="mt-16">
               <div className="flex items-end justify-between gap-4">
-                <SectionHeading title="Saved Looks" />
+                <SectionHeading label="Wardrobe" title="Saved Looks" />
                 <Link
                   href="/try-on"
-                  className="inline-flex min-h-11 items-center gap-2 text-nav text-espresso-light transition-colors duration-200 ease-out hover:text-espresso hover:underline"
+                  className="inline-flex min-h-11 items-center gap-2 text-nav text-cream-primary/80 transition-colors duration-200 ease-out hover:text-cream-primary hover:underline"
                 >
                   Try on new looks
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -163,11 +191,11 @@ export default function Dashboard() {
               </div>
 
               {wardrobeItems.length === 0 ? (
-                <Card variant="report" className="mt-6 p-8">
-                  <p className="font-serif text-[length:var(--text-h5)] text-espresso">
+                <div className="mt-6 border border-gold-hairline bg-surface-3 p-8">
+                  <p className="font-serif text-[length:var(--text-h5)] text-cream-primary">
                     No saved looks yet.
                   </p>
-                  <p className="mt-2 max-w-md text-[length:var(--text-body-sm)] text-espresso-light">
+                  <p className="mt-2 max-w-md text-[length:var(--text-body-sm)] text-cream-primary/80">
                     When you try on an outfit, save it here to build your
                     personal wardrobe archive.
                   </p>
@@ -176,35 +204,51 @@ export default function Dashboard() {
                       Explore Virtual Try-On
                     </Button>
                   </Link>
-                </Card>
+                </div>
               ) : (
-                <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <motion.div
+                  className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                  variants={{
+                    hidden: {},
+                    visible: { transition: { staggerChildren: 0.1 } },
+                  }}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.05 }}
+                >
                   {wardrobeItems.map((item) => (
-                    <Card
+                    <motion.div
                       key={item.id}
-                      variant="report"
-                      className="overflow-hidden p-0"
+                      className="group overflow-hidden border border-gold-hairline bg-surface-3"
+                      variants={{
+                        hidden: { opacity: 0, y: 24 },
+                        visible: {
+                          opacity: 1,
+                          y: 0,
+                          transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+                        },
+                      }}
                     >
                       {item.imageUrl && (
-                        <div className="aspect-[4/5] w-full overflow-hidden border-b border-border">
+                        <div className="aspect-[4/5] w-full overflow-hidden border-b border-gold-hairline">
                           <img
                             src={item.imageUrl}
                             alt={item.name}
                             width={480}
                             height={600}
                             loading="lazy"
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-editorial)] group-hover:scale-[1.03]"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
                             }}
                           />
                         </div>
                       )}
-                      <div className="p-8 pt-6">
-                        <p className="font-serif text-[length:var(--text-h5)] text-espresso">
+                      <div className="p-6">
+                        <p className="font-serif text-[length:var(--text-h5)] text-cream-primary">
                           {item.name}
                         </p>
-                        <p className="mt-1 text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-espresso-muted">
+                        <p className="mt-1 text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-cream-primary/55">
                           {item.category}
                         </p>
                         {item.palette.length > 0 && (
@@ -213,23 +257,23 @@ export default function Dashboard() {
                               <span
                                 key={hex}
                                 aria-hidden="true"
-                                className="h-6 w-6 rounded-sm shadow-[var(--shadow-swatch)]"
+                                className="h-6 w-6 rounded-sm border border-gold-hairline"
                                 style={{ backgroundColor: hex }}
                               />
                             ))}
                           </div>
                         )}
                       </div>
-                    </Card>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               )}
             </section>
 
             {/* Saved reports */}
             {allSavedReports.length > 0 && (
               <section className="mt-16">
-                <SectionHeading title="Saved Reports" />
+                <SectionHeading label="Saved" title="Saved Reports" />
                 <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {allSavedReports.map((report) => {
                     const reportSeason = getSeasonInfo(
@@ -237,18 +281,21 @@ export default function Dashboard() {
                       report.colorProfile.undertone,
                     );
                     return (
-                      <Card key={report.analyzedAt} variant="report" className="p-8">
+                      <div
+                        key={report.analyzedAt}
+                        className="border border-gold-hairline bg-surface-3 p-6"
+                      >
                         <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
                           Saved report
                         </p>
-                        <h3 className="mt-2 font-serif text-[length:var(--text-h5)] text-espresso">
+                        <h3 className="mt-2 font-serif text-[length:var(--text-h5)] text-cream-primary">
                           {reportSeason.season}
                         </h3>
-                        <p className="mt-1 text-[length:var(--text-caption)] text-espresso-muted">
+                        <p className="mt-1 text-[length:var(--text-caption)] text-cream-primary/55">
                           Analysed {format(new Date(report.analyzedAt), 'MMMM yyyy')}
                         </p>
                         <PaletteRow colours={reportSeason.palette} />
-                      </Card>
+                      </div>
                     );
                   })}
                 </div>
@@ -259,8 +306,8 @@ export default function Dashboard() {
             {analysisHistory.length > 0 &&
               analysisHistory[analysisHistory.length - 1] && (
                 <section className="mt-16">
-                  <SectionHeading title="Compare with Previous" />
-                  <Card variant="report" className="mt-6 p-8">
+                  <SectionHeading label="Progress" title="Compare with Previous" />
+                  <div className="mt-6 border border-gold-hairline bg-surface-3 p-8">
                     <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
                       {(() => {
                         const previous =
@@ -274,10 +321,10 @@ export default function Dashboard() {
                             <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
                               Previous analysis
                             </p>
-                            <h3 className="mt-2 font-serif text-[length:var(--text-h4)] text-espresso">
+                            <h3 className="mt-2 font-serif text-[length:var(--text-h4)] text-cream-primary">
                               {previousSeason.season}
                             </h3>
-                            <p className="mt-1 text-[length:var(--text-caption)] text-espresso-muted">
+                            <p className="mt-1 text-[length:var(--text-caption)] text-cream-primary/55">
                               Analysed{' '}
                               {format(new Date(previous.analyzedAt), 'MMMM yyyy')}
                             </p>
@@ -289,39 +336,39 @@ export default function Dashboard() {
                         <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
                           Current analysis
                         </p>
-                        <h3 className="mt-2 font-serif text-[length:var(--text-h4)] text-espresso">
+                        <h3 className="mt-2 font-serif text-[length:var(--text-h4)] text-cream-primary">
                           {seasonInfo.season}
                         </h3>
-                        <p className="mt-1 text-[length:var(--text-caption)] text-espresso-muted">
+                        <p className="mt-1 text-[length:var(--text-caption)] text-cream-primary/55">
                           Analysed{' '}
                           {format(new Date(analysisResult.analyzedAt), 'MMMM yyyy')}
                         </p>
                         <PaletteRow colours={seasonInfo.palette} />
                       </div>
                     </div>
-                    <div className="mt-8 border-t border-border pt-6">
-                      <p className="max-w-2xl text-[length:var(--text-body-sm)] text-espresso-light">
+                    <div className="mt-8 border-t border-gold-hairline pt-6">
+                      <p className="max-w-2xl text-[length:var(--text-body-sm)] text-cream-primary/80">
                         {compareSummary(
                           analysisResult,
                           analysisHistory[analysisHistory.length - 1],
                         )}
                       </p>
                     </div>
-                  </Card>
+                  </div>
                 </section>
               )}
 
             {/* Analysis history */}
             <section className="mt-16">
-              <SectionHeading title="Analysis History" />
-              <Card variant="report" className="mt-6 p-8">
+              <SectionHeading label="Activity" title="Analysis History" />
+              <div className="mt-6 border border-gold-hairline bg-surface-3 p-8">
                 {history.length === 0 ? (
-                  <p className="text-[length:var(--text-body-sm)] text-espresso-light">
+                  <p className="text-[length:var(--text-body-sm)] text-cream-primary/80">
                     Your analysis history will appear here after your next
                     analysis.
                   </p>
                 ) : (
-                  <ul className="divide-y divide-border">
+                  <ul className="divide-y divide-gold-hairline">
                     {history.map((event) => (
                       <li
                         key={event.id}
@@ -329,7 +376,7 @@ export default function Dashboard() {
                       >
                         <span
                           aria-hidden="true"
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-cream-dark text-gold-primary"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-surface-4 text-gold-primary"
                         >
                           {event.action === 'upload' ? (
                             <Sparkles className="h-4 w-4" />
@@ -342,15 +389,15 @@ export default function Dashboard() {
                           )}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-[length:var(--text-body-sm)] font-medium text-espresso">
+                          <p className="truncate text-[length:var(--text-body-sm)] font-medium text-cream-primary">
                             {event.label}
                           </p>
-                          <p className="text-[length:var(--text-caption)] text-espresso-muted">
+                          <p className="text-[length:var(--text-caption)] text-cream-primary/55">
                             {ACTION_LABEL[event.action] ?? 'Activity'}
                           </p>
                         </div>
                         <time
-                          className="shrink-0 text-[length:var(--text-caption)] tabular-nums text-espresso-muted"
+                          className="shrink-0 text-[length:var(--text-caption)] tabular-nums text-cream-primary/55"
                           dateTime={event.timestamp}
                         >
                           {format(new Date(event.timestamp), 'MMM yyyy')}
@@ -359,22 +406,25 @@ export default function Dashboard() {
                     ))}
                   </ul>
                 )}
-              </Card>
+              </div>
             </section>
 
             <QuickActions />
           </>
         )}
-      </div>
+      </EditorialContainer>
     </div>
   );
 }
 
-function SectionHeading({ title }: { title: string }) {
+function SectionHeading({ label, title }: { label?: string; title: string }) {
   return (
-    <h2 className="font-serif text-[length:var(--text-h3)] text-espresso">
-      {title}
-    </h2>
+    <div>
+      {label && <EyebrowLabel tone="gold">{label}</EyebrowLabel>}
+      <EditorialHeading as="h2" size="sm" className={label ? 'mt-3' : ''}>
+        {title}
+      </EditorialHeading>
+    </div>
   );
 }
 
@@ -388,25 +438,45 @@ function QuickActions() {
 
   return (
     <section className="mt-16">
-      <SectionHeading title="Quick Actions" />
-      <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <SectionHeading label="Quick Actions" title="Jump In" />
+      <motion.div
+        className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.08 } },
+        }}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+      >
         {actions.map((action) => (
-          <Link key={action.href} href={action.href}>
-            <Card
-              variant="report"
-              interactive
-              className="group flex h-full flex-col p-8"
+          <motion.div
+            key={action.href}
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: {
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+              },
+            }}
+            whileHover={{ y: -4, transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }}
+            style={{ willChange: 'transform' }}
+          >
+            <Link
+              href={action.href}
+              className="group flex h-full flex-col border border-gold-hairline bg-surface-3 p-6 transition-colors duration-300 hover:border-gold-primary/40"
             >
               <span
                 aria-hidden="true"
-                className="flex h-11 w-11 items-center justify-center rounded-md bg-cream-dark text-gold-primary transition-colors duration-200 ease-out group-hover:bg-gold-primary group-hover:text-espresso"
+                className="flex h-11 w-11 items-center justify-center rounded-sm bg-surface-4 text-gold-primary transition-colors duration-200 ease-out group-hover:bg-gold-primary group-hover:text-surface-0"
               >
                 <action.icon className="h-5 w-5" />
               </span>
-              <h3 className="mt-6 font-serif text-[length:var(--text-h5)] text-espresso">
+              <h3 className="mt-6 font-serif text-[length:var(--text-h5)] text-cream-primary">
                 {action.title}
               </h3>
-              <p className="mt-1 text-[length:var(--text-body-sm)] text-espresso-light">
+              <p className="mt-1 text-[length:var(--text-body-sm)] text-cream-primary/80">
                 {action.description}
               </p>
               <span className="mt-4 inline-flex items-center gap-1.5 text-nav text-gold-primary">
@@ -416,10 +486,10 @@ function QuickActions() {
                   aria-hidden="true"
                 />
               </span>
-            </Card>
-          </Link>
+            </Link>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }

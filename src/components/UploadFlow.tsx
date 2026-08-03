@@ -154,7 +154,7 @@ function CameraCapture({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md border border-border bg-espresso">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md border border-border bg-surface-1">
           <video
             ref={videoRef}
             autoPlay
@@ -293,7 +293,7 @@ export default function UploadFlow() {
   return (
     <div className="mx-auto w-full max-w-[600px]">
       {/* Privacy copy — appears above the zone */}
-      <p className="mb-6 flex items-center justify-center gap-2 text-center text-caption text-espresso-muted">
+      <p className="mb-6 flex items-center justify-center gap-2 text-center text-caption text-cream-primary/55">
         <Lock className="h-3.5 w-3.5 text-gold-primary" aria-hidden="true" />
         Your photo is processed securely. We never store your image after analysis.
       </p>
@@ -341,7 +341,7 @@ export default function UploadFlow() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
-              className="rounded-lg border border-border bg-white p-8 shadow-card text-center"
+              className="rounded-lg border border-border bg-surface-3 p-8 shadow-card text-center"
             >
               <div className="relative mx-auto w-40 overflow-hidden rounded-md border border-border">
                 {previewUrl && (
@@ -354,7 +354,7 @@ export default function UploadFlow() {
                   />
                 )}
               </div>
-              <p className="mt-4 truncate text-caption text-espresso-muted">
+              <p className="mt-4 truncate text-caption text-cream-primary/55">
                 {selectedFile.name}
               </p>
 
@@ -372,7 +372,7 @@ export default function UploadFlow() {
                     reset();
                     setSelectedFile(null);
                   }}
-                  className="inline-flex min-h-11 items-center justify-center text-nav text-espresso-light transition-colors duration-200 ease-out hover:text-espresso hover:underline"
+                  className="inline-flex min-h-11 items-center justify-center text-nav text-cream-primary/70 transition-colors duration-200 ease-out hover:text-cream-primary hover:underline"
                 >
                   Change Photo
                 </button>
@@ -397,22 +397,22 @@ export default function UploadFlow() {
                   'flex min-h-[300px] w-full flex-col items-center justify-center rounded-lg border border-dashed px-8 text-center',
                   'transition-all duration-200 ease-out',
                   dragOver
-                    ? 'scale-[1.02] border-gold-primary bg-cream-dark'
+                    ? 'scale-[1.02] border-gold-primary bg-surface-4'
                     : displayedError
-                      ? 'border-error bg-cream-primary'
-                      : 'border-gold-primary/50 bg-cream-primary hover:border-gold-primary hover:bg-cream-dark',
+                      ? 'border-error bg-surface-4/60'
+                      : 'border-gold-primary/40 bg-surface-3/60 hover:border-gold-primary hover:bg-surface-4',
                 )}
               >
-                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-cream-dark">
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-4">
                   <UploadCloud className="h-7 w-7 text-gold-primary" aria-hidden="true" />
                 </span>
                 <span
                   id="upload-instructions"
-                  className="mt-6 text-[17px] font-light text-espresso-light"
+                  className="mt-6 text-[17px] font-light text-cream-primary/80"
                 >
                   Drag your photo here
                 </span>
-                <span className="mt-2 text-caption text-espresso-muted">
+                <span className="mt-2 text-caption text-cream-primary/55">
                   or click to browse — JPG, PNG, WebP up to 10MB
                 </span>
               </button>
@@ -437,7 +437,7 @@ export default function UploadFlow() {
           <button
             type="button"
             onClick={() => setCameraOpen(true)}
-            className="inline-flex min-h-11 items-center gap-2 text-nav text-espresso-light transition-colors duration-200 ease-out hover:text-espresso hover:underline"
+            className="inline-flex min-h-11 items-center gap-2 text-nav text-cream-primary/70 transition-colors duration-200 ease-out hover:text-cream-primary hover:underline"
           >
             <Camera className="h-4 w-4 text-gold-primary" aria-hidden="true" />
             Use Camera
@@ -446,7 +446,7 @@ export default function UploadFlow() {
             <button
               type="button"
               onClick={handleUsePrevious}
-              className="inline-flex min-h-11 items-center gap-2 text-nav text-espresso-light transition-colors duration-200 ease-out hover:text-espresso hover:underline"
+              className="inline-flex min-h-11 items-center gap-2 text-nav text-cream-primary/70 transition-colors duration-200 ease-out hover:text-cream-primary hover:underline"
             >
               <CheckCircle2 className="h-4 w-4 text-gold-primary" aria-hidden="true" />
               Use your previous photo
@@ -473,7 +473,7 @@ export default function UploadFlow() {
       {!isPending && (
         <Accordion type="single" collapsible className="mt-10 w-full">
           <AccordionItem value="guidelines" className="border-b border-border">
-            <AccordionTrigger className="text-body-sm font-medium text-espresso">
+            <AccordionTrigger className="text-body-sm font-medium text-cream-primary">
               What makes a good photo?
             </AccordionTrigger>
             <AccordionContent>
@@ -485,10 +485,10 @@ export default function UploadFlow() {
                       aria-hidden="true"
                     />
                     <div>
-                      <p className="text-body-sm font-medium text-espresso">
+                      <p className="text-body-sm font-medium text-cream-primary">
                         {item.title}
                       </p>
-                      <p className="mt-0.5 text-caption text-espresso-muted">
+                      <p className="mt-0.5 text-caption text-cream-primary/55">
                         {item.detail}
                       </p>
                     </div>

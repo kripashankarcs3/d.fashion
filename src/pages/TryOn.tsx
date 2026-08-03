@@ -12,8 +12,10 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import PageMasthead from '@/components/editorial/PageMasthead';
+import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
+import EditorialContainer from '@/components/editorial/EditorialContainer';
 import { useStyleStore } from '@/store/useStyleStore';
 import { useTryOn } from '@/hooks/useTryOn';
 import { getSeasonInfo } from '@/lib/colour-data';
@@ -29,6 +31,7 @@ interface Garment {
   img: string;
   colourHex: string;
   colourName: string;
+  buyUrl?: string;
 }
 
 interface Selected {
@@ -48,6 +51,7 @@ const garments: Garment[] = [
     img: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80',
     colourHex: '#C19A6B',
     colourName: 'Camel',
+    buyUrl: 'https://www.farfetch.com/shopping/women/tailoring-1/items.aspx',
   },
   {
     id: 2,
@@ -56,6 +60,7 @@ const garments: Garment[] = [
     img: 'https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?w=800&q=80',
     colourHex: '#B7410E',
     colourName: 'Rust',
+    buyUrl: 'https://www.farfetch.com/shopping/women/dresses-1/items.aspx',
   },
   {
     id: 3,
@@ -64,6 +69,7 @@ const garments: Garment[] = [
     img: 'https://images.unsplash.com/photo-1604176354204-9268737828e4?w=800&q=80',
     colourHex: '#556B2F',
     colourName: 'Olive',
+    buyUrl: 'https://www.farfetch.com/shopping/women/pants-1/items.aspx',
   },
   {
     id: 4,
@@ -72,6 +78,7 @@ const garments: Garment[] = [
     img: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=800&q=80',
     colourHex: '#B8860B',
     colourName: 'Goldenrod',
+    buyUrl: 'https://www.farfetch.com/shopping/women/coats-1/items.aspx',
   },
   {
     id: 5,
@@ -80,6 +87,7 @@ const garments: Garment[] = [
     img: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80',
     colourHex: '#8B4513',
     colourName: 'Saddle Brown',
+    buyUrl: 'https://www.farfetch.com/shopping/women/jackets-1/items.aspx',
   },
   {
     id: 6,
@@ -88,6 +96,133 @@ const garments: Garment[] = [
     img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80',
     colourHex: '#D2691E',
     colourName: 'Chocolate',
+    buyUrl: 'https://www.farfetch.com/shopping/women/knitwear-1/items.aspx',
+  },
+  {
+    id: 7,
+    name: 'Structured Evening Gown',
+    category: 'Dresses',
+    img: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=800&q=80',
+    colourHex: '#1F4ED8',
+    colourName: 'Electric Blue',
+    buyUrl: 'https://www.farfetch.com/shopping/women/dresses-1/items.aspx',
+  },
+  {
+    id: 8,
+    name: 'Cashmere Turtleneck',
+    category: 'Tops',
+    img: 'https://images.unsplash.com/photo-1574169208507-84376144848b?w=800&q=80',
+    colourHex: '#3A3F44',
+    colourName: 'Charcoal',
+    buyUrl: 'https://www.farfetch.com/shopping/women/knitwear-1/items.aspx',
+  },
+  {
+    id: 9,
+    name: 'Satin Slip Skirt',
+    category: 'Bottoms',
+    img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&q=80',
+    colourHex: '#C9A2A4',
+    colourName: 'Dusty Rose',
+    buyUrl: 'https://www.farfetch.com/shopping/women/skirts-1/items.aspx',
+  },
+  {
+    id: 10,
+    name: 'Tailored Wool Coat',
+    category: 'Outerwear',
+    img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&q=80',
+    colourHex: '#16213E',
+    colourName: 'Navy',
+    buyUrl: 'https://www.farfetch.com/shopping/women/coats-1/items.aspx',
+  },
+  {
+    id: 11,
+    name: 'Organic Cotton Tee',
+    category: 'Tops',
+    img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&q=80',
+    colourHex: '#F4F1EA',
+    colourName: 'Soft White',
+    buyUrl: 'https://www.farfetch.com/shopping/women/tops-1/items.aspx',
+  },
+  {
+    id: 12,
+    name: 'Velvet Wrap Dress',
+    category: 'Dresses',
+    img: 'https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=800&q=80',
+    colourHex: '#7D6678',
+    colourName: 'Dusty Plum',
+    buyUrl: 'https://www.farfetch.com/shopping/women/dresses-1/items.aspx',
+  },
+  {
+    id: 13,
+    name: 'Linen Utility Jacket',
+    category: 'Outerwear',
+    img: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&q=80',
+    colourHex: '#8A8D7A',
+    colourName: 'Grey Sage',
+    buyUrl: 'https://www.farfetch.com/shopping/women/jackets-1/items.aspx',
+  },
+  {
+    id: 14,
+    name: 'High-Rise Denim Jeans',
+    category: 'Bottoms',
+    img: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80',
+    colourHex: '#6C7A94',
+    colourName: 'Slate Blue',
+    buyUrl: 'https://www.farfetch.com/shopping/women/denim-1/items.aspx',
+  },
+  {
+    id: 15,
+    name: 'Statement Blazer',
+    category: 'Outerwear',
+    img: 'https://images.unsplash.com/photo-1618244972963-dbee1a7edc95?w=800&q=80',
+    colourHex: '#A4161A',
+    colourName: 'Crimson',
+    buyUrl: 'https://www.farfetch.com/shopping/women/tailoring-1/items.aspx',
+  },
+  {
+    id: 16,
+    name: 'Classic Little Black Dress',
+    category: 'Dresses',
+    img: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=800&q=80',
+    colourHex: '#1A1A1A',
+    colourName: 'Black Ink',
+    buyUrl: 'https://www.farfetch.com/shopping/women/dresses-1/items.aspx',
+  },
+  {
+    id: 17,
+    name: 'Satin Evening Blouse',
+    category: 'Tops',
+    img: 'https://images.unsplash.com/photo-1548624149-f9b1859aa7d0?w=800&q=80',
+    colourHex: '#E8B4C8',
+    colourName: 'Icy Pink',
+    buyUrl: 'https://www.farfetch.com/shopping/women/tops-1/items.aspx',
+  },
+  {
+    id: 18,
+    name: 'Cashmere Scarf',
+    category: 'Accessories',
+    img: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&q=80',
+    colourHex: '#B8974A',
+    colourName: 'Antique Gold',
+    buyUrl: 'https://www.farfetch.com/shopping/women/accessories-1/items.aspx',
+  },
+  {
+    id: 19,
+    name: 'Knitted Cardigan',
+    category: 'Tops',
+    img: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80',
+    colourHex: '#954535',
+    colourName: 'Chestnut',
+    buyUrl: 'https://www.farfetch.com/shopping/women/knitwear-1/items.aspx',
+  },
+  {
+    id: 20,
+    name: 'Wide-Leg Linen Pants',
+    category: 'Bottoms',
+    img: 'https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=800&q=80',
+    colourHex: '#F3E7CF',
+    colourName: 'Warm Ivory',
+    buyUrl: 'https://www.farfetch.com/shopping/women/pants-1/items.aspx',
   },
 ];
 
@@ -111,6 +246,11 @@ export default function TryOn() {
   const [activeColour, setActiveColour] = useState<string | null>(null);
   const [selected, setSelected] = useState<Selected | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+
+  const selectedGarment = useMemo(() => {
+    if (!selected || selected.kind !== 'outfit') return null;
+    return garments.find((g) => String(g.id) === selected.id) ?? null;
+  }, [selected]);
 
   const looksQuery = useQuery({
     queryKey: ['tryon-looks'],
@@ -191,49 +331,42 @@ export default function TryOn() {
 
   return (
     <div className="w-full pt-28 pb-24">
-      <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
+      <EditorialContainer width="content">
         {/* Header */}
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
-            Virtual Try-On
-          </p>
-          <h1 className="mt-3 font-serif text-[length:var(--text-h1)] text-espresso">
-            See Your Colours, On You.
-          </h1>
-          <p className="mx-auto mt-6 max-w-md text-[length:var(--text-body)] text-espresso-light">
-            Try an outfit, a makeup look, or a new hairstyle — all in your
-            palette.
-          </p>
-        </div>
+        <PageMasthead
+          label="Virtual Try-On"
+          title={
+            <>
+              See Your Colours, <Emphasis>On You.</Emphasis>
+            </>
+          }
+          lede="Try an outfit, makeup look, or hairstyle — all in your palette."
+        />
 
         {!referenceImageUrl ? (
-          <Card variant="report" className="mx-auto mt-14 w-full max-w-xl p-8 text-center">
+          <div className="mx-auto mt-14 w-full max-w-xl border border-gold-hairline bg-surface-3 p-8 text-center">
             <span
               aria-hidden="true"
-              className="mx-auto flex h-12 w-12 items-center justify-center rounded-md bg-cream-dark text-gold-primary"
+              className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm bg-surface-4 text-gold-primary"
             >
               <Sparkles className="h-5 w-5" />
             </span>
-            <h2 className="mt-6 font-serif text-[length:var(--text-h5)] text-espresso">
+            <h2 className="mt-6 font-serif text-[length:var(--text-h5)] text-cream-primary">
               Upload your selfie first
             </h2>
-            <p className="mx-auto mt-2 max-w-sm text-[length:var(--text-body-sm)] text-espresso-light">
+            <p className="mx-auto mt-2 max-w-sm text-[length:var(--text-body-sm)] text-cream-primary/80">
               Virtual try-on needs a reference photo of you. Analyse one to
               unlock your palette.
             </p>
             <Link href="/upload" className="mt-8 inline-block">
               <Button size="lg">Upload a Selfie</Button>
             </Link>
-          </Card>
+          </div>
         ) : (
           <>
-            {/* Tabs */}
-            <div className="mt-12 flex justify-center">
-              <div
-                role="tablist"
-                aria-label="Try-on category"
-                className="inline-flex items-center gap-1 rounded-md border border-border bg-cream-dark p-1.5"
-              >
+            {/* Tabs — text-only, underline active */}
+            <div className="mt-12 border-b border-gold-hairline">
+              <div role="tablist" aria-label="Try-on category" className="flex gap-0">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -247,14 +380,20 @@ export default function TryOn() {
                       setActiveColour(null);
                     }}
                     className={cn(
-                      'inline-flex min-h-10 items-center gap-2 rounded-md px-5 text-nav transition-colors duration-200 ease-out',
+                      'eyebrow relative px-6 py-4 transition-colors duration-200 ease-out',
                       mode === tab.id
-                        ? 'bg-gold-primary text-espresso'
-                        : 'text-espresso-light hover:text-espresso',
+                        ? 'text-cream-primary'
+                        : 'text-cream-primary/55 hover:text-cream-primary',
                     )}
                   >
-                    <tab.icon className="h-4 w-4" aria-hidden="true" />
                     {tab.label}
+                    {mode === tab.id && (
+                      <motion.div
+                        layoutId="tab-indicator"
+                        className="absolute inset-x-0 bottom-0 h-[2px] bg-gold-primary"
+                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                    )}
                   </button>
                 ))}
               </div>
@@ -264,13 +403,13 @@ export default function TryOn() {
               {/* Left — options */}
               <section>
                 <div className="flex items-baseline justify-between gap-4">
-                  <h2 className="font-serif text-[length:var(--text-h3)] text-espresso">
+                  <EditorialHeading as="h2" size="sm">
                     {mode === 'outfits'
                       ? 'Curated for Your Palette'
                       : mode === 'makeup'
                         ? 'Makeup Looks'
                         : 'Hair Styles'}
-                  </h2>
+                  </EditorialHeading>
                 </div>
 
                 {mode === 'outfits' && (
@@ -284,10 +423,10 @@ export default function TryOn() {
                         type="button"
                         onClick={() => setActiveColour(null)}
                         className={cn(
-                          'inline-flex min-h-11 items-center rounded-md border px-4 text-nav transition-colors duration-200 ease-out',
+                          'inline-flex min-h-11 items-center rounded-sm border px-4 text-nav transition-colors duration-200 ease-out',
                           activeColour === null
-                            ? 'border-gold-primary bg-gold-primary text-espresso'
-                            : 'border-border bg-white text-espresso-light hover:border-gold-primary hover:text-espresso',
+                            ? 'border-gold-primary bg-gold-primary text-surface-0'
+                            : 'border-gold-hairline bg-surface-3 text-cream-primary/80 hover:border-gold-primary hover:text-cream-primary',
                         )}
                       >
                         All
@@ -305,15 +444,15 @@ export default function TryOn() {
                             }
                             aria-pressed={active}
                             className={cn(
-                              'inline-flex min-h-11 items-center gap-2 rounded-md border px-4 text-nav transition-colors duration-200 ease-out',
+                              'inline-flex min-h-11 items-center gap-2 rounded-sm border px-4 text-nav transition-colors duration-200 ease-out',
                               active
-                                ? 'border-gold-primary bg-cream-dark text-espresso'
-                                : 'border-border bg-white text-espresso-light hover:border-gold-primary hover:text-espresso',
+                                ? 'border-gold-primary bg-surface-4 text-cream-primary'
+                                : 'border-gold-hairline bg-surface-3 text-cream-primary/80 hover:border-gold-primary hover:text-cream-primary',
                             )}
                           >
                             <span
                               aria-hidden="true"
-                              className="h-4 w-4 rounded-sm shadow-[var(--shadow-swatch)]"
+                              className="h-4 w-4 rounded-sm border border-gold-hairline"
                               style={{ backgroundColor: colour.hex }}
                             />
                             {colour.name}
@@ -322,66 +461,79 @@ export default function TryOn() {
                       })}
                     </div>
 
-                    <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <motion.div
+                      className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2"
+                      variants={{
+                        hidden: {},
+                        visible: { transition: { staggerChildren: 0.06 } },
+                      }}
+                      initial="hidden"
+                      animate="visible"
+                      key={activeColour ?? 'all'}
+                    >
                       {filtered.map((garment) => {
                         const isSelected = selected?.id === String(garment.id);
                         return (
-                          <button
+                          <motion.div
                             key={garment.id}
-                            type="button"
-                            onClick={() =>
-                              handleSelect({
-                                kind: 'outfit',
-                                id: String(garment.id),
-                                name: garment.name,
-                                img: garment.img,
-                                colourName: garment.colourName,
-                                colourHex: garment.colourHex,
-                              })
-                            }
-                            aria-pressed={isSelected}
-                            className={cn(
-                              'group overflow-hidden rounded-lg border text-left transition-all duration-200 ease-out',
-                              isSelected
-                                ? 'border-gold-primary bg-white shadow-card'
-                                : 'border-border bg-white shadow-card hover:border-gold-primary',
-                            )}
+                            variants={{
+                              hidden: { opacity: 0, y: 20, scale: 0.97 },
+                              visible: {
+                                opacity: 1,
+                                y: 0,
+                                scale: 1,
+                                transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+                              },
+                            }}
                           >
-                            <div className="aspect-[4/5] w-full overflow-hidden border-b border-border">
-                              <img
-                                src={garment.img}
-                                srcSet={srcsetFromUrl(garment.img, [400, 800, 1600])}
-                                sizes="(min-width: 1024px) 25vw, 50vw"
-                                alt={garment.name}
-                                width={480}
-                                height={600}
-                                loading="lazy"
-                                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-                              />
-                            </div>
-                            <div className="p-6">
-                              <p className="text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-espresso-muted">
-                                {garment.category}
-                              </p>
-                              <p className="mt-1 font-serif text-[length:var(--text-h5)] text-espresso">
-                                {garment.name}
-                              </p>
-                              <p className="mt-2 flex items-center gap-2 text-[length:var(--text-body-sm)] text-espresso-light">
-                                <span
-                                  aria-hidden="true"
-                                  className="h-4 w-4 rounded-sm shadow-[var(--shadow-swatch)]"
-                                  style={{ backgroundColor: garment.colourHex }}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleSelect({
+                                  kind: 'outfit',
+                                  id: String(garment.id),
+                                  name: garment.name,
+                                  img: garment.img,
+                                  colourName: garment.colourName,
+                                  colourHex: garment.colourHex,
+                                })
+                              }
+                              aria-pressed={isSelected}
+                              className={cn(
+                                'group w-full overflow-hidden border text-left transition-all duration-300 ease-out',
+                                isSelected
+                                  ? 'border-gold-primary'
+                                  : 'border-gold-hairline hover:border-gold-primary/50',
+                              )}
+                            >
+                              <div className="aspect-[4/5] w-full overflow-hidden border-b border-gold-hairline">
+                                <img
+                                  src={garment.img}
+                                  srcSet={srcsetFromUrl(garment.img, [400, 800, 1600])}
+                                  sizes="(min-width: 1024px) 25vw, 50vw"
+                                  alt={garment.name}
+                                  width={480}
+                                  height={600}
+                                  loading="lazy"
+                                  className="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-editorial)] group-hover:scale-[1.04]"
                                 />
-                                {garment.colourName}
-                              </p>
-                            </div>
-                          </button>
+                              </div>
+                              <div className="border-t border-gold-hairline p-5">
+                                <p className="eyebrow text-cream-primary/55">
+                                  {garment.category}
+                                </p>
+                                <p className="mt-1 font-editorial text-h5 font-light text-cream-primary">
+                                  {garment.name}
+                                </p>
+                              </div>
+                            </button>
+                          </motion.div>
                         );
                       })}
-                    </div>
+                    </motion.div>
 
                     {filtered.length === 0 && (
-                      <p className="mt-8 text-[length:var(--text-body-sm)] text-espresso-light">
+                      <p className="mt-8 text-[length:var(--text-body-sm)] text-cream-primary/80">
                         No outfit in this colour yet — try another shade from your
                         palette.
                       </p>
@@ -409,22 +561,20 @@ export default function TryOn() {
 
               {/* Right — studio */}
               <section className="lg:sticky lg:top-24">
-                <h2 className="font-serif text-[length:var(--text-h3)] text-espresso">
-                  Try-On Studio
-                </h2>
-                <Card variant="report" className="mt-6 p-8">
+                <EditorialHeading as="h2" size="sm">Try-On Studio</EditorialHeading>
+                <div className="mt-6 border-t border-gold-hairline pt-6">
                   {selected ? (
                     <>
                       <div className="flex items-center justify-between gap-4">
                         <div>
-                          <p className="text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-espresso-muted">
+                          <p className="text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-cream-primary/55">
                             {selected.kind === 'outfit'
                               ? 'Selected outfit'
                               : selected.kind === 'look'
                                 ? 'Selected look'
                                 : 'Selected hairstyle'}
                           </p>
-                          <p className="mt-1 font-serif text-[length:var(--text-h5)] text-espresso">
+                          <p className="mt-1 font-serif text-[length:var(--text-h5)] text-cream-primary">
                             {selected.name}
                           </p>
                         </div>
@@ -440,10 +590,10 @@ export default function TryOn() {
 
                       <div className="mt-6 grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-espresso-muted">
+                          <p className="text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-cream-primary/55">
                             You
                           </p>
-                          <div className="mt-2 aspect-[3/4] w-full overflow-hidden rounded-md border border-border">
+                          <div className="mt-2 aspect-[3/4] w-full overflow-hidden border border-gold-hairline">
                             <img
                               src={referenceImageUrl}
                               alt="Your reference photo"
@@ -457,10 +607,10 @@ export default function TryOn() {
                           </div>
                         </div>
                         <div>
-                          <p className="text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-espresso-muted">
+                          <p className="text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-cream-primary/55">
                             {resultUrl ? 'Try-on' : 'Preview'}
                           </p>
-                          <div className="mt-2 aspect-[3/4] w-full overflow-hidden rounded-md border border-border">
+                          <div className="mt-2 aspect-[3/4] w-full overflow-hidden border border-gold-hairline">
                             <AnimatePresence mode="wait">
                               <motion.img
                                 key={resultUrl ?? selected.img}
@@ -472,10 +622,11 @@ export default function TryOn() {
                                 }
                                 width={480}
                                 height={640}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.3, ease: [0, 0, 0.2, 1] }}
+                                initial={{ opacity: 0, scale: 1.04 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.97 }}
+                                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                                style={{ willChange: 'transform, opacity' }}
                                 className="h-full w-full object-cover"
                                 onError={(e) => {
                                   e.currentTarget.style.display = 'none';
@@ -501,14 +652,33 @@ export default function TryOn() {
                         </Button>
 
                         {resultUrl && selected.kind === 'outfit' && (
-                          <Button
-                            variant="secondary"
-                            size="lg"
-                            onClick={handleAddToWardrobe}
-                          >
-                            <Bookmark aria-hidden="true" />
-                            Add to Saved Looks
-                          </Button>
+                          <>
+                            <Button
+                              variant="secondary"
+                              size="lg"
+                              onClick={handleAddToWardrobe}
+                            >
+                              <Bookmark aria-hidden="true" />
+                              Add to Saved Looks
+                            </Button>
+
+                            {selectedGarment?.buyUrl && (
+                              <Button
+                                asChild
+                                variant="primary"
+                                size="lg"
+                                className="bg-gold-primary text-surface-0 hover:bg-gold-dark hover:text-cream-primary w-full uppercase tracking-wider font-semibold"
+                              >
+                                <a
+                                  href={selectedGarment.buyUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  BUY EXACT MATCH →
+                                </a>
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
 
@@ -521,21 +691,21 @@ export default function TryOn() {
                     </>
                   ) : (
                     <div className="py-16 text-center">
-                      <p className="font-serif text-[length:var(--text-h5)] text-espresso">
+                      <p className="font-serif text-[length:var(--text-h5)] text-cream-primary">
                         Select to begin
                       </p>
-                      <p className="mx-auto mt-2 max-w-sm text-[length:var(--text-body-sm)] text-espresso-light">
+                      <p className="mx-auto mt-2 max-w-sm text-[length:var(--text-body-sm)] text-cream-primary/80">
                         Choose an outfit, makeup look, or hairstyle to preview it
                         on your photo.
                       </p>
                     </div>
                   )}
-                </Card>
+                </div>
               </section>
             </div>
           </>
         )}
-      </div>
+      </EditorialContainer>
     </div>
   );
 }
@@ -561,11 +731,11 @@ function TemplateGrid({
 }) {
   if (isLoading) {
     return (
-      <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-3">
+      <div className="mt-8 grid grid-cols-2 gap-5 sm:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="aspect-[4/5] animate-pulse rounded-lg border border-border bg-cream-dark"
+            className="aspect-[4/5] animate-pulse border border-gold-hairline bg-surface-3/40"
           />
         ))}
       </div>
@@ -574,7 +744,7 @@ function TemplateGrid({
 
   if (!items || items.length === 0) {
     return (
-      <p className="mt-8 text-[length:var(--text-body-sm)] text-espresso-light">
+      <p className="mt-8 text-[length:var(--text-body-sm)] text-cream-primary/80">
         {mode === 'makeup'
           ? 'Makeup looks are not available right now.'
           : 'Hairstyles are not available right now.'}{' '}
@@ -584,7 +754,7 @@ function TemplateGrid({
   }
 
   return (
-    <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-3">
+    <div className="mt-8 grid grid-cols-2 gap-5 sm:grid-cols-3">
       {items.map((item) => {
         const isSelected = selectedId === item.id;
         return (
@@ -594,13 +764,13 @@ function TemplateGrid({
             onClick={() => onSelect(item)}
             aria-pressed={isSelected}
             className={cn(
-              'group overflow-hidden rounded-lg border text-left transition-all duration-200 ease-out',
+              'group overflow-hidden border text-left transition-all duration-300 ease-out',
               isSelected
-                ? 'border-gold-primary bg-white shadow-card'
-                : 'border-border bg-white shadow-card hover:border-gold-primary',
+                ? 'border-gold-primary'
+                : 'border-gold-hairline hover:border-gold-primary/50',
             )}
           >
-            <div className="aspect-[4/5] w-full overflow-hidden border-b border-border bg-cream-dark">
+            <div className="aspect-[4/5] w-full overflow-hidden border-b border-gold-hairline bg-surface-3/40">
               {item.thumb ? (
                 <img
                   src={item.thumb}
@@ -610,7 +780,7 @@ function TemplateGrid({
                   width={480}
                   height={600}
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                  className="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-editorial)] group-hover:scale-[1.04]"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}
@@ -628,8 +798,8 @@ function TemplateGrid({
                 </span>
               )}
             </div>
-            <div className="p-5">
-              <p className="font-serif text-[length:var(--text-h5)] text-espresso">
+            <div className="border-t border-gold-hairline p-5">
+              <p className="font-editorial text-h5 font-light text-cream-primary">
                 {item.title}
               </p>
             </div>

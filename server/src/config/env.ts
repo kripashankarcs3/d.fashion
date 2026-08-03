@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  PORT: z.coerce.number().default(5000),
+  PORT: z.coerce.number().default(3001),
 
   NODE_ENV: z.string().default("development"),
 
@@ -10,6 +10,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string(),
 
   MONGODB_URI: z.string(),
+
+  FIREBASE_PROJECT_ID: z.string().default(""),
+  FIREBASE_CLIENT_EMAIL: z.string().default(""),
+  FIREBASE_PRIVATE_KEY: z.string().default(""),
 
   YOUCAM_API_KEY: z.string().default(""),
   YOUCAM_API_SECRET: z.string().default(""),

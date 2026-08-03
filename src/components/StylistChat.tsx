@@ -39,6 +39,7 @@ function TypingIndicator() {
           key={i}
           aria-hidden="true"
           className="h-2 w-2 rounded-full bg-gold-primary"
+          style={{ willChange: 'opacity' }}
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{
             duration: 1.2,
@@ -104,12 +105,12 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
   };
 
   return (
-    <div className="flex h-[620px] flex-col overflow-hidden rounded-lg border border-border bg-white shadow-card">
+    <div className="flex h-[620px] flex-col overflow-hidden border border-border bg-surface-3">
       {/* Header */}
       <div className="flex items-center gap-4 border-b border-border p-6">
         <span
           aria-hidden="true"
-          className="flex h-11 w-11 items-center justify-center rounded-md bg-gold-primary text-espresso"
+          className="flex h-11 w-11 items-center justify-center rounded-none bg-gold-primary text-surface-0"
         >
           <Sparkles className="h-5 w-5" />
         </span>
@@ -117,7 +118,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
           <p className="text-[13px] font-semibold text-gold-primary">
             D&rsquo;Style
           </p>
-          <p className="text-[length:var(--text-caption)] text-espresso-muted">
+          <p className="text-[length:var(--text-caption)] text-cream-primary/55">
             Your personal stylist
           </p>
         </div>
@@ -134,10 +135,10 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-lg p-4 ${
+              className={`max-w-[80%] p-4 ${
                 msg.role === 'user'
-                  ? 'bg-espresso text-cream-primary'
-                  : 'border border-border bg-white text-espresso shadow-sm'
+                  ? 'bg-surface-4 text-cream-primary'
+                  : 'border border-gold-border bg-surface-3/60 text-cream-primary'
               }`}
             >
               <p className="text-[length:var(--text-body-sm)] leading-[1.6]">
@@ -172,7 +173,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
             animate={{ opacity: 1 }}
             className="flex justify-start"
           >
-            <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+            <div className="border border-gold-border bg-surface-3/60 p-4">
               <TypingIndicator />
             </div>
           </motion.div>
@@ -193,12 +194,12 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
                 : 'Upload a selfie to get started…'
             }
             disabled={!analysisResult}
-            className="min-h-11 min-w-0 flex-1 rounded-md border border-input bg-white px-4 text-[length:var(--text-body-sm)] text-espresso placeholder:text-placeholder transition-[border-color,box-shadow] duration-200 ease-out focus:border-gold-primary focus:shadow-[var(--shadow-input-focus)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 min-w-0 flex-1 border-0 border-b border-input bg-transparent pb-3 text-[length:var(--text-body-sm)] text-cream-primary placeholder:text-placeholder transition-colors duration-200 ease-out focus:border-gold-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
           />
           <button
             type="submit"
             disabled={!input.trim() || mutation.isPending || !analysisResult}
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground transition-all duration-200 ease-out hover:bg-gold-light hover:scale-[1.01] hover:shadow-cta-hover active:scale-[0.98] active:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-none text-cream-primary transition-colors duration-200 ease-out hover:bg-gold-primary/10 hover:text-gold-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Send className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">Send message</span>

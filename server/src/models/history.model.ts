@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IHistory extends Document {
-  userId: mongoose.Types.ObjectId;
+  userId: string;
   image?: string;
   skinType?: string;
   skinTone?: string;
@@ -14,9 +14,9 @@ export interface IHistory extends Document {
 const historySchema = new Schema(
   {
     userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
+      index: true,
     },
 
     image: {

@@ -2,41 +2,38 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import Container from '@/components/Container';
+import { signOut as firebaseSignOut } from '@/services/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 
 const navLinks = [
-  { href: '/upload', label: 'Color Analysis' },
+  { href: '/upload', label: 'Colour Analysis' },
   { href: '/report', label: 'My Report' },
   { href: '/try-on', label: 'Virtual Try-On' },
-  { href: '/chat', label: 'AI Stylist' },
-  { href: '/pricing', label: 'Pricing' },
+  { href: '/chat', label: 'Stylist' },
+  { href: '/pricing', label: 'Collections' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 
+/** Routes that open on a full-bleed dark campaign frame. */
+const OVERLAY_ROUTES = new Set(['/']);
+
 const drawerVariants = {
-  open: { x: 0, transition: { duration: 0.35, ease: [0, 0, 0.2, 1] } },
-  closed: { x: '100%', transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } },
+  open: { y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+  closed: { y: '-100%', transition: { duration: 0.45, ease: [0.4, 0, 1, 1] } },
 };
 
 function Hamburger({ open }: { open: boolean }) {
   return (
-    <span aria-hidden="true" className="relative block h-[18px] w-6">
+    <span aria-hidden="true" className="relative block h-[11px] w-[22px]">
       <span
         className={cn(
-          'absolute left-0 top-0 h-0.5 w-6 bg-current transition-transform duration-300 ease-out',
+          'absolute left-0 top-0 h-px w-full bg-gold-primary transition-transform duration-400 ease-[var(--ease-editorial)]',
           open && 'top-1/2 -translate-y-1/2 rotate-45',
         )}
       />
       <span
         className={cn(
-          'absolute left-0 top-1/2 h-0.5 w-6 -translate-y-1/2 bg-current transition-opacity duration-300 ease-out',
-          open && 'opacity-0',
-        )}
-      />
-      <span
-        className={cn(
-          'absolute bottom-0 left-0 h-0.5 w-6 bg-current transition-transform duration-300 ease-out',
+          'absolute bottom-0 left-0 h-px w-full bg-gold-primary transition-transform duration-400 ease-[var(--ease-editorial)]',
           open && 'bottom-1/2 translate-y-1/2 -rotate-45',
         )}
       />
@@ -55,8 +52,12 @@ export default function Navbar() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const clearSession = useAuthStore((s) => s.clearSession);
 
+  /* Over a campaign frame the header rides transparent in gold ink; once
+     the page scrolls past the image it settles onto a surface ground. */
+  const overlay = OVERLAY_ROUTES.has(location) && !scrolled;
+
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleScroll = () => setScrolled(window.scrollY > 60);
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -91,8 +92,13 @@ export default function Navbar() {
     { href: '/pricing', label: 'Subscription' },
   ];
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     setAccountOpen(false);
+    try {
+      await firebaseSignOut();
+    } catch {
+      // ignore and still clear local session
+    }
     clearSession();
   };
 
@@ -138,63 +144,69 @@ export default function Navbar() {
   return (
     <header
       className={cn(
-        'fixed inset-x-0 top-0 z-[var(--z-navbar)] transition-[background-color,backdrop-filter] duration-300 ease-out',
-        scrolled
-          ? 'bg-cream-primary/80 backdrop-blur-[20px]'
-          : 'bg-transparent',
+        'fixed inset-x-0 top-0 z-[var(--z-navbar)] border-b transition-[background-color,border-color,color] duration-500 ease-[var(--ease-editorial)]',
+        overlay
+          ? 'border-gold-hairline/0 bg-transparent text-cream-primary'
+          : 'border-gold-hairline bg-surface-1/95 text-cream-primary backdrop-blur-[16px]',
       )}
     >
-      <Container>
-        <nav className="flex h-16 items-center justify-between" aria-label="Primary">
+      <div className="mx-auto w-full max-w-container-editorial px-[var(--gutter)]">
+        <nav
+          className="flex h-[70px] items-center justify-between gap-8"
+          aria-label="Primary"
+        >
           <Link
             href="/"
-            className="flex items-center gap-3"
+            className="shrink-0 font-display text-[26px] leading-none tracking-[-0.01em] transition-opacity duration-300 hover:opacity-70"
             aria-label="D'Fashion — home"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-cream-dark">
-              <span className="font-editorial text-xl font-medium leading-none text-espresso">
-                D
-              </span>
-            </span>
-            <span
-              className="whitespace-nowrap font-editorial text-wordmark leading-none font-medium text-espresso"
-              style={{ width: 'var(--size-wordmark)' }}
+            <motion.span
+              className="inline-block"
+              whileHover={{ letterSpacing: '0.01em', opacity: 0.8 }}
+              transition={{ duration: 0.3 }}
             >
               D&rsquo;Fashion
-            </span>
+            </motion.span>
           </Link>
 
-          <div className="hidden items-center lg:flex lg:gap-8">
+          <div className="hidden items-center gap-9 lg:flex">
             {navLinks.map((link) => {
-              const active = location === link.href || (link.href === '/try-on' && location === '/tryon');
+              const active =
+                location === link.href ||
+                (link.href === '/try-on' && location === '/tryon');
               return (
-                <Link
+                <motion.div
                   key={link.href}
-                  href={link.href}
-                  aria-current={active ? 'page' : undefined}
-                  className={cn(
-                    'group relative inline-flex min-h-11 items-center text-nav text-espresso-light transition-colors duration-200 ease-out hover:text-espresso',
-                  )}
+                  whileHover={{ y: -1 }}
+                  transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {link.label}
-                  <span
+                  <Link
+                    href={link.href}
+                    aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'absolute inset-x-0 bottom-0 h-[var(--size-underline)] origin-left bg-gold-primary transition-transform duration-200 ease-out',
-                      active
-                        ? 'scale-x-100'
-                        : 'scale-x-0 group-hover:scale-x-100',
+                      'group relative inline-flex min-h-11 items-center eyebrow-micro transition-opacity duration-300 ease-out',
+                      active ? 'opacity-100' : 'opacity-65 hover:opacity-100',
                     )}
-                  />
-                </Link>
+                  >
+                    {link.label}
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        'absolute inset-x-0 bottom-[18px] h-px origin-left bg-gold-primary transition-transform duration-500 ease-[var(--ease-editorial)]',
+                        active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
+                      )}
+                    />
+                  </Link>
+                </motion.div>
               );
             })}
           </div>
 
-          <div className="flex items-center gap-2 lg:gap-6">
+          <div className="flex shrink-0 items-center gap-5">
             {!isAuthenticated ? (
               <Link
                 href="/login"
-                className="hidden min-h-11 items-center text-nav font-medium text-espresso-light transition-colors duration-200 ease-out hover:text-espresso lg:inline-flex"
+                className="hidden min-h-11 items-center eyebrow-micro opacity-65 transition-opacity duration-300 hover:opacity-100 lg:inline-flex"
               >
                 Sign In
               </Link>
@@ -206,7 +218,12 @@ export default function Navbar() {
                   aria-expanded={accountOpen}
                   aria-haspopup="menu"
                   aria-label="Account menu"
-                  className="flex h-11 w-11 items-center justify-center rounded-md bg-cream-dark font-serif text-lg font-medium text-espresso transition-colors duration-200 ease-out hover:text-gold-primary"
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-full border font-display text-[15px] transition-colors duration-300',
+                    overlay
+                      ? 'border-gold-border hover:border-gold-light'
+                      : 'border-gold-border hover:border-gold-light',
+                  )}
                 >
                   {initials || '·'}
                 </button>
@@ -215,22 +232,24 @@ export default function Navbar() {
                     <motion.div
                       role="menu"
                       aria-label="Account"
-                      initial={{ opacity: 0, y: -6 }}
+                      initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.15, ease: 'easeOut' }}
-                      className="absolute right-0 top-[calc(100%+8px)] z-[var(--z-navbar)] w-56 overflow-hidden rounded-lg border border-border bg-white py-2 shadow-card"
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute right-0 top-[calc(100%+14px)] z-[var(--z-navbar)] w-60 border border-gold-hairline bg-surface-4 py-3 text-gold-primary shadow-md"
                     >
-                      <p className="border-b border-border px-4 pb-2 text-body-sm text-espresso-muted">
+                      <p className="border-b border-gold-hairline px-5 pb-3 text-body-sm text-gold-primary">
                         {user?.name}
-                        <span className="block text-caption">{user?.email}</span>
+                        <span className="mt-0.5 block text-caption text-gold-muted">
+                          {user?.email}
+                        </span>
                       </p>
                       {accountMenu.map((item) => (
                         <Link
                           key={item.href}
                           href={item.href}
                           role="menuitem"
-                          className="flex min-h-11 items-center px-4 text-body-sm text-espresso transition-colors duration-200 ease-out hover:bg-cream-dark hover:text-gold-primary"
+                          className="flex min-h-11 items-center px-5 eyebrow-micro text-gold-soft transition-colors duration-200 hover:bg-surface-5 hover:text-gold-primary"
                         >
                           {item.label}
                         </Link>
@@ -239,7 +258,7 @@ export default function Navbar() {
                         type="button"
                         role="menuitem"
                         onClick={handleSignOut}
-                        className="flex min-h-11 w-full items-center px-4 text-left text-body-sm text-error transition-colors duration-200 ease-out hover:bg-cream-dark"
+                        className="mt-1 flex min-h-11 w-full items-center border-t border-gold-hairline px-5 text-left eyebrow-micro text-error transition-colors duration-200 hover:bg-surface-5"
                       >
                         Sign Out
                       </button>
@@ -248,25 +267,35 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
             )}
-            <Link
-              href="/upload"
-              className="hidden min-h-11 items-center justify-center rounded-md bg-primary px-8 text-nav font-semibold tracking-button text-primary-foreground transition-all duration-200 ease-out hover:bg-gold-light hover:shadow-gold-glow hover:scale-[1.01] active:scale-[0.98] active:bg-gold-dark lg:inline-flex"
-            >
-              Get Started
-            </Link>
+
+            <div className="hidden lg:block">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.15 }}
+              >
+                <Link
+                  href="/upload"
+                  className="btn-campaign"
+                >
+                  Begin
+                </Link>
+              </motion.div>
+            </div>
+
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              className="flex h-11 w-11 items-center justify-center rounded-md text-espresso transition-colors duration-200 ease-out hover:text-gold-primary lg:hidden"
+              className="flex h-11 w-11 items-center justify-center lg:hidden"
             >
               <Hamburger open={menuOpen} />
             </button>
           </div>
         </nav>
-      </Container>
+      </div>
 
       <AnimatePresence>
         {menuOpen && (
@@ -275,67 +304,76 @@ export default function Navbar() {
             ref={drawerRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Mobile navigation"
+            aria-label="Navigation"
             variants={drawerVariants}
             initial="closed"
             animate="open"
             exit="closed"
-            className="fixed inset-0 z-[var(--z-navbar)] flex flex-col bg-espresso text-cream-primary lg:hidden"
+            className="fixed inset-0 z-[var(--z-navbar)] flex flex-col bg-surface-0 text-gold-primary will-change-transform lg:hidden"
           >
-            <div className="flex h-16 items-center justify-between px-5">
-              <span className="whitespace-nowrap font-editorial text-wordmark leading-none font-medium text-cream-primary">
+            <div className="flex h-[70px] shrink-0 items-center justify-between px-[var(--gutter)]">
+              <span className="font-display text-[26px] leading-none">
                 D&rsquo;Fashion
               </span>
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
                 aria-label="Close menu"
-                className="flex h-11 w-11 items-center justify-center rounded-md text-cream-primary transition-colors duration-200 ease-out hover:text-gold-light"
+                className="flex h-11 w-11 items-center justify-center"
               >
                 <Hamburger open />
               </button>
             </div>
+
             <nav
-              className="flex flex-1 flex-col overflow-y-auto px-5"
+              className="flex flex-1 flex-col justify-center overflow-y-auto px-[var(--gutter)]"
               aria-label="Mobile"
             >
-              {navLinks.map((link) => {
-                const active = location === link.href || (link.href === '/try-on' && location === '/tryon');
+              {navLinks.map((link, index) => {
+                const active =
+                  location === link.href ||
+                  (link.href === '/try-on' && location === '/tryon');
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'flex min-h-11 items-center border-b border-cream-primary/10 py-6 text-body text-cream-primary transition-colors duration-200 ease-out hover:text-gold-light',
-                      active && 'text-gold-primary',
+                      'group flex min-h-11 items-baseline gap-4 border-b border-gold-hairline py-5 transition-colors duration-300',
+                      active ? 'text-gold-primary' : 'text-gold-soft',
                     )}
                   >
-                    {link.label}
+                    <span className="eyebrow-micro text-gold-muted tabular-nums">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="font-display text-[32px] leading-tight">
+                      {link.label}
+                    </span>
                   </Link>
                 );
               })}
             </nav>
-            <div className="px-5 pb-8">
+
+            <div className="shrink-0 px-[var(--gutter)] pb-10 pt-6">
               {!isAuthenticated ? (
                 <Link
                   href="/login"
-                  className="mb-4 flex min-h-11 w-full items-center justify-center rounded-md border border-cream-primary/20 text-nav font-medium text-cream-primary transition-colors duration-200 ease-out hover:text-gold-light"
+                  className="mb-4 flex min-h-11 w-full items-center justify-center border border-gold-border eyebrow-micro text-gold-primary transition-colors duration-300 hover:bg-gold-primary hover:text-surface-1"
                 >
                   Sign In
                 </Link>
               ) : (
-                <div className="mb-4 border-b border-cream-primary/10 pb-4">
-                  <p className="text-caption text-cream-primary/70">
+                <div className="mb-5 border-b border-gold-hairline pb-5">
+                  <p className="text-caption text-gold-muted">
                     {user?.name}
                     <span className="block">{user?.email}</span>
                   </p>
-                  <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="mt-4 grid grid-cols-3 gap-2">
                     {accountMenu.map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
-                        className="flex min-h-11 items-center justify-center rounded-md border border-cream-primary/20 text-caption text-cream-primary transition-colors duration-200 ease-out hover:text-gold-light"
+                        className="flex min-h-11 items-center justify-center border border-gold-border eyebrow-micro text-gold-soft transition-colors duration-300 hover:text-gold-primary"
                       >
                         {item.label.replace('My ', '')}
                       </Link>
@@ -344,7 +382,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleSignOut}
-                    className="mt-3 w-full text-left text-caption text-error transition-colors duration-200 ease-out hover:text-gold-light"
+                    className="mt-4 min-h-11 text-left eyebrow-micro text-error"
                   >
                     Sign Out
                   </button>
@@ -352,9 +390,9 @@ export default function Navbar() {
               )}
               <Link
                 href="/upload"
-                className="flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-8 py-3.5 text-nav font-semibold tracking-button text-primary-foreground transition-all duration-200 ease-out hover:bg-gold-light hover:scale-[1.01] active:scale-[0.98] active:bg-gold-dark"
+                className="flex min-h-[52px] w-full items-center justify-center bg-gold-primary eyebrow-micro text-surface-1 transition-opacity duration-300 hover:opacity-85"
               >
-                Get Started
+                Begin Your Analysis
               </Link>
             </div>
           </motion.div>

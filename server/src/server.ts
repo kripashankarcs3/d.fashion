@@ -11,19 +11,21 @@ const UPLOAD_TTL_MS = 24 * 60 * 60 * 1000;
 
 const startServer = async () => {
   try {
-    if (!env.YOUCAM_API_KEY) {
+    const missingYouCam = env.YOUCAM_API_KEY ? [] : ["YOUCAM_API_KEY"];
+    if (missingYouCam.length > 0) {
       if (env.NODE_ENV === "production") {
         console.error(
-          "[startup] Missing required YouCam credential: YOUCAM_API_KEY. " +
-            "Set it in server/.env before running in production.",
+          `[startup] Missing required YouCam credential(s): ${missingYouCam.join(", ")}. ` +
+            "Set them in server/.env before running in production.",
         );
         process.exitCode = 1;
         process.exit(1);
       }
       console.warn(
-        "[startup] WARNING — YOUCAM_API_KEY not configured in server/.env. " +
-          "AI analysis/try-on endpoints will fail until it is added. " +
-          "Copy server/.env.example to server/.env and fill in your YouCam API key.",
+        `[startup] WARNING — YouCam credential(s) not configured in server/.env ` +
+          `(${missingYouCam.join(", ")}). AI analysis/try-on endpoints will fail until ` +
+          "they are added. Copy server/.env.example to server/.env and fill in your " +
+          "YouCam API key.",
       );
     }
 

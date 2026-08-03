@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
 import StylistChat from '@/components/StylistChat';
+import PageMasthead from '@/components/editorial/PageMasthead';
+import EyebrowLabel from '@/components/editorial/EyebrowLabel';
+import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
+import EditorialContainer from '@/components/editorial/EditorialContainer';
 import { MessageSquare, Palette, Shirt } from 'lucide-react';
 
 const samplePrompts = [
@@ -37,74 +40,73 @@ export default function Chat() {
 
   return (
     <div className="w-full pt-28 pb-24">
-      <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
-        {/* Header */}
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
-            AI Stylist
-          </p>
-          <h1 className="mt-3 font-serif text-[length:var(--text-h1)] text-espresso">
-            Ask D&rsquo;Style.
-          </h1>
-          <p className="mx-auto mt-6 max-w-md text-[length:var(--text-body)] text-espresso-light">
-            A knowledgeable, warm stylist who knows your colour season and your
-            wardrobe.
-          </p>
-        </div>
+      <EditorialContainer width="content">
+        <PageMasthead
+          label="AI Stylist"
+          title={
+            <>
+              Ask <Emphasis>D&rsquo;Style.</Emphasis>
+            </>
+          }
+          lede="A knowledgeable, warm stylist who knows your colour season and your wardrobe."
+          className="pb-0"
+        />
 
         <div className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           {/* Conversation */}
           <StylistChat initialPrompt={activePrompt} />
 
           {/* Quick actions */}
-          <div className="space-y-10">
-            <Card variant="report" className="p-8">
-              <h2 className="font-serif text-[length:var(--text-h5)] text-espresso">
+          <div className="space-y-12">
+            {/* Quick questions — hairline list, no card chrome */}
+            <div className="border-b border-gold-hairline pb-8">
+              <EyebrowLabel tone="muted" className="mb-4">
                 Quick Questions
-              </h2>
-              <ul className="mt-5 space-y-3">
+              </EyebrowLabel>
+              <ul className="space-y-2">
                 {samplePrompts.map((prompt) => (
                   <li key={prompt}>
                     <button
                       type="button"
                       onClick={() => setActivePrompt(prompt)}
-                      className="w-full rounded-md border border-border bg-cream-primary px-4 py-3 text-left text-[length:var(--text-body-sm)] text-espresso-light transition-colors duration-200 ease-out hover:border-gold-primary hover:bg-cream-dark hover:text-espresso"
+                      className="w-full border-b border-gold-hairline py-3 text-left text-body-sm text-cream-primary/70 transition-colors duration-200 ease-out hover:border-gold-border-hover hover:text-cream-primary"
                     >
                       &ldquo;{prompt}&rdquo;
                     </button>
                   </li>
                 ))}
               </ul>
-            </Card>
+            </div>
 
-            <Card variant="report" className="p-8">
-              <h2 className="font-serif text-[length:var(--text-h5)] text-espresso">
+            {/* What D'Style Knows — minimal list */}
+            <div>
+              <EyebrowLabel tone="muted" className="mb-4">
                 What D&rsquo;Style Knows
-              </h2>
-              <ul className="mt-5 space-y-5">
+              </EyebrowLabel>
+              <ul className="space-y-5">
                 {knowledge.map((item) => (
-                  <li key={item.title} className="flex gap-3">
+                  <li key={item.title} className="flex gap-3 border-b border-gold-hairline pb-5 last:border-b-0 last:pb-0">
                     <span
                       aria-hidden="true"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-cream-dark text-gold-primary"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-surface-4 text-gold-primary"
                     >
                       <item.icon className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-[length:var(--text-body-sm)] font-medium text-espresso">
+                      <p className="text-body-sm font-medium text-cream-primary">
                         {item.title}
                       </p>
-                      <p className="mt-0.5 text-[length:var(--text-caption)] text-espresso-muted">
+                      <p className="mt-0.5 text-caption text-cream-primary/55">
                         {item.description}
                       </p>
                     </div>
                   </li>
                 ))}
               </ul>
-            </Card>
+            </div>
           </div>
         </div>
-      </div>
+      </EditorialContainer>
     </div>
   );
 }

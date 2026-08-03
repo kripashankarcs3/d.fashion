@@ -1,25 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, type Variants } from 'framer-motion';
 import { Star } from 'lucide-react';
-import Container from '@/components/Container';
+import EditorialContainer from '@/components/editorial/EditorialContainer';
+import EditorialHeading from '@/components/editorial/EditorialHeading';
+import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 
 const stats = [
-  {
-    value: 50000,
-    suffix: '+',
-    label: 'colour profiles created',
-  },
-  {
-    value: 4.9,
-    suffix: '/5',
-    label: 'average satisfaction',
-  },
-  {
-    value: 12,
-    suffix: '',
-    label: 'colour seasons covered',
-  },
+  { value: 50000, suffix: '+', label: 'Colour profiles created' },
+  { value: 4.9, suffix: '/5', label: 'Average satisfaction' },
+  { value: 12, suffix: '', label: 'Colour seasons covered' },
 ];
+
+const starStagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05 } },
+};
+
+const starVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.5 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+};
 
 function CountUp({ target, suffix }: { target: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -29,7 +29,7 @@ function CountUp({ target, suffix }: { target: number; suffix: string }) {
   useEffect(() => {
     if (!inView) return;
     let raf = 0;
-    const duration = 1000;
+    const duration = 1200;
     const start = performance.now();
     const tick = (now: number) => {
       const progress = Math.min(1, (now - start) / duration);
@@ -45,103 +45,125 @@ function CountUp({ target, suffix }: { target: number; suffix: string }) {
     ? Math.round(value).toLocaleString('en-IN')
     : (Math.round(value * 10) / 10).toString();
 
-  return (
-    <span ref={ref}>
-      {formatted}
-      {suffix && <span className="align-super text-5xl">{suffix}</span>}
-    </span>
-  );
+  return <span ref={ref}>{formatted}{suffix && <span className="text-gold-primary">{suffix}</span>}</span>;
 }
 
 const testimonials = [
   {
     name: 'Meera K.',
     season: 'Warm Autumn',
-    quote:
-      'I always suspected certain colours washed me out, but nobody could explain why. This finally gave me the vocabulary.',
+    quote: 'I always suspected certain colours washed me out, but nobody could explain why. This finally gave me the vocabulary.',
+    avatar: 'MK',
   },
   {
     name: 'Aarav S.',
     season: 'True Summer',
-    quote:
-      'The undertone analysis explained things I have felt about my own skin for years. It felt personal, not generic.',
+    quote: 'The undertone analysis explained things I have felt about my own skin for years. It felt personal, not generic.',
+    avatar: 'AS',
   },
   {
     name: 'Priya R.',
     season: 'Deep Winter',
-    quote:
-      'I stopped buying clothes that never quite worked. My wardrobe finally feels like it belongs to one person.',
+    quote: 'I stopped buying clothes that never quite worked. My wardrobe finally feels like it belongs to one person.',
+    avatar: 'PR',
   },
 ];
 
 export default function SocialProof() {
   return (
-    <section className="py-30">
-      <Container>
-        <div className="grid grid-cols-1 gap-24 lg:grid-cols-2 lg:gap-20">
-          <motion.div
-            initial={{ opacity: 0, y: 32 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
-            className="space-y-6"
-          >
-            {testimonials.map((testimonial) => (
-              <figure
-                key={testimonial.name}
-                className="rounded-lg border border-border bg-white p-8 shadow-card transition-shadow duration-200 ease-out hover:shadow-card-hover"
-              >
-                <div
-                  className="flex items-center gap-1"
-                  role="img"
-                  aria-label="5 out of 5 stars"
-                >
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4 fill-gold-primary text-gold-primary"
-                      aria-hidden="true"
-                    />
-                  ))}
-                </div>
-                <blockquote className="mt-4 font-sans text-body italic leading-[1.65] text-espresso-light">
-                  &ldquo;{testimonial.quote}&rdquo;
-                </blockquote>
-                <figcaption className="mt-6 flex flex-wrap items-center gap-3">
-                  <span className="text-body-sm font-semibold text-espresso">
-                    {testimonial.name}
-                  </span>
-                  <span className="inline-flex items-center rounded-sm bg-gold-primary px-1.5 py-0.5 text-micro font-semibold uppercase tracking-label text-espresso">
-                    Verified
-                  </span>
-                  <span className="text-caption text-gold-primary">
-                    {testimonial.season}
-                  </span>
-                </figcaption>
-              </figure>
-            ))}
-          </motion.div>
+    <section className="relative bg-surface-2 py-section-xl">
+      <EditorialContainer>
+        {/* Section header */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.55, ease: [0, 0, 0.2, 1] }}
+          className="mb-16 text-center"
+        >
+          <EyebrowLabel rule tone="gold" className="justify-center">
+            Social Proof
+          </EyebrowLabel>
+          <EditorialHeading as="h2" size="lg" className="mt-5 text-cream-primary">
+            Trusted by thousands.
+          </EditorialHeading>
+        </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 32 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
-            className="flex flex-col justify-center space-y-16"
-          >
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <p className="font-serif text-7xl font-light text-gold-primary">
-                  <CountUp target={stat.value} suffix={stat.suffix} />
-                </p>
-                <p className="mt-2 text-body-sm text-espresso-muted">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </motion.div>
+        {/* Stats row — unified rule, no card wrapper */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.55, ease: [0, 0, 0.2, 1] }}
+          className="grid grid-cols-3 border-t border-gold-hairline"
+        >
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.6, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
+              className="px-4 py-10 text-center"
+            >
+              <p className="font-serif text-[3rem] font-light leading-none text-cream-primary">
+                <CountUp target={stat.value} suffix={stat.suffix} />
+              </p>
+              <p className="mt-2 text-caption uppercase tracking-label text-gold-muted">
+                {stat.label}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Testimonials */}
+        <div className="mt-16 grid grid-cols-1 gap-5 md:grid-cols-3">
+          {testimonials.map((t, i) => (
+            <motion.figure
+              key={t.name}
+              initial={{ opacity: 0, y: 32 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -6, borderColor: 'rgba(201, 168, 76, 0.35)' }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-sm border border-gold-hairline bg-surface-3 p-7"
+            >
+              {/* Stars — staggered entrance */}
+              <motion.div
+                variants={starStagger}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.5 }}
+                className="flex gap-0.5"
+                role="img"
+                aria-label="5 out of 5 stars"
+              >
+                {Array.from({ length: 5 }).map((_, j) => (
+                  <motion.span key={j} variants={starVariants}>
+                    <Star className="h-3.5 w-3.5 fill-gold-primary text-gold-primary" aria-hidden />
+                  </motion.span>
+                ))}
+              </motion.div>
+
+              {/* Quote */}
+              <blockquote className="mt-4 text-body-sm leading-relaxed italic text-cream-primary/72 font-light">
+                &ldquo;{t.quote}&rdquo;
+              </blockquote>
+
+              {/* Author */}
+              <figcaption className="mt-6 flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-5 font-serif text-body-sm font-medium text-cream-primary">
+                  {t.avatar}
+                </div>
+                <div>
+                  <p className="text-body-sm font-semibold text-cream-primary">{t.name}</p>
+                  <p className="text-caption text-gold-primary/80">{t.season}</p>
+                </div>
+              </figcaption>
+            </motion.figure>
+          ))}
         </div>
-      </Container>
+      </EditorialContainer>
     </section>
   );
 }

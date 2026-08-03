@@ -112,14 +112,14 @@ const ColorSwatch = React.forwardRef<HTMLButtonElement, ColorSwatchProps>(
                   'group-hover:scale-[1.03] group-hover:shadow-[var(--shadow-swatch-hover)]',
                   'group-focus-visible:scale-[1.03] group-focus-visible:shadow-[var(--shadow-swatch-hover)]',
                   selected &&
-                    'ring-2 ring-gold-primary ring-offset-2 ring-offset-white',
+                    'ring-2 ring-gold-primary ring-offset-2 ring-offset-surface-1',
                 )}
                 style={{ backgroundColor: hex }}
               />
-              <span className="text-[length:var(--text-caption)] text-espresso-muted">
+              <span className="text-[length:var(--text-caption)] text-cream-primary/55">
                 {name}
               </span>
-              <span className="text-[length:var(--text-micro)] tabular-nums text-espresso-muted/70">
+              <span className="text-[length:var(--text-micro)] tabular-nums text-cream-primary/45">
                 {hex}
               </span>
             </button>
@@ -128,10 +128,10 @@ const ColorSwatch = React.forwardRef<HTMLButtonElement, ColorSwatchProps>(
             className="flex flex-col gap-0.5 text-[length:var(--text-label)]"
             side="top"
           >
-            <span className="font-medium text-espresso">{name}</span>
-            <span className="text-espresso-muted">{hex}</span>
+            <span className="font-medium text-cream-primary">{name}</span>
+            <span className="text-cream-primary/55">{hex}</span>
             {recommendation && (
-              <span className="text-espresso-muted">{recommendation}</span>
+              <span className="text-cream-primary/55">{recommendation}</span>
             )}
           </TooltipContent>
         </Tooltip>

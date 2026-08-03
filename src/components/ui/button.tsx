@@ -6,59 +6,71 @@ import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
   [
-    'relative inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-md text-[length:var(--text-nav)] leading-[var(--text-nav--line-height)] font-semibold tracking-button',
-    'transition-all duration-[var(--duration-fast)] ease-out',
-    'enabled:active:scale-[0.98]',
+    'relative inline-flex select-none items-center justify-center gap-2.5 whitespace-nowrap rounded-none',
+    'font-sans text-[length:var(--text-caption)] font-medium uppercase leading-none tracking-eyebrow',
+    'transition-[background-color,color,border-color,opacity] duration-[var(--duration-normal)] ease-[var(--ease-editorial)]',
     'disabled:cursor-not-allowed disabled:opacity-40',
     '[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   ].join(' '),
   {
     variants: {
       variant: {
+        /* Solid gold. The single loudest element on any page — used sparingly. */
         primary: [
-          'bg-primary text-primary-foreground',
-          'enabled:hover:scale-[1.01] enabled:hover:bg-gold-light enabled:hover:shadow-cta-hover',
-          'enabled:active:bg-gold-dark',
+          'bg-gold-primary text-surface-0',
+          'enabled:hover:bg-gold-light',
         ].join(' '),
+        /* Thin-rule outline. The default for anything that is not the one CTA. */
         secondary: [
-          'border border-primary bg-transparent text-primary',
-          'enabled:hover:scale-[1.01] enabled:hover:bg-primary enabled:hover:text-primary-foreground',
-          'enabled:active:bg-gold-dark enabled:active:text-primary-foreground',
+          'border border-gold-border bg-transparent text-cream-primary',
+          'enabled:hover:border-gold-primary enabled:hover:bg-gold-primary/10 enabled:hover:text-gold-primary',
+        ].join(' '),
+        /* Warm accent — reserved for moments that carry the brand colour. */
+        accent: [
+          'bg-primary text-surface-0',
+          'enabled:hover:bg-gold-dark enabled:hover:text-cream-primary',
+        ].join(' '),
+        /* On dark campaign grounds. */
+        inverse: [
+          'bg-gold-primary text-surface-0',
+          'enabled:hover:bg-gold-light',
+        ].join(' '),
+        inverseOutline: [
+          'border border-gold-border bg-transparent text-cream-primary',
+          'enabled:hover:border-gold-border-hover enabled:hover:bg-gold-primary/10 enabled:hover:text-gold-light',
         ].join(' '),
         tertiary: [
-          'bg-transparent text-espresso-light',
-          'bg-no-repeat bg-left-bottom bg-[linear-gradient(var(--color-gold-primary),var(--color-gold-primary))] bg-[length:0%_var(--size-underline)]',
-          'enabled:hover:text-espresso enabled:hover:bg-[length:100%_var(--size-underline)]',
+          'bg-transparent text-cream-primary/70',
+          'bg-no-repeat bg-left-bottom bg-[linear-gradient(var(--color-gold-primary),var(--color-gold-primary))] bg-[length:0%_1px]',
+          'enabled:hover:text-cream-primary enabled:hover:bg-[length:100%_1px]',
         ].join(' '),
         destructive: [
           'bg-destructive text-destructive-foreground',
-          'enabled:hover:scale-[1.01] enabled:hover:bg-error/90',
-          'enabled:active:bg-error/80',
+          'enabled:hover:bg-error/90',
         ].join(' '),
         icon: [
-          'bg-primary text-primary-foreground',
-          'enabled:hover:scale-[1.01] enabled:hover:bg-gold-light enabled:hover:shadow-cta-hover',
-          'enabled:active:bg-gold-dark',
+          'bg-surface-4 text-cream-primary',
+          'enabled:hover:bg-surface-5',
           '[&_svg]:size-5',
         ].join(' '),
         link: [
-          'bg-transparent text-espresso',
-          'bg-no-repeat bg-left-bottom bg-[linear-gradient(var(--color-gold-primary),var(--color-gold-primary))] bg-[length:0%_var(--size-underline)]',
-          'enabled:hover:bg-[length:100%_var(--size-underline)]',
+          'bg-transparent text-cream-primary',
+          'bg-no-repeat bg-left-bottom bg-[linear-gradient(var(--color-gold-primary),var(--color-gold-primary))] bg-[length:0%_1px]',
+          'enabled:hover:bg-[length:100%_1px]',
         ].join(' '),
         outline: [
-          'border border-border bg-background text-foreground',
-          'enabled:hover:bg-muted enabled:hover:text-foreground',
+          'border border-gold-border bg-transparent text-cream-primary',
+          'enabled:hover:border-gold-primary enabled:hover:bg-gold-primary/10',
         ].join(' '),
         ghost: [
-          'bg-transparent text-foreground',
-          'enabled:hover:bg-cream-dark enabled:hover:text-foreground',
+          'bg-transparent text-cream-primary/80',
+          'enabled:hover:bg-gold-primary/10 enabled:hover:text-gold-primary',
         ].join(' '),
       },
       size: {
-        default: 'min-h-11 px-8 py-3.5',
-        sm: 'min-h-11 px-4',
-        lg: 'min-h-11 min-w-[var(--size-cta-min-width)] px-10 py-3.5',
+        default: 'min-h-11 px-7 py-3.5',
+        sm: 'min-h-11 px-5',
+        lg: 'min-h-[52px] min-w-[var(--size-cta-min-width)] px-10 py-4',
         icon: 'h-11 w-11 p-0',
       },
     },

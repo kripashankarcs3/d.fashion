@@ -35,7 +35,7 @@ export default function AnalysisProcessing({
     : 100;
 
   return (
-    <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-border bg-white p-8 shadow-card">
+    <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-border bg-surface-3 p-8 shadow-card">
       {previewUrl ? (
         <div className="relative mb-8 w-28 overflow-hidden rounded-md border border-border">
           <img
@@ -45,7 +45,7 @@ export default function AnalysisProcessing({
             height={256}
             className="aspect-square w-full object-cover"
           />
-          <div className="absolute inset-0 animate-[shimmer_1.5s_infinite] bg-[linear-gradient(90deg,var(--color-cream-dark)_25%,var(--color-cream-primary)_50%,var(--color-cream-dark)_75%)] bg-[length:200%_100%]" />
+          <div className="absolute inset-0 gpu animate-[shimmer_1.5s_infinite] bg-[linear-gradient(90deg,var(--color-surface-3)_25%,var(--color-surface-5)_50%,var(--color-surface-3)_75%)] bg-[length:200%_100%]" />
         </div>
       ) : (
         <div className="mb-8 flex items-end gap-2" aria-hidden="true">
@@ -73,7 +73,7 @@ export default function AnalysisProcessing({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: [0, 0, 0.2, 1] }}
-            className="text-[15px] italic text-espresso-light"
+            className="text-[15px] italic text-cream-primary/80"
           >
             {uploading ? 'Uploading your photo…' : STAGES[index]}
           </motion.p>
@@ -86,16 +86,17 @@ export default function AnalysisProcessing({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(progress)}
-        className="mt-6 h-1 w-full max-w-xs overflow-hidden rounded-full bg-cream-dark"
+        className="mt-6 h-1 w-full max-w-xs overflow-hidden rounded-full bg-surface-4"
       >
         {uploading ? (
           <motion.div
-            className="h-full bg-[linear-gradient(90deg,#B8974A_25%,#D4AF71_50%,#B8974A_75%)] bg-[length:200%_100%]"
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="h-full w-full origin-left will-change-transform bg-[linear-gradient(90deg,#C9A84C_25%,#D4A853_50%,#C9A84C_75%)] bg-[length:200%_100%]"
+            initial={false}
+            animate={{ scaleX: progress / 100 }}
+            transition={{ type: 'spring', stiffness: 80, damping: 20 }}
           />
         ) : (
-          <div className="h-full w-full animate-[shimmer_1.5s_infinite] bg-[linear-gradient(90deg,#B8974A_25%,#D4AF71_50%,#B8974A_75%)] bg-[length:200%_100%]" />
+          <div className="gpu h-full w-full animate-[shimmer_1.5s_infinite] bg-[linear-gradient(90deg,#C9A84C_25%,#D4A853_50%,#C9A84C_75%)] bg-[length:200%_100%]" />
         )}
       </div>
     </div>

@@ -19,10 +19,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 px-6 text-center">
-          <h2 className="font-serif text-[length:var(--text-h3)] text-espresso">
+          <h2 className="font-serif text-[length:var(--text-h3)] text-cream-primary">
             Something went wrong on this page
           </h2>
-          <p className="text-[length:var(--text-body)] text-espresso-light">
+          <p className="text-[length:var(--text-body)] text-cream-primary/80">
             {this.props.pageName ?? 'This page'} encountered an unexpected error. Please try again.
           </p>
           <Link

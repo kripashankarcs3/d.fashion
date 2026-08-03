@@ -34,7 +34,7 @@ export const deleteFavorite = asyncHandler(async (req: Request<{ id: string }>, 
     return;
   }
 
-  if (favorite.userId.toString() !== userId) {
+  if (favorite.userId !== userId) {
     res.status(403).json({ success: false, message: "Unauthorized to delete this favorite" });
     return;
   }

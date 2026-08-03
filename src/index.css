@@ -5,16 +5,48 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-gold-primary: #B8974A;
-  --color-gold-light: #D4AF71;
-  --color-gold-dark: #8B6914;
-  --color-cream-primary: #F5F0E8;
-  --color-cream-dark: #EDE5D8;
-  --color-espresso: #2C1810;
-  --color-espresso-light: #4A2E1F;
-  --color-espresso-muted: #8B6B56;
+  /* Gold is an ACCENT only — not a text color for large body copy */
+  --color-gold-primary: #B8964A;
+  --color-gold-light: #C8A456;
+  --color-gold-dark: #8A6B28;
+  --color-gold-muted: rgba(232, 223, 200, 0.70);
+  --color-gold-soft: rgba(232, 223, 200, 0.85);
+  /* Cream/ivory — the MAIN text color on dark backgrounds */
+  --color-cream-primary: #E8DFC8;
+  --color-cream-dark: #D6CCAF;
+  --color-espresso: #0E0E0E;
+  --color-espresso-light: #1A1A1A;
+  --color-espresso-muted: #6B6050;
   --color-white: #FFFFFF;
   --color-error: #C0392B;
+  --color-emerald-dark: #072C21;
+  --color-emerald-medium: #0B3B2E;
+  --color-emerald-light: #124E3E;
+  --color-emerald-glow: rgba(18, 78, 62, 0.3);
+
+  /* ── Editorial neutrals ──
+     A quieter, wider register than the three brand tones alone. Used for
+     campaign grounds, rules, and the soft surfaces that replace card chrome. */
+  --color-ivory: #F5EDD8;
+  --color-bone: #1A1A1A;
+  --color-stone: #2A2520;
+  --color-taupe: #4A4035;
+  --color-ink: #0A0A0A;
+  --color-ink-soft: #141414;
+
+  /* ── Dark surface ladder + golden editorial tokens ── */
+  --color-surface-0: #0A0A0A;
+  --color-surface-1: #0E0E0E;
+  --color-surface-2: #141414;
+  --color-surface-3: #1A1A1A;
+  --color-surface-4: #212121;
+  --color-surface-5: #2A2520;
+  --color-gold-hairline: rgba(184, 150, 74, 0.14);
+  --color-gold-border: rgba(184, 150, 74, 0.22);
+  --color-gold-border-hover: rgba(184, 150, 74, 0.50);
+  --color-text-primary: #E8DFC8;
+  --color-text-secondary: rgba(232, 223, 200, 0.70);
+  --color-text-muted: rgba(232, 223, 200, 0.38);
 
   --font-editorial: 'Cormorant Garamond', Georgia, serif;
   --font-ui: 'DM Sans', system-ui, sans-serif;
@@ -47,17 +79,40 @@
   --text-micro: 10px;
   --text-micro--line-height: 1.4;
 
+  /* ── Fluid editorial display scale ──
+     Campaign typography that scales continuously rather than in breakpoint
+     steps, so a headline is composed for its column at every width. */
+  --text-campaign: clamp(3rem, 12.5vw, 11.5rem);
+  --text-campaign--line-height: 0.88;
+  --text-campaign--letter-spacing: -0.03em;
+  --text-editorial-xl: clamp(2.75rem, 8.5vw, 7.5rem);
+  --text-editorial-xl--line-height: 0.94;
+  --text-editorial-xl--letter-spacing: -0.025em;
+  --text-editorial-lg: clamp(2.25rem, 5.6vw, 4.75rem);
+  --text-editorial-lg--line-height: 1;
+  --text-editorial-lg--letter-spacing: -0.02em;
+  --text-editorial-md: clamp(1.875rem, 3.6vw, 3.125rem);
+  --text-editorial-md--line-height: 1.08;
+  --text-editorial-md--letter-spacing: -0.015em;
+  --text-editorial-sm: clamp(1.5rem, 2.4vw, 2.125rem);
+  --text-editorial-sm--line-height: 1.15;
+  --text-editorial-sm--letter-spacing: -0.01em;
+  --text-lede: clamp(1.0625rem, 1.3vw, 1.3125rem);
+  --text-lede--line-height: 1.6;
+
   --radius-sm: 2px;
   --radius-md: 4px;
   --radius-lg: 8px;
   --radius-xl: 12px;
   --radius-pill: 999px;
 
-  --shadow-xs: 0 1px 3px rgba(44, 24, 16, 0.06);
-  --shadow-sm: 0 2px 8px rgba(44, 24, 16, 0.08);
-  --shadow-md: 0 4px 20px rgba(44, 24, 16, 0.1);
-  --shadow-lg: 0 8px 40px rgba(44, 24, 16, 0.12);
-  --shadow-xl: 0 16px 64px rgba(44, 24, 16, 0.14);
+  /* Shadows are deliberately faint — depth comes from composition and
+     hairlines, not from floating panels. */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.42);
+  --shadow-md: 0 2px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.55);
+  --shadow-xl: 0 24px 70px rgba(0, 0, 0, 0.6);
 
   --duration-instant: 100ms;
   --duration-fast: 200ms;
@@ -71,6 +126,13 @@
 
   --tracking-label: 0.15em;
   --tracking-button: 0.02em;
+  --tracking-micro: 0.22em;
+  --tracking-eyebrow: 0.18em;
+  --tracking-display: -0.025em;
+
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-editorial: 900ms;
+  --duration-image: 900ms;
 
   --text-nav: 15px;
   --text-nav--line-height: 1.4;
@@ -79,8 +141,9 @@
   --text-wordmark: 30px;
   --text-wordmark--line-height: 1.1;
 
-  --shadow-gold-glow: 0 0 16px rgba(184, 151, 74, 0.3);
-  --shadow-cta-hover: 0 4px 24px rgba(184, 151, 74, 0.25);
+  /* Retained for compatibility, but reduced to a whisper — no glowing CTAs. */
+  --shadow-gold-glow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-cta-hover: 0 2px 10px rgba(0, 0, 0, 0.45);
 
   --size-wordmark: 120px;
   --size-underline: 1.5px;
@@ -107,63 +170,83 @@
   --text-label: 13px;
   --text-label--line-height: 1.4;
 
-  --color-placeholder: rgba(139, 107, 86, 0.5);
-  --color-input-hover: rgba(139, 107, 86, 0.45);
+  --color-placeholder: rgba(232, 223, 200, 0.35);
+  --color-input-hover: rgba(232, 223, 200, 0.25);
 
-  --shadow-input-focus: 0 0 0 3px rgba(184, 151, 74, 0.15);
+  --shadow-input-focus: 0 0 0 3px rgba(184, 150, 74, 0.14);
   --shadow-error-focus: 0 0 0 3px rgba(192, 57, 43, 0.15);
-  --shadow-card: 0 2px 20px rgba(44, 24, 16, 0.06);
-  --shadow-card-hover: 0 8px 40px rgba(44, 24, 16, 0.1);
-  --shadow-swatch: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-  --shadow-swatch-hover: 0 4px 20px rgba(44, 24, 16, 0.1),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-swatch: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-swatch-hover: 0 2px 12px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 
   --container-content: 1200px;
   --container-narrow: 640px;
+  --container-editorial: 1440px;
+  --container-reading: 68ch;
+
+  /* ── Section rhythm ──
+     Sections alternate between these so the scroll breathes instead of
+     repeating one fixed height. */
+  --rhythm-dense: clamp(3.5rem, 6vw, 6rem);
+  --rhythm-normal: clamp(5rem, 9vw, 9.5rem);
+  --rhythm-open: clamp(6.5rem, 12vw, 13rem);
+  --gutter: clamp(1.25rem, 4vw, 4rem);
 }
 
 @theme inline {
-  --color-background: var(--color-cream-primary);
-  --color-foreground: var(--color-espresso);
-  --color-border: rgba(184, 151, 74, 0.15);
-  --color-input: rgba(139, 107, 86, 0.3);
-  --color-ring: rgba(184, 151, 74, 0.4);
+  /* ── Site ground becomes deep near-black ── */
+  --color-background: var(--color-surface-1);
+  --color-foreground: var(--color-cream-primary);        /* warm off-white — NOT gold */
 
-  --color-card: var(--color-white);
-  --color-card-foreground: var(--color-espresso);
-  --color-card-border: rgba(184, 151, 74, 0.15);
-  --color-popover: var(--color-white);
-  --color-popover-foreground: var(--color-espresso);
-  --color-popover-border: rgba(184, 151, 74, 0.15);
+  /* Hairlines: faint golden on near-black */
+  --color-border: var(--color-gold-hairline);
+  --color-input: rgba(184, 150, 74, 0.18);
+  --color-ring: rgba(184, 150, 74, 0.45);
 
+  /* Cards: slightly lighter black surface */
+  --color-card: var(--color-surface-3);
+  --color-card-foreground: var(--color-cream-primary);
+  --color-card-border: var(--color-gold-hairline);
+  --color-popover: var(--color-surface-4);
+  --color-popover-foreground: var(--color-cream-primary);
+  --color-popover-border: var(--color-gold-border);
+
+  /* Primary action: gold on black */
   --color-primary: var(--color-gold-primary);
-  --color-primary-foreground: var(--color-espresso);
-  --color-primary-border: rgba(184, 151, 74, 0.4);
+  --color-primary-foreground: var(--color-surface-0);
+  --color-primary-border: var(--color-gold-border-hover);
 
-  --color-secondary: var(--color-cream-dark);
-  --color-secondary-foreground: var(--color-espresso);
-  --color-secondary-border: rgba(184, 151, 74, 0.15);
+  /* Secondary surfaces */
+  --color-secondary: var(--color-surface-4);
+  --color-secondary-foreground: var(--color-cream-primary);
+  --color-secondary-border: var(--color-gold-hairline);
 
-  --color-muted: var(--color-cream-dark);
-  --color-muted-foreground: var(--color-espresso-muted);
-  --color-muted-border: rgba(184, 151, 74, 0.15);
+  /* Muted */
+  --color-muted: var(--color-surface-3);
+  --color-muted-foreground: rgba(232, 223, 200, 0.40);
+  --color-muted-border: rgba(184, 150, 74, 0.10);
 
+  /* Accent = gold */
   --color-accent: var(--color-gold-primary);
-  --color-accent-foreground: var(--color-espresso);
-  --color-accent-border: rgba(184, 151, 74, 0.15);
+  --color-accent-foreground: var(--color-surface-0);
+  --color-accent-border: var(--color-gold-border);
 
+  /* Error stays red */
   --color-destructive: var(--color-error);
-  --color-destructive-foreground: var(--color-white);
+  --color-destructive-foreground: var(--color-cream-primary);
   --color-destructive-border: var(--color-error);
 
-  --color-sidebar: var(--color-cream-dark);
-  --color-sidebar-foreground: var(--color-espresso);
-  --color-sidebar-border: rgba(184, 151, 74, 0.15);
-  --color-sidebar-accent: var(--color-cream-primary);
-  --color-sidebar-accent-foreground: var(--color-espresso);
+  /* Sidebar */
+  --color-sidebar: var(--color-surface-2);
+  --color-sidebar-foreground: var(--color-cream-primary);
+  --color-sidebar-border: var(--color-gold-hairline);
+  --color-sidebar-accent: var(--color-surface-4);
+  --color-sidebar-accent-foreground: var(--color-cream-primary);
   --color-sidebar-primary: var(--color-gold-primary);
-  --color-sidebar-primary-foreground: var(--color-espresso);
-  --color-sidebar-ring: rgba(184, 151, 74, 0.4);
+  --color-sidebar-primary-foreground: var(--color-surface-0);
+  --color-sidebar-ring: rgba(184, 150, 74, 0.45);
 }
 
 :root {
@@ -175,7 +258,10 @@
 
 @layer base {
   html {
-    color-scheme: light;
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    /* Enable subpixel antialiasing on high-DPI displays */
+    -webkit-text-size-adjust: 100%;
   }
 
   * {
@@ -184,7 +270,11 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     font-optical-sizing: auto;
+    font-synthesis-weight: none;
   }
 
   button:not(:disabled),
@@ -204,11 +294,11 @@
   }
 
   ::selection {
-    background-color: rgba(212, 175, 113, 0.3);
+    background-color: rgba(201, 168, 76, 0.3);
   }
 
   ::-webkit-scrollbar {
-    width: 12px;
+    width: 8px;
   }
 
   ::-webkit-scrollbar-track {
@@ -216,17 +306,509 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: rgba(44, 24, 16, 0.3);
+    background-color: rgba(201, 168, 76, 0.22);
     border-radius: var(--radius-pill);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(44, 24, 16, 0.5);
+    background-color: rgba(201, 168, 76, 0.4);
   }
 
   :focus-visible {
-    outline: 2px solid rgba(184, 151, 74, 0.4);
+    outline: 2px solid rgba(201, 168, 76, 0.6);
     outline-offset: 3px;
+  }
+
+  [data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+    background: var(--color-surface-3);
+    border: 1px solid var(--color-gold-border);
+    color: var(--color-cream-primary);
+  }
+}
+
+@layer utilities {
+  /* ── Editorial display type ──
+     Serif display with optical tracking. `.display-italic` marks the words
+     carried in italic for emphasis — used deliberately, never wholesale. */
+  .font-display {
+    font-family: var(--font-editorial);
+    font-weight: 300;
+    text-wrap: balance;
+  }
+
+  .display-italic {
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  /* ── Micro labels ──
+     The small uppercase register that anchors every editorial section. */
+  .eyebrow {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption);
+    line-height: 1;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-eyebrow);
+  }
+
+  .eyebrow-micro {
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    line-height: 1;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-micro);
+  }
+
+  /* ── Image scrims ──
+     Directional rather than a flat black wash, so the overlay follows the
+     composition instead of dulling the whole frame. Tinted to the near-black
+     ground so imagery blends into the dark page instead of floating on it. */
+  .scrim-bottom {
+    background-image: linear-gradient(
+      to top,
+      rgba(6, 6, 6, 0.92) 0%,
+      rgba(14, 14, 14, 0.6) 28%,
+      rgba(14, 14, 14, 0.2) 58%,
+      transparent 82%
+    );
+  }
+
+  .scrim-left {
+    background-image: linear-gradient(
+      to right,
+      rgba(6, 6, 6, 0.88) 0%,
+      rgba(14, 14, 14, 0.55) 32%,
+      rgba(14, 14, 14, 0.15) 64%,
+      transparent 88%
+    );
+  }
+
+  .scrim-right {
+    background-image: linear-gradient(
+      to left,
+      rgba(6, 6, 6, 0.86) 0%,
+      rgba(14, 14, 14, 0.5) 36%,
+      transparent 78%
+    );
+  }
+
+  .scrim-soft {
+    background-image: linear-gradient(
+      to top,
+      rgba(6, 6, 6, 0.6) 0%,
+      rgba(14, 14, 14, 0.2) 42%,
+      transparent 72%
+    );
+  }
+
+  .mask-left-fade {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 22%, black 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 22%, black 100%);
+  }
+   
+  .mask-right-fade {
+    -webkit-mask-image: linear-gradient(to left, transparent 0%, black 22%, black 100%);
+    mask-image: linear-gradient(to left, transparent 0%, black 22%, black 100%);
+  }
+
+  /* ── Near-black surface ladder ── */
+  .bg-surface-0 { background-color: #0A0A0A; }   /* deepest — hero bg */
+  .bg-surface-1 { background-color: #0E0E0E; }   /* base */
+  .bg-surface-2 { background-color: #141414; }   /* raised panel */
+  .bg-surface-3 { background-color: #1A1A1A; }   /* card surface */
+  .bg-surface-4 { background-color: #212121; }   /* elevated surface */
+  .bg-surface-5 { background-color: #2A2520; }   /* warmest surface */
+
+  /* ── Golden text roles ── */
+  .text-gold-primary { color: #C9A84C; }
+  .text-gold-light { color: #D4A853; }
+  .text-gold-dark { color: #A07C2E; }
+  .text-gold-muted { color: rgba(232, 223, 200, 0.70); }
+  .text-gold-soft { color: rgba(232, 223, 200, 0.85); }
+
+  /* ── Golden hairlines ── */
+  .border-gold-hairline { border-color: rgba(201, 168, 76, 0.15); }
+  .border-gold { border-color: rgba(201, 168, 76, 0.25); }
+  .border-gold-hover { border-color: rgba(201, 168, 76, 0.55); }
+
+  /* ── Cinematic luxury overlays & image treatments ── */
+  .cinematic-image {
+    filter: brightness(0.9) contrast(1.12) saturate(0.86);
+    transition: filter var(--duration-image) var(--ease-editorial);
+  }
+
+  .cinematic-overlay-right {
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(7, 7, 7, 0.04) 22%,
+      rgba(7, 7, 7, 0.18) 38%,
+      rgba(7, 7, 7, 0.42) 52%,
+      rgba(7, 7, 7, 0.7) 66%,
+      rgba(7, 7, 7, 0.92) 82%,
+      #070707 94%,
+      #070707 100%
+    );
+  }
+
+  .cinematic-overlay-left {
+    background-image: linear-gradient(
+      270deg,
+      transparent 0%,
+      rgba(7, 7, 7, 0.04) 22%,
+      rgba(7, 7, 7, 0.18) 38%,
+      rgba(7, 7, 7, 0.42) 52%,
+      rgba(7, 7, 7, 0.7) 66%,
+      rgba(7, 7, 7, 0.92) 82%,
+      #070707 94%,
+      #070707 100%
+    );
+  }
+
+  .cinematic-overlay-bottom {
+    background-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(7, 7, 7, 0.04) 22%,
+      rgba(7, 7, 7, 0.18) 38%,
+      rgba(7, 7, 7, 0.42) 52%,
+      rgba(7, 7, 7, 0.7) 66%,
+      rgba(7, 7, 7, 0.92) 82%,
+      #070707 94%,
+      #070707 100%
+    );
+  }
+
+  .cinematic-vignette {
+    background-image: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.35) 0%,
+      transparent 28%,
+      transparent 72%,
+      rgba(0, 0, 0, 0.45) 100%
+    );
+    pointer-events: none;
+  }
+
+  .editorial-image-section {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-surface-1);
+  }
+
+  /* ── Colour Season campaign spread ──
+     One continuous frame: the photograph is not a panel sitting next to the
+     copy, it is the right-hand end of a single field that starts as pure
+     black under the type and dissolves into teal. Three cooperating layers —
+     grade, dissolve, vignette — keep the model crisp while everything around
+     her sinks into the page ground. */
+  .campaign-ground {
+    background-color: #070707;
+    /* A faint warm lift behind the type only. It must die out well before the
+       photograph's left edge, otherwise the ground and the dissolve's opaque
+       black meet at slightly different values and draw the seam this
+       composition exists to avoid. */
+    background-image: radial-gradient(
+      46% 110% at -4% 50%,
+      rgba(28, 24, 18, 0.85) 0%,
+      rgba(14, 12, 10, 0.4) 45%,
+      transparent 74%
+    );
+  }
+
+  /* Grade, not a dimmer. Blacks deepen and teal enriches, but the exposure
+     on skin is left alone so the subject never goes muddy. */
+  .campaign-photo-grade {
+    filter: brightness(0.94) contrast(1.14) saturate(0.88);
+  }
+
+  /* ── Cinematic campaign spread ──
+     Direction-aware dissolve. The angle is a custom property so both mirror
+     variants share one stop-list and can never drift apart. */
+  .campaign-dissolve {
+    /* Mobile: photograph stacks under the copy, so it dissolves upward. */
+    background-image: linear-gradient(
+      to top,
+      rgba(7, 7, 7, 0.35) 0%,
+      transparent 34%,
+      rgba(7, 7, 7, 0.55) 88%,
+      #070707 100%
+    );
+    pointer-events: none;
+  }
+
+  .campaign-vignette {
+    background-image:
+      radial-gradient(
+        135% 105% at 74% 42%,
+        transparent 34%,
+        rgba(0, 0, 0, 0.22) 68%,
+        rgba(0, 0, 0, 0.52) 100%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.3) 0%,
+        transparent 22%,
+        transparent 76%,
+        rgba(0, 0, 0, 0.38) 100%
+      );
+    pointer-events: none;
+  }
+
+  /* Warm lift behind the type when the copy column sits on the RIGHT. */
+  .campaign-ground-mirror {
+    background-color: #070707;
+    background-image: radial-gradient(
+      46% 110% at 104% 50%,
+      rgba(28, 24, 18, 0.85) 0%,
+      rgba(14, 12, 10, 0.4) 45%,
+      transparent 74%
+    );
+  }
+
+  /* Vignette focal point mirrored so it still falls off away from the subject. */
+  .campaign-vignette-mirror {
+    background-image:
+      radial-gradient(
+        135% 105% at 26% 42%,
+        transparent 34%,
+        rgba(0, 0, 0, 0.22) 68%,
+        rgba(0, 0, 0, 0.52) 100%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.3) 0%,
+        transparent 22%,
+        transparent 76%,
+        rgba(0, 0, 0, 0.38) 100%
+      );
+    pointer-events: none;
+  }
+
+  /* Full-bleed frames: darken the top so the navbar stays legible and resolve
+     the bottom edge into #070707 so the section merges into the one below it. */
+  .campaign-fade-edges {
+    background-image: linear-gradient(
+      180deg,
+      rgba(7, 7, 7, 0.72) 0%,
+      rgba(7, 7, 7, 0.28) 14%,
+      transparent 34%,
+      transparent 58%,
+      rgba(7, 7, 7, 0.55) 82%,
+      rgba(7, 7, 7, 0.92) 95%,
+      #070707 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Horizontal companion for full-bleed frames that carry copy on one side. */
+  .campaign-fade-left {
+    background-image: linear-gradient(
+      90deg,
+      #070707 0%,
+      rgba(7, 7, 7, 0.94) 14%,
+      rgba(7, 7, 7, 0.78) 26%,
+      rgba(7, 7, 7, 0.52) 40%,
+      rgba(7, 7, 7, 0.24) 55%,
+      rgba(7, 7, 7, 0.06) 72%,
+      transparent 88%
+    );
+    pointer-events: none;
+  }
+  .campaign-fade-right {
+    background-image: linear-gradient(
+      270deg,
+      #070707 0%,
+      rgba(7, 7, 7, 0.94) 14%,
+      rgba(7, 7, 7, 0.78) 26%,
+      rgba(7, 7, 7, 0.52) 40%,
+      rgba(7, 7, 7, 0.24) 55%,
+      rgba(7, 7, 7, 0.06) 72%,
+      transparent 88%
+    );
+    pointer-events: none;
+  }
+
+  @media (min-width: 768px) {
+    /* Desktop: the dissolve runs horizontally across the photograph's own
+       box. Its 0% sits well inside the frame and is fully opaque #070707 —
+       identical to the section ground — so there is no edge to find. The
+       long tail (32% → 92%) is what removes the 50/50 seam. */
+    .campaign-dissolve {
+      --dissolve-angle: 90deg; /* photo on the RIGHT, resolves to black leftward */
+      background-image: linear-gradient(
+        var(--dissolve-angle),
+        #070707 0%,
+        #070707 8%,
+        rgba(7, 7, 7, 0.96) 18%,
+        rgba(7, 7, 7, 0.88) 28%,
+        rgba(7, 7, 7, 0.68) 40%,
+        rgba(7, 7, 7, 0.44) 52%,
+        rgba(7, 7, 7, 0.22) 65%,
+        rgba(7, 7, 7, 0.06) 78%,
+        transparent 90%
+      );
+    }
+
+    /* photo on the LEFT, resolves to black rightward — only overrides the
+       variable; always apply together with .campaign-dissolve. */
+    .campaign-dissolve-mirror {
+      --dissolve-angle: 270deg;
+    }
+  }
+
+  /* ── Black-aware scrims: blend into the near-black ground ── */
+  .scrim-left-black {
+    background-image: linear-gradient(
+      to right,
+      rgba(6, 6, 6, 0.95) 0%,
+      rgba(14, 14, 14, 0.82) 28%,
+      rgba(14, 14, 14, 0.35) 58%,
+      transparent 82%
+    );
+  }
+  .scrim-bottom-black {
+    background-image: linear-gradient(
+      to top,
+      rgba(6, 6, 6, 0.96) 0%,
+      rgba(14, 14, 14, 0.65) 35%,
+      rgba(14, 14, 14, 0.15) 65%,
+      transparent 88%
+    );
+  }
+
+  /* Full-bleed escape from a centred container. */
+  .bleed-full {
+    width: 100vw;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    max-width: 100vw;
+  }
+
+  .hairline {
+    border-color: var(--color-gold-hairline);
+  }
+
+  .hairline-inverse {
+    border-color: rgba(240, 230, 208, 0.22);
+  }
+
+  /* ── Container width aliases ── */
+  .max-w-container-editorial { max-width: var(--container-editorial); }
+  .max-w-container-content   { max-width: var(--container-content); }
+  .max-w-container-narrow    { max-width: var(--container-narrow); }
+  .max-w-container-reading   { max-width: var(--container-reading); }
+
+  /* Fluid gutter padding. */
+  .px-gutter { padding-inline: var(--gutter); }
+
+  /* ── Section spacings ── */
+  .py-section-xl { padding-block: clamp(5rem, 10vw, 10rem); }
+  .py-section-lg { padding-block: clamp(4rem, 7vw, 7rem); }
+
+  /* ── Campaign CTA buttons ──
+     Thin outlined editorial buttons; `.btn-campaign-ink` is the light
+     (on-cream) variant. */
+  .btn-campaign {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 2rem;
+    border: 1px solid var(--color-gold-border);
+    background: transparent;
+    font-family: var(--font-ui);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--color-gold-light);
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .btn-campaign:hover {
+    border-color: var(--color-gold-border-hover);
+    background: rgba(201, 168, 76, 0.08);
+  }
+
+  .btn-campaign-ink {
+    border-color: var(--color-gold-border);
+    color: var(--color-gold-primary);
+  }
+
+  .btn-campaign-ink:hover {
+    border-color: var(--color-gold-border-hover);
+    background: rgba(201, 168, 76, 0.06);
+  }
+
+  /* ── Black campaign textures ── */
+  .bg-emerald-wall {
+    background-color: var(--color-surface-1);
+    background-image: linear-gradient(to bottom, rgba(26, 26, 26, 0.45), rgba(10, 10, 10, 0.96)), url('/images/emerald_wall_shadows.png');
+    background-size: cover;
+    background-position: center;
+  }
+  .bg-leaf-shadows {
+    position: absolute;
+    inset: 0;
+    background-image: url('/images/emerald_wall_shadows.png');
+    background-size: cover;
+    background-position: center;
+    mix-blend-mode: multiply;
+    opacity: 0.22;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ── GPU compositing — use on elements that animate ── */
+  .gpu {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* ── Contain paint to avoid layout recalculation on repaint ── */
+  .contain-paint {
+    contain: paint;
+  }
+  .contain-layout {
+    contain: layout;
+  }
+  .contain-strict {
+    contain: strict;
+  }
+
+  /* ── GPU-friendly animation helpers ── */
+  .animate-gold-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--color-gold-primary) 0%,
+      var(--color-gold-light) 40%,
+      var(--color-gold-primary) 60%,
+      var(--color-gold-dark) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gold-shimmer 4s linear infinite;
+  }
+
+  .animate-float {
+    animation: float-up 4s ease-in-out infinite;
+  }
+
+  .animate-pulse-gold {
+    animation: pulse-gold 2.5s ease-in-out infinite;
+  }
+
+  .animate-reveal-up {
+    animation: reveal-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }
 
@@ -237,6 +819,40 @@
   100% {
     background-position: 200% 0;
   }
+}
+
+@keyframes gold-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes float-up {
+  0%   { transform: translateY(0px); opacity: 0.6; }
+  50%  { transform: translateY(-12px); opacity: 1; }
+  100% { transform: translateY(0px); opacity: 0.6; }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0); }
+  50%       { box-shadow: 0 0 0 8px rgba(201, 168, 76, 0.12); }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    clip-path: inset(0 0 100% 0);
+  }
+  to   {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0% 0);
+  }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -256,18 +872,18 @@
 }
 
 [data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
-  background: var(--color-cream-dark);
-  border: 1px solid var(--color-gold-primary);
-  color: var(--color-espresso);
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-gold-border);
+  color: var(--color-cream-primary);
   font-family: var(--font-ui);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
 }
 
 [data-sonner-toaster] [data-sonner-toast][data-styled='true'][data-type='error'] {
-  background: var(--color-white);
+  background: var(--color-surface-4);
   border-color: var(--color-error);
-  color: var(--color-espresso);
+  color: var(--color-cream-primary);
 }
 
 [data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-icon] {
@@ -305,6 +921,12 @@
     --color-cream-dark: #ffffff;
     --color-white: #ffffff;
     --color-error: #000000;
+    --color-ivory: #ffffff;
+    --color-bone: #ffffff;
+    --color-stone: #ffffff;
+    --color-taupe: #333333;
+    --color-ink: #000000;
+    --color-ink-soft: #000000;
   }
 
   [style*='background-color'] {

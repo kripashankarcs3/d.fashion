@@ -11,11 +11,12 @@ export interface StatusBadgeProps extends BadgeProps {
 }
 
 const statusDotColors: Record<StatusTone, string> = {
-  gold: 'bg-gold-dark',
-  neutral: 'bg-espresso-muted',
-  success: 'bg-gold-dark',
+  gold: 'bg-gold-primary',
+  neutral: 'bg-gold-primary/40',
+  success: 'bg-gold-primary',
   error: 'bg-error',
-  outline: 'bg-espresso-muted',
+  outline: 'bg-gold-primary/40',
+  inverse: 'bg-gold-primary',
 };
 
 function StatusBadge({
