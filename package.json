@@ -13,9 +13,9 @@
     "preview": "vite preview",
     "start": "npm run build && npm run start:server",
     "start:server": "cd server && npm start",
-    "typecheck": "tsc --noEmit && cd server && npx tsc --noEmit",
+    "typecheck": "npm run typecheck:client && npm run typecheck:server",
     "typecheck:client": "tsc --noEmit",
-    "typecheck:server": "cd server && npx tsc --noEmit",
+    "typecheck:server": "npm --prefix server run typecheck",
     "test:e2e": "node e2e/smoke.js && node e2e/flow.js"
   },
   "dependencies": {

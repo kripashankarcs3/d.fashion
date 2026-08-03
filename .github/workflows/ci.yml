@@ -16,7 +16,16 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          # This job installs both workspaces, so key the cache on both locks.
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
       - run: npm ci
+      # `npm run typecheck` and `npm run build` both reach into server/, so its
+      # dependencies must be installed here too — without this the server
+      # typecheck resolves nothing and reports every import as missing.
+      - run: npm ci
+        working-directory: server
       - run: npm run typecheck
       - run: npm run build
 
