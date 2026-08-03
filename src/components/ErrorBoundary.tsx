@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'wouter';
+import { ROUTES } from '@/config/navigation';
 
 interface Props { children: React.ReactNode; pageName?: string; }
 interface State { hasError: boolean; }
@@ -26,7 +27,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             {this.props.pageName ?? 'This page'} encountered an unexpected error. Please try again.
           </p>
           <Link
-            href="/"
+            href={ROUTES.home}
             className="inline-flex min-h-11 min-w-[var(--size-cta-min-width)] items-center justify-center rounded-md bg-primary px-10 py-3.5 text-nav font-semibold tracking-button text-primary-foreground transition-all duration-200 ease-out hover:bg-gold-light hover:shadow-cta-hover active:scale-[0.98]"
           >
             Go Home

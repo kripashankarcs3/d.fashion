@@ -69,6 +69,29 @@ const analysis = {
   const hasReply = chatText.includes('wedding') || chatText.includes('Warm Autumn') || chatText.includes('palette') || chatText.includes('shade');
   console.log('CHAT-REPLY received:', hasReply);
 
+  // 3. GuestOnly bounce — an authenticated visitor never sees /login; they land
+  //    on AUTHENTICATED_HOME (/dashboard) when no ?redirect= is carried.
+  let guestOnlyBounced = false;
+  try {
+    await page.goto(TARGET_URL + '/login', { waitUntil: 'networkidle' });
+    await page.waitForURL((url) => url.pathname !== '/login', { timeout: 15000 });
+    guestOnlyBounced = new URL(page.url()).pathname === '/dashboard';
+  } catch {
+    guestOnlyBounced = false;
+  }
+  console.log('GUESTONLY-BOUNCE: /login -> /dashboard:', guestOnlyBounced);
+
+  // 4. Legacy /tryon alias resolves to /try-on when authenticated.
+  let tryonAliased = false;
+  try {
+    await page.goto(TARGET_URL + '/tryon', { waitUntil: 'networkidle' });
+    await page.waitForURL((url) => url.pathname === '/try-on', { timeout: 15000 });
+    tryonAliased = new URL(page.url()).pathname === '/try-on';
+  } catch {
+    tryonAliased = false;
+  }
+  console.log('TRYON-ALIAS: /tryon -> /try-on:', tryonAliased);
+
   console.log('ERRORS:', errors.length, errors.slice(0, 5).join(' | '));
   await browser.close();
 })();

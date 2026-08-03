@@ -5,6 +5,7 @@ import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import Reveal from '@/components/editorial/Reveal';
 import { CAMPAIGN } from '@/lib/editorial-images';
+import { ROUTES } from '@/config/navigation';
 
 const steps = [
   {
@@ -44,7 +45,7 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="scroll-mt-16 relative overflow-hidden bg-surface-2 py-section-xl"
+      className="scroll-mt-[70px] relative overflow-hidden bg-surface-2 py-section-xl"
     >
       {/* Ambient glow */}
       <div
@@ -82,7 +83,7 @@ export default function HowItWorks() {
                 From selfie to full style profile — no appointments, no guesswork, no subscription required to start.
               </p>
               <Link
-                href="/upload"
+                href={ROUTES.upload}
                 className="eyebrow inline-flex items-center gap-3 text-gold-primary transition-colors duration-200 hover:text-gold-light"
               >
                 <span className="h-px w-6 bg-gold-primary" aria-hidden />

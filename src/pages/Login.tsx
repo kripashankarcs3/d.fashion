@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useLocation, useSearch } from 'wouter';
 import { success } from '@/lib/toast';
@@ -12,6 +12,7 @@ import EditorialImage from '@/components/editorial/EditorialImage';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import { CAMPAIGN } from '@/lib/editorial-images';
+import { AUTHENTICATED_HOME, ROUTES } from '@/config/navigation';
 import { login } from '@/services/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { isAxiosError } from '@/lib/utils';
@@ -34,14 +35,13 @@ function FieldError({ id, children }: { id: string; children: React.ReactNode })
 export default function Login() {
   const [, navigate] = useLocation();
   const search = useSearch();
-  const redirectTo = new URLSearchParams(search).get('redirect') || '/';
+  const redirectTo =
+    new URLSearchParams(search).get('redirect') || AUTHENTICATED_HOME;
   const setSession = useAuthStore((s) => s.setSession);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-
-  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const mutation = useMutation({
     mutationFn: () => login(email.trim(), password),
@@ -176,7 +176,7 @@ export default function Login() {
           </form>
 
           <div className="mt-8 border-t border-gold-hairline pt-6 text-center text-body-sm text-cream-primary/80">
-            <AuthFooterLink href="/signup" label="Create an account">
+            <AuthFooterLink href={ROUTES.signup} label="Create an account">
               New to D'Fashion?
             </AuthFooterLink>
           </div>

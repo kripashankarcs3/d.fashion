@@ -4,13 +4,10 @@ import { Link } from 'wouter';
 import { CAMPAIGN } from '@/lib/editorial-images';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
+import HashLink from '@/components/nav/HashLink';
+import { ROUTES } from '@/config/navigation';
 
 const easeEditorial = [0.22, 1, 0.36, 1] as const;
-
-const scrollToHowItWorks = (event: React.MouseEvent<HTMLAnchorElement>) => {
-  event.preventDefault();
-  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
-};
 
 const STATS = [
   { value: '4 Seasons', sub: 'colour profiles' },
@@ -134,16 +131,16 @@ export default function Hero() {
             transition={{ duration: 0.5, ease: easeEditorial, delay: 0.75 }}
             className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center"
           >
-            <Link href="/upload" className="btn-campaign">
+            <Link href={ROUTES.upload} className="btn-campaign">
               Analyse My Colours →
             </Link>
-            <a
-              href="#how-it-works"
-              onClick={scrollToHowItWorks}
+            <HashLink
+              href={ROUTES.home}
+              hash="how-it-works"
               className="eyebrow text-gold-muted transition-colors hover:text-gold-soft"
             >
               See how it works
-            </a>
+            </HashLink>
           </motion.div>
 
           {/* Stat row — bottom-anchored, staggered */}

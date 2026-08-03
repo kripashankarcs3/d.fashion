@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStyleStore } from '@/store/useStyleStore';
 import { getSeasonInfo } from '@/lib/colour-data';
+import { ROUTES } from '@/config/navigation';
 
 export function ResumeAnalysisBanner() {
   const analysisResult = useStyleStore((s) => s.analysisResult);
@@ -35,7 +36,7 @@ export function ResumeAnalysisBanner() {
               </p>
             </div>
           </div>
-          <Link href="/report" className="shrink-0">
+          <Link href={ROUTES.report} className="shrink-0">
             <Button size="lg">
               Resume My Analysis
               <ArrowRight aria-hidden="true" />

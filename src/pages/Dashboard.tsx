@@ -7,6 +7,7 @@ import { ArrowRight, MessageSquare, Shirt, Sparkles, Upload } from 'lucide-react
 import { Button } from '@/components/ui/button';
 import { ColorSwatch } from '@/components/ui/color-swatch';
 import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
+import { ROUTES } from '@/config/navigation';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EditorialHeading from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
@@ -65,10 +66,6 @@ function compareSummary(current: AnalysisResult, previous: AnalysisResult) {
 }
 
 export default function Dashboard() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   const analysisResult = useStyleStore((s) => s.analysisResult);
   const analysisHistory = useStyleStore((s) => s.analysisHistory);
   const savedReports = useStyleStore((s) => s.savedReports);
@@ -182,7 +179,7 @@ export default function Dashboard() {
               <div className="flex items-end justify-between gap-4">
                 <SectionHeading label="Wardrobe" title="Saved Looks" />
                 <Link
-                  href="/try-on"
+                  href={ROUTES.tryOn}
                   className="inline-flex min-h-11 items-center gap-2 text-nav text-cream-primary/80 transition-colors duration-200 ease-out hover:text-cream-primary hover:underline"
                 >
                   Try on new looks
@@ -199,7 +196,7 @@ export default function Dashboard() {
                     When you try on an outfit, save it here to build your
                     personal wardrobe archive.
                   </p>
-                  <Link href="/try-on" className="mt-6 inline-block">
+                  <Link href={ROUTES.tryOn} className="mt-6 inline-block">
                     <Button variant="secondary" size="lg">
                       Explore Virtual Try-On
                     </Button>

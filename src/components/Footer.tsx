@@ -4,22 +4,26 @@ import { success } from '@/lib/toast';
 import { Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
+import HashLink from '@/components/nav/HashLink';
+import {
+  FOOTER_ACCOUNT_AUTHED,
+  FOOTER_ACCOUNT_GUEST,
+  FOOTER_PRODUCT,
+  ROUTES,
+} from '@/config/navigation';
+import { useAuthStore } from '@/store/useAuthStore';
 
-const productLinks = [
-  { href: '/try-on', label: 'Virtual Try-On' },
-  { href: '/report', label: 'Style Report' },
-  { href: '/chat', label: 'Stylist' },
-  { href: '/pricing', label: 'Pricing' },
-];
-
-const companyLinks = [
-  { href: '/', label: 'About' },
-  { href: '/upload', label: 'Upload a Selfie' },
-  { href: '/dashboard', label: 'Dashboard' },
-];
+const linkClassName =
+  'inline-flex min-h-11 items-center text-body-sm text-gold-soft transition-colors duration-200 ease-out hover:text-gold-primary';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  /* Guests are never pointed at a gated page from the footer. */
+  const accountLinks = isAuthenticated
+    ? FOOTER_ACCOUNT_AUTHED
+    : FOOTER_ACCOUNT_GUEST;
 
   const handleSubscribe = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -33,7 +37,11 @@ export default function Footer() {
       <EditorialContainer>
         <div className="grid grid-cols-1 gap-12 pt-20 md:grid-cols-[2fr_1fr_1fr_1fr] md:gap-12">
           <div>
-            <Link href="/" className="inline-flex items-center gap-3" aria-label="D'Fashion — home">
+            <Link
+              href={ROUTES.home}
+              className="inline-flex items-center gap-3"
+              aria-label="D'Fashion — home"
+            >
               <span className="whitespace-nowrap font-editorial text-wordmark leading-none font-medium text-gold-primary">
                 D&rsquo;Fashion
               </span>
@@ -51,30 +59,34 @@ export default function Footer() {
               Product
             </h2>
             <ul className="mt-6 space-y-2">
-              {productLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="inline-flex min-h-11 items-center text-body-sm text-gold-soft transition-colors duration-200 ease-out hover:text-gold-primary"
-                  >
-                    {link.label}
-                  </Link>
+              {FOOTER_PRODUCT.map((link) => (
+                <li key={link.label}>
+                  {link.hash ? (
+                    <HashLink
+                      href={link.href}
+                      hash={link.hash}
+                      className={linkClassName}
+                    >
+                      {link.label}
+                    </HashLink>
+                  ) : (
+                    <Link href={link.href} className={linkClassName}>
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
           </nav>
 
-          <nav aria-label="Company">
+          <nav aria-label="Account">
             <h2 className="text-footer-label font-semibold uppercase tracking-label text-gold-primary">
-              Company
+              Account
             </h2>
             <ul className="mt-6 space-y-2">
-              {companyLinks.map((link) => (
+              {accountLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="inline-flex min-h-11 items-center text-body-sm text-gold-soft transition-colors duration-200 ease-out hover:text-gold-primary"
-                  >
+                  <Link href={link.href} className={linkClassName}>
                     {link.label}
                   </Link>
                 </li>

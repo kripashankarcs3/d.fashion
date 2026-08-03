@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useLocation, useSearch } from 'wouter';
 import { success } from '@/lib/toast';
@@ -12,6 +12,7 @@ import EditorialImage from '@/components/editorial/EditorialImage';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import { CAMPAIGN } from '@/lib/editorial-images';
+import { AUTHENTICATED_HOME, ROUTES } from '@/config/navigation';
 import { register } from '@/services/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { isAxiosError } from '@/lib/utils';
@@ -36,7 +37,8 @@ export default function Signup() {
   const [, navigate] = useLocation();
   const search = useSearch();
   const plan = new URLSearchParams(search).get('plan');
-  const redirectTo = new URLSearchParams(search).get('redirect') || '/';
+  const redirectTo =
+    new URLSearchParams(search).get('redirect') || AUTHENTICATED_HOME;
 
   const setSession = useAuthStore((s) => s.setSession);
   const [name, setName] = useState('');
@@ -44,8 +46,6 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-
-  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const mutation = useMutation({
     mutationFn: () => register(name.trim(), email.trim(), password),
@@ -206,7 +206,7 @@ export default function Signup() {
           </form>
 
           <div className="mt-8 border-t border-gold-hairline pt-6 text-center text-body-sm text-cream-primary/80">
-            <AuthFooterLink href="/login" label="Sign in">
+            <AuthFooterLink href={ROUTES.login} label="Sign in">
               Already have an account?
             </AuthFooterLink>
           </div>

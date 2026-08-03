@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { useStyleStore } from '@/store/useStyleStore';
+import { ROUTES } from '@/config/navigation';
 
 export default function NotFound() {
   const analysisResult = useStyleStore((s) => s.analysisResult);
@@ -36,11 +37,11 @@ export default function NotFound() {
         )}
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link href="/">
+          <Link href={ROUTES.home}>
             <Button size="lg">Return Home</Button>
           </Link>
           {analysisResult && (
-            <Link href="/report">
+            <Link href={ROUTES.report}>
               <Button variant="secondary" size="lg">
                 View Your Report
               </Button>

@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import CampaignSection from '@/components/editorial/CampaignSection';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import { CAMPAIGN } from '@/lib/editorial-images';
+import { ROUTES } from '@/config/navigation';
 
 const easeOut = [0, 0, 0.2, 1] as const;
 
@@ -54,7 +55,7 @@ export default function FinalCTA() {
           No credit card. Results in under 60 seconds.
         </p>
 
-        <Link href="/upload" className="btn-campaign mt-10">
+        <Link href={ROUTES.upload} className="btn-campaign mt-10">
           Start for Free →
         </Link>
       </motion.div>
