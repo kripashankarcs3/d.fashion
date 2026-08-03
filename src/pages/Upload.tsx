@@ -1,21 +1,31 @@
 import { useEffect } from 'react';
+import EditorialContainer from '@/components/editorial/EditorialContainer';
+import PageMasthead from '@/components/editorial/PageMasthead';
+import { Emphasis } from '@/components/editorial/EditorialHeading';
 import UploadFlow from '@/components/UploadFlow';
 
 export default function Upload() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
-    <section className="w-full pt-30 pb-24">
-      <div className="mx-auto w-full max-w-[var(--container-narrow)] px-5 md:px-8">
-        <h1 className="text-center font-serif text-h2 text-espresso">
-          Upload your photo to begin.
-        </h1>
-        <p className="mt-6 text-center text-body text-espresso-light">
-          Secure. Private. Deleted after analysis.
-        </p>
+    <section className="w-full min-h-screen bg-surface-1 pt-28 pb-24">
+      <EditorialContainer width="narrow">
+        {/* Masthead */}
+        <PageMasthead
+          label="Upload"
+          title={
+            <>
+              Upload your photo <Emphasis>to begin.</Emphasis>
+            </>
+          }
+          lede="Secure. Private. Your photo is deleted after analysis."
+        />
 
-        <UploadFlow />
-      </div>
+        {/* UploadFlow — unchanged functionality */}
+        <div className="mt-14">
+          <UploadFlow />
+        </div>
+      </EditorialContainer>
     </section>
   );
 }

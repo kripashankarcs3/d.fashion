@@ -21,7 +21,7 @@ export default function BackToTop() {
           type="button"
           aria-label="Back to top"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 z-[var(--z-navbar)] flex h-10 w-10 items-center justify-center rounded-full bg-gold-primary text-white shadow-[var(--shadow-gold-glow)] transition-transform duration-200 ease-out hover:scale-105 hover:shadow-[var(--shadow-cta-hover)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-primary focus-visible:ring-offset-2 focus-visible:ring-offset-cream-primary"
+          className="fixed bottom-6 right-6 z-[var(--z-navbar)] flex h-10 w-10 items-center justify-center rounded-full bg-gold-primary text-surface-0 shadow-[var(--shadow-gold-glow)] will-change-transform transition-transform duration-200 ease-out hover:scale-105 hover:shadow-[var(--shadow-cta-hover)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}

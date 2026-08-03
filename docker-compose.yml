@@ -2,6 +2,8 @@ services:
   mongo:
     image: mongo:7
     restart: unless-stopped
+    ports:
+      - "27017:27017"
     volumes:
       - mongo-data:/data/db
 
@@ -17,7 +19,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
       MONGODB_URI: mongodb://mongo:27017/deestyle
       YOUCAM_API_KEY: ${YOUCAM_API_KEY}
-      YOUCAM_API_SECRET: ${YOUCAM_API_SECRET}
+      YOUCAM_API_SECRET: ${YOUCAM_API_SECRET:-}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:-}
     depends_on:
       - mongo
 

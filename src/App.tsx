@@ -5,6 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
 import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import AppShell from '@/components/AppShell';
+import RequireAuth from '@/components/RequireAuth';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 import Home from '@/pages/Home';
@@ -53,51 +54,54 @@ function Router() {
   }, [location]);
 
   return (
-    <AppShell>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={location}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.2, ease: 'easeOut' } }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-        >
-          <Suspense fallback={<PageFallback />}>
-            <Switch>
-              <Route path="/" component={Home} />
-              <Route path="/upload">
-                <ErrorBoundary pageName="Upload"><Upload /></ErrorBoundary>
-              </Route>
-              <Route path="/report">
-                <ErrorBoundary pageName="Report"><Report /></ErrorBoundary>
-              </Route>
-              <Route path="/try-on">
-                <ErrorBoundary pageName="Try-On"><TryOn /></ErrorBoundary>
-              </Route>
-              <Route path="/tryon">
-                <ErrorBoundary pageName="Try-On"><TryOn /></ErrorBoundary>
-              </Route>
-              <Route path="/chat">
-                <ErrorBoundary pageName="D'Style"><Chat /></ErrorBoundary>
-              </Route>
-              <Route path="/dashboard">
-                <ErrorBoundary pageName="Dashboard"><Dashboard /></ErrorBoundary>
-              </Route>
-              <Route path="/pricing">
-                <ErrorBoundary pageName="Pricing"><Pricing /></ErrorBoundary>
-              </Route>
-              <Route path="/login">
-                <ErrorBoundary pageName="Sign in"><Login /></ErrorBoundary>
-              </Route>
-              <Route path="/signup">
-                <ErrorBoundary pageName="Sign up"><Signup /></ErrorBoundary>
-              </Route>
-              <Route component={NotFound} />
-            </Switch>
-          </Suspense>
-        </motion.div>
-      </AnimatePresence>
-    </AppShell>
+    <RequireAuth fallback={<PageFallback />}>
+      <AppShell>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8, transition: { duration: 0.18, ease: 'easeIn' } }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="will-change-transform"
+          >
+            <Suspense fallback={<PageFallback />}>
+              <Switch>
+                <Route path="/" component={Home} />
+                <Route path="/upload">
+                  <ErrorBoundary pageName="Upload"><Upload /></ErrorBoundary>
+                </Route>
+                <Route path="/report">
+                  <ErrorBoundary pageName="Report"><Report /></ErrorBoundary>
+                </Route>
+                <Route path="/try-on">
+                  <ErrorBoundary pageName="Try-On"><TryOn /></ErrorBoundary>
+                </Route>
+                <Route path="/tryon">
+                  <ErrorBoundary pageName="Try-On"><TryOn /></ErrorBoundary>
+                </Route>
+                <Route path="/chat">
+                  <ErrorBoundary pageName="D'Style"><Chat /></ErrorBoundary>
+                </Route>
+                <Route path="/dashboard">
+                  <ErrorBoundary pageName="Dashboard"><Dashboard /></ErrorBoundary>
+                </Route>
+                <Route path="/pricing">
+                  <ErrorBoundary pageName="Pricing"><Pricing /></ErrorBoundary>
+                </Route>
+                <Route path="/login">
+                  <ErrorBoundary pageName="Sign in"><Login /></ErrorBoundary>
+                </Route>
+                <Route path="/signup">
+                  <ErrorBoundary pageName="Sign up"><Signup /></ErrorBoundary>
+                </Route>
+                <Route component={NotFound} />
+              </Switch>
+            </Suspense>
+          </motion.div>
+        </AnimatePresence>
+      </AppShell>
+    </RequireAuth>
   );
 }
 

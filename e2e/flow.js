@@ -44,8 +44,8 @@ const analysis = {
   await page.fill('#email', EMAIL);
   await page.fill('#password', 'password123');
   await page.click('button[type="submit"]');
-  await page.waitForURL('**/dashboard', { timeout: 15000 });
-  console.log('SIGNUP-REDIRECT: dashboard reached, title=', await page.title());
+  await page.waitForURL((url) => !url.pathname.includes('/login') && !url.pathname.includes('/signup'), { timeout: 15000 });
+  console.log('SIGNUP-REDIRECT: authenticated, url=', page.url(), 'title=', await page.title());
 
   // 2. Stylist chat (input is disabled without an analysis, so seed a report)
   await page.goto(TARGET_URL + '/chat', { waitUntil: 'networkidle' });

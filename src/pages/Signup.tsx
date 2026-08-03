@@ -6,7 +6,12 @@ import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AuthCard, { AuthFooterLink } from '@/components/AuthCard';
+import { AuthFooterLink } from '@/components/AuthCard';
+import GoogleSignInButton from '@/components/GoogleSignInButton';
+import EditorialImage from '@/components/editorial/EditorialImage';
+import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
+import EyebrowLabel from '@/components/editorial/EyebrowLabel';
+import { CAMPAIGN } from '@/lib/editorial-images';
 import { register } from '@/services/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { isAxiosError } from '@/lib/utils';
@@ -31,6 +36,7 @@ export default function Signup() {
   const [, navigate] = useLocation();
   const search = useSearch();
   const plan = new URLSearchParams(search).get('plan');
+  const redirectTo = new URLSearchParams(search).get('redirect') || '/';
 
   const setSession = useAuthStore((s) => s.setSession);
   const [name, setName] = useState('');
@@ -47,12 +53,14 @@ export default function Signup() {
       const { token, user } = response.data;
       setSession(token, user);
       success(`Welcome to D'Fashion, ${user.name.split(' ')[0]}`);
-      navigate('/dashboard');
+      navigate(redirectTo);
     },
     onError: (err) => {
       const message = isAxiosError(err)
         ? (err.response?.data as { message?: string })?.message
-        : undefined;
+        : err instanceof Error
+          ? err.message
+          : undefined;
       setError(message ?? 'Unable to create your account. Please try again.');
     },
   });
@@ -76,19 +84,43 @@ export default function Signup() {
   };
 
   return (
-    <section className="w-full pt-30 pb-24">
-      <div className="mx-auto w-full max-w-[var(--container-narrow)] px-5 md:px-8">
-        <AuthCard
-          title="Create your account."
-          subtitle="Your analysis, palette, and saved reports will follow you wherever you sign in."
-          footer={
-            <AuthFooterLink href="/login" label="Sign in">
-              Already have an account?
-            </AuthFooterLink>
-          }
-        >
+    <div className="grid min-h-screen grid-cols-1 bg-[#070707] lg:grid-cols-2">
+      {/* LEFT: editorial campaign image — runs under the form's left edge so
+          the dissolve resolves there instead of at the grid line */}
+      <div className="relative hidden lg:block">
+        <EditorialImage
+          src={CAMPAIGN.opening.src}
+          alt={CAMPAIGN.opening.alt}
+          ratio="fill"
+          scrim="right"
+          position="center 30%"
+          priority
+          cinematicIntensity={1}
+          className="absolute inset-y-0 left-0 w-full lg:right-auto lg:w-[calc(100%+6rem)]"
+        />
+        <div className="absolute inset-0 flex flex-col justify-end p-12">
+          <EyebrowLabel tone="inverse">D&rsquo;Fashion</EyebrowLabel>
+          <EditorialHeading size="lg" tone="inverse" className="mt-4 max-w-[14ch]">
+            Colour Intelligence, <Emphasis>Personalised.</Emphasis>
+          </EditorialHeading>
+        </div>
+      </div>
+
+      {/* RIGHT: form — clean, minimal. Same ground as the dissolve endpoint. */}
+      <div className="relative z-10 flex items-center justify-center bg-[#070707] p-8 lg:p-16">
+        <div className="w-full max-w-md">
+          <EyebrowLabel tone="muted" className="mb-6">
+            Create Account
+          </EyebrowLabel>
+          <EditorialHeading as="h1" size="md">
+            Create your account.
+          </EditorialHeading>
+          <p className="mt-3 text-body text-cream-primary/80">
+            Your analysis, saved looks, and colour report will always stay with you.
+          </p>
+
           {plan && (
-            <p className="flex items-center gap-2 rounded-md border border-gold-primary/30 bg-gold-primary/10 px-4 py-3 text-[length:var(--text-body-sm)] text-espresso">
+            <p className="mt-8 flex items-center gap-2 rounded-sm border border-gold-primary/40 bg-gold-primary/10 px-4 py-3 text-[length:var(--text-body-sm)] text-cream-primary">
               <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold-primary" />
               You&rsquo;re choosing the{' '}
               <span className="font-semibold">{plan}</span> plan.
@@ -98,12 +130,32 @@ export default function Signup() {
           {error && (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-md border border-error/30 bg-error/5 px-4 py-3 text-body-sm text-error"
+              className="mt-8 flex items-start gap-2 rounded-sm border border-error/30 bg-error/5 px-4 py-3 text-body-sm text-error"
             >
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>{error}</span>
             </div>
           )}
+
+          <div className="mt-10">
+            <GoogleSignInButton
+              label="Sign up with Google"
+              onSuccess={() => {
+                success("Welcome to D'Fashion!");
+                navigate(redirectTo);
+              }}
+              onError={(message) => setError(message)}
+            />
+          </div>
+
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-gold-hairline" />
+            </div>
+            <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em] text-cream-primary/50">
+              <span className="bg-[#070707] px-3 font-medium">or continue with email</span>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <div>
@@ -152,8 +204,14 @@ export default function Signup() {
               Create account
             </Button>
           </form>
-        </AuthCard>
+
+          <div className="mt-8 border-t border-gold-hairline pt-6 text-center text-body-sm text-cream-primary/80">
+            <AuthFooterLink href="/login" label="Sign in">
+              Already have an account?
+            </AuthFooterLink>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

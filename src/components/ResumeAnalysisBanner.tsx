@@ -17,19 +17,19 @@ export function ResumeAnalysisBanner() {
   return (
     <div className="w-full">
       <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
-        <div className="flex flex-col items-start justify-between gap-6 rounded-lg border border-gold-primary bg-white p-6 shadow-card sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start justify-between gap-6 rounded-lg border border-gold-primary/40 bg-surface-3 p-6 shadow-card sm:flex-row sm:items-center">
           <div className="flex items-start gap-4">
             <span
               aria-hidden="true"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-cream-dark text-gold-primary"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-surface-4 text-gold-primary"
             >
               <Sparkles className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-[length:var(--text-body-sm)] font-medium text-espresso">
+              <p className="text-[length:var(--text-body-sm)] font-medium text-cream-primary">
                 Welcome back — your {season} analysis is saved.
               </p>
-              <p className="mt-1 text-[length:var(--text-caption)] text-espresso-muted">
+              <p className="mt-1 text-[length:var(--text-caption)] text-cream-primary/55">
                 Pick up where you left off: your palette, report, and saved looks
                 are waiting.
               </p>

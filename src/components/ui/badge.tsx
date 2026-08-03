@@ -4,18 +4,19 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 const badgeVariants = cva(
   [
-    'inline-flex items-center whitespace-nowrap rounded-md border px-2.5 py-1',
-    'text-[length:var(--text-caption)] font-semibold leading-none',
+    'inline-flex items-center whitespace-nowrap rounded-none border px-2.5 py-1.5',
+    'eyebrow-micro',
     'transition-colors duration-[var(--duration-fast)] ease-out',
   ].join(' '),
   {
     variants: {
       variant: {
-        gold: 'border-transparent bg-gold-primary text-espresso',
-        neutral: 'border-transparent bg-cream-dark text-espresso-light',
-        success: 'border-gold-primary bg-cream-dark text-espresso',
-        error: 'border-error bg-white text-espresso',
-        outline: 'border-gold-primary bg-transparent text-espresso',
+        gold: 'border-gold-border bg-gold-primary/15 text-gold-primary',
+        neutral: 'border-transparent bg-surface-4 text-cream-primary/80',
+        success: 'border-gold-primary/40 bg-transparent text-gold-light',
+        error: 'border-error bg-transparent text-error',
+        outline: 'border-gold-border bg-transparent text-cream-primary',
+        inverse: 'border-gold-border bg-transparent text-cream-primary',
       },
     },
     defaultVariants: {

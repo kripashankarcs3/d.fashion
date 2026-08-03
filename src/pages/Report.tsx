@@ -17,6 +17,11 @@ import {
   type ColorSwatchItem,
 } from '@/components/ui/color-swatch';
 import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
+import EditorialContainer from '@/components/editorial/EditorialContainer';
+import EditorialHeading from '@/components/editorial/EditorialHeading';
+import EyebrowLabel from '@/components/editorial/EyebrowLabel';
+import CampaignSection from '@/components/editorial/CampaignSection';
+import { CAMPAIGN } from '@/lib/editorial-images';
 import { useStyleStore } from '@/store/useStyleStore';
 import {
   getSeasonInfo,
@@ -51,15 +56,13 @@ interface SectionProps {
 
 function Section({ label, title, children }: SectionProps) {
   return (
-    <Card variant="report" className="p-8">
-      <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
-        {label}
-      </p>
-      <h2 className="mt-2 font-serif text-[length:var(--text-h4)] text-espresso">
+    <section className="border-t border-gold-hairline pt-8">
+      <EyebrowLabel tone="gold">{label}</EyebrowLabel>
+      <EditorialHeading as="h2" size="sm" className="mt-3">
         {title}
-      </h2>
+      </EditorialHeading>
       <div className="mt-6">{children}</div>
-    </Card>
+    </section>
   );
 }
 
@@ -84,17 +87,17 @@ function AvoidSwatch({ colour }: { colour: ColourItem }) {
         >
           <span
             aria-hidden="true"
-            className="block h-20 w-20 rounded-md shadow-[var(--shadow-swatch)] transition-[transform,box-shadow] duration-[var(--duration-fast)] ease-out group-hover:scale-[1.03] group-hover:shadow-[var(--shadow-swatch-hover)] group-focus-visible:scale-[1.03] group-focus-visible:shadow-[var(--shadow-swatch-hover)]"
+            className="block h-20 w-20 rounded-md shadow-[var(--shadow-swatch)] transition-[transform,box-shadow] duration-[var(--duration-fast)] ease-out group-hover:scale-[1.03] group-hover:shadow-[var(--shadow-swatch-hover)] group-focus-visible:scale-[1.03] group-focus-visible:shadow-[var(--shadow-swatch-hover)] will-change-transform"
             style={{
               backgroundColor: colour.hex,
               backgroundImage:
                 'linear-gradient(to top right, transparent calc(50% - 1px), rgba(192,57,43,0.75) calc(50% - 1px), rgba(192,57,43,0.75) calc(50% + 1px), transparent calc(50% + 1px))',
             }}
           />
-          <span className="text-[length:var(--text-caption)] text-espresso-muted">
+          <span className="text-[length:var(--text-caption)] text-cream-primary/55">
             {colour.name}
           </span>
-          <span className="text-[length:var(--text-micro)] tabular-nums text-espresso-muted/70">
+          <span className="text-[length:var(--text-micro)] tabular-nums text-cream-primary/40">
             {colour.hex}
           </span>
         </button>
@@ -103,9 +106,9 @@ function AvoidSwatch({ colour }: { colour: ColourItem }) {
         className="flex flex-col gap-0.5 text-[length:var(--text-label)]"
         side="top"
       >
-        <span className="font-medium text-espresso">{colour.name}</span>
-        <span className="text-espresso-muted">{colour.hex}</span>
-        <span className="text-espresso-muted">Avoid — keep away from your face</span>
+        <span className="font-medium text-cream-primary">{colour.name}</span>
+        <span className="text-cream-primary/55">{colour.hex}</span>
+        <span className="text-cream-primary/55">Avoid — keep away from your face</span>
       </TooltipContent>
     </Tooltip>
   );
@@ -114,7 +117,7 @@ function AvoidSwatch({ colour }: { colour: ColourItem }) {
 function Trait({ label, value, swatch }: { label: string; value: string; swatch?: string }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="text-[length:var(--text-caption)] font-medium uppercase tracking-[var(--tracking-label)] text-espresso-muted">
+      <span className="text-[length:var(--text-caption)] font-medium uppercase tracking-[var(--tracking-label)] text-cream-primary/55">
         {label}
       </span>
       <span className="flex items-center gap-2">
@@ -125,7 +128,7 @@ function Trait({ label, value, swatch }: { label: string; value: string; swatch?
             style={{ backgroundColor: swatch }}
           />
         )}
-        <span className="text-[length:var(--text-body-sm)] capitalize text-espresso">
+        <span className="text-[length:var(--text-body-sm)] capitalize text-cream-primary">
           {value}
         </span>
       </span>
@@ -170,7 +173,7 @@ export default function Report() {
           <motion.div
             animate={{ x: [0, 20, -20, 0], y: [0, -20, 20, 0] }}
             transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute -left-20 top-10 h-96 w-96 rounded-full bg-white/70 blur-[100px]"
+            className="absolute -left-20 top-10 h-96 w-96 rounded-full bg-gold-primary/10 blur-[100px]"
           />
           <motion.div
             animate={{ x: [0, -20, 20, 0], y: [0, 20, -20, 0] }}
@@ -248,14 +251,26 @@ export default function Report() {
   };
 
   return (
-    <div className="w-full pt-16 pb-28">
-      <div className="mx-auto w-full max-w-[var(--container-content)] px-5 md:px-8">
+    <div className="w-full pb-28">
+      <header className="border-b border-gold-hairline pb-10 pt-28">
+        <EditorialContainer>
+          <EyebrowLabel tone="gold">Your Colour Report</EyebrowLabel>
+          <EditorialHeading as="h1" size="xl" className="mt-4">
+            {seasonInfo.season}
+          </EditorialHeading>
+          <p className="mt-3 font-editorial italic text-h5 font-light text-cream-primary/60">
+            {seasonInfo.tagline}
+          </p>
+        </EditorialContainer>
+      </header>
+
+      <EditorialContainer width="content" className="mt-10">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-12 print:grid-cols-1">
           {/* Left column — sticky colour profile card */}
           <aside className="lg:sticky lg:top-24 print:static">
-            <Card variant="report" className="p-8">
+            <div className="border border-gold-hairline p-6">
               {analysisResult.enhancedImageUrl && (
-                <div className="mb-6 overflow-hidden rounded-md border border-border">
+                <div className="mb-6 overflow-hidden rounded-sm border border-gold-hairline">
                   <img
                     src={analysisResult.enhancedImageUrl}
                     alt="Your analysed photo"
@@ -270,18 +285,16 @@ export default function Report() {
                 </div>
               )}
 
-              <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
-                Your Colour Profile
-              </p>
-              <h2 className="mt-2 font-serif text-[length:var(--text-h4)] text-espresso">
+              <EyebrowLabel tone="gold">Your Colour Profile</EyebrowLabel>
+              <EditorialHeading as="h2" size="sm" className="mt-3">
                 {seasonInfo.season}
-              </h2>
-              <p className="mt-1 text-[length:var(--text-caption)] text-espresso-muted">
+              </EditorialHeading>
+              <p className="mt-1 text-caption text-cream-primary/55">
                 Analysed on{' '}
                 {new Date(analysisResult.analyzedAt).toLocaleDateString()}
               </p>
 
-              <div className="my-6 h-px bg-border" aria-hidden="true" />
+              <div className="my-6 h-px bg-gold-hairline" aria-hidden="true" />
 
               <div className="space-y-4">
                 <Trait
@@ -325,31 +338,17 @@ export default function Report() {
                   Print / Save as PDF
                 </Button>
               </div>
-            </Card>
+            </div>
           </aside>
 
           {/* Right column — report sections */}
           <div className="space-y-10">
             {/* 1. Colour season — headline finding */}
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
-                Your Colour Season
-              </p>
-              <motion.h1
-                initial={{ clipPath: 'inset(0 0 100% 0)', opacity: 0.001 }}
-                animate={{ clipPath: 'inset(0 0 0% 0)', opacity: 1 }}
-                transition={{ duration: 0.9, ease: [0, 0, 0.2, 1] }}
-                className="mt-3 font-serif text-[40px] leading-[1.05] text-espresso md:text-[64px]"
-              >
-                {seasonInfo.season}
-              </motion.h1>
-              <p className="mt-3 font-serif text-[length:var(--text-h5)] italic text-espresso-light">
-                {seasonInfo.tagline}
-              </p>
-              <p className="mt-4 max-w-xl text-[length:var(--text-body)] text-espresso-light">
+            <Section label="The Finding" title="Your Colour Season">
+              <p className="max-w-xl text-body text-cream-primary/80">
                 {seasonInfo.description}
               </p>
-            </div>
+            </Section>
 
             {/* 2. Your colour palette */}
             <Section label="Your Palette" title="Your Colour Palette">
@@ -376,7 +375,7 @@ export default function Report() {
 
             {/* 3. Skin undertone analysis */}
             <Section label="Your Undertone" title="Skin Undertone Analysis">
-              <p className="max-w-xl text-[length:var(--text-body)] text-espresso-light">
+              <p className="max-w-xl text-[length:var(--text-body)] text-cream-primary/80">
                 {isWarm
                   ? 'Your skin reads warm. Gold, olive, and terracotta sit harmoniously against you, while silver, grey, and icy pastels tend to flatten your glow.'
                   : analysisResult.colorProfile.undertone === 'cool'
@@ -391,10 +390,10 @@ export default function Report() {
                     style={{ backgroundColor: analysisResult.colorProfile.skinToneHex }}
                   />
                   <span>
-                    <span className="block text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-espresso-muted">
+                    <span className="block text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-cream-primary/55">
                       Detected tone
                     </span>
-                    <span className="block text-[length:var(--text-body-sm)] text-espresso">
+                    <span className="block text-[length:var(--text-body-sm)] text-cream-primary">
                       {analysisResult.colorProfile.skinToneHex}
                     </span>
                   </span>
@@ -407,7 +406,7 @@ export default function Report() {
 
             {/* 4. Best neutrals */}
             <Section label="Your Neutrals" title="Best Neutrals">
-              <p className="max-w-xl text-[length:var(--text-body-sm)] text-espresso-light">
+              <p className="max-w-xl text-[length:var(--text-body-sm)] text-cream-primary/80">
                 Neutrals form the quiet backbone of your wardrobe. These
                 harmonise with your season and pair with everything above.
               </p>
@@ -434,7 +433,7 @@ export default function Report() {
 
             {/* 5. Colours to avoid */}
             <Section label="Colours to Avoid" title="Colours to Avoid">
-              <p className="max-w-xl text-[length:var(--text-body-sm)] text-espresso-light">
+              <p className="max-w-xl text-[length:var(--text-body-sm)] text-cream-primary/80">
                 These tones work against your season. Wear them sparingly, or
                 keep them far from your face.
               </p>
@@ -450,10 +449,10 @@ export default function Report() {
               <div className="space-y-8">
                 {archetypes.map((archetype) => (
                   <div key={archetype.title} className="border-l-2 border-gold-primary pl-5">
-                    <h3 className="font-serif text-[length:var(--text-h5)] text-espresso">
+                    <h3 className="font-serif text-[length:var(--text-h5)] text-cream-primary">
                       {archetype.title}
                     </h3>
-                    <p className="mt-1.5 max-w-xl text-[length:var(--text-body-sm)] text-espresso-light">
+                    <p className="mt-1.5 max-w-xl text-[length:var(--text-body-sm)] text-cream-primary/80">
                       {archetype.description}
                     </p>
                   </div>
@@ -475,7 +474,7 @@ export default function Report() {
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className="flex items-center gap-3 rounded-md border border-border bg-cream-dark p-3"
+                      className="flex items-center gap-3 rounded-md border border-border bg-surface-3 p-3"
                     >
                       <span
                         aria-hidden="true"
@@ -483,10 +482,10 @@ export default function Report() {
                         style={{ backgroundColor: item.hex }}
                       />
                       <span>
-                        <span className="block text-[length:var(--text-body-sm)] font-medium text-espresso">
+                        <span className="block text-[length:var(--text-body-sm)] font-medium text-cream-primary">
                           {item.label} · {item.shade}
                         </span>
-                        <span className="block text-[length:var(--text-micro)] tabular-nums text-espresso-muted">
+                        <span className="block text-[length:var(--text-micro)] tabular-nums text-cream-primary/55">
                           {item.hex}
                         </span>
                       </span>
@@ -504,7 +503,7 @@ export default function Report() {
                     {hairOptions.map((option) => (
                       <li
                         key={option}
-                        className="rounded-md border border-border bg-cream-dark px-4 py-2.5 text-[length:var(--text-body-sm)] text-espresso"
+                        className="rounded-md border border-border bg-surface-3 px-4 py-2.5 text-[length:var(--text-body-sm)] text-cream-primary"
                       >
                         {option}
                       </li>
@@ -521,14 +520,14 @@ export default function Report() {
                   <ol className="mt-4 space-y-4">
                     {routine.map((step) => (
                       <li key={step.step} className="flex gap-4">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gold-primary font-serif text-[length:var(--text-body-sm)] text-espresso">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gold-primary font-serif text-[length:var(--text-body-sm)] text-surface-0">
                           {step.step}
                         </span>
                         <div>
-                          <p className="text-[length:var(--text-body-sm)] font-medium text-espresso">
+                          <p className="text-[length:var(--text-body-sm)] font-medium text-cream-primary">
                             {step.product}
                           </p>
-                          <p className="mt-0.5 text-[length:var(--text-caption)] text-espresso-muted">
+                          <p className="mt-0.5 text-[length:var(--text-caption)] text-cream-primary/55">
                             {step.reason}
                           </p>
                         </div>
@@ -540,22 +539,31 @@ export default function Report() {
             </Section>
 
             {/* 8. Share / Save / Try-On CTAs */}
-            <div className="rounded-lg bg-espresso px-8 py-12 text-center">
-              <h2 className="font-serif text-[length:var(--text-h3)] text-cream-primary">
+            <CampaignSection
+              src={CAMPAIGN.closing.src}
+              alt={CAMPAIGN.closing.alt}
+              position={CAMPAIGN.closing.position}
+              anchor="center"
+              scrim="soft"
+              height="band"
+              contentClassName="text-center"
+              className="rounded-none"
+            >
+              <EditorialHeading as="h2" size="lg" tone="inverse">
                 Ready to see these colours on you?
-              </h2>
-              <p className="mx-auto mt-3 max-w-md text-[length:var(--text-body)] text-cream-primary/80">
+              </EditorialHeading>
+              <p className="mx-auto mt-3 max-w-md text-body text-cream-primary/80">
                 Try on outfits in your palette, save your report, and share it
                 with your stylist.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <Link href="/try-on">
-                  <Button size="lg">Try On Your Colours</Button>
+                <Link href="/try-on" className="btn-campaign">
+                  Try On Your Colours →
                 </Link>
                 <Button
                   variant="outline"
                   size="lg"
-                  className="border-cream-primary/40 bg-transparent text-cream-primary hover:bg-cream-primary/10 hover:text-cream-primary"
+                  className="border-gold-border bg-transparent text-cream-primary hover:border-gold-border-hover hover:bg-gold-primary/10 hover:text-gold-light"
                   onClick={handleShare}
                 >
                   <Share2 aria-hidden="true" />
@@ -564,7 +572,7 @@ export default function Report() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="border-cream-primary/40 bg-transparent text-cream-primary hover:bg-cream-primary/10 hover:text-cream-primary"
+                  className="border-gold-border bg-transparent text-cream-primary hover:border-gold-border-hover hover:bg-gold-primary/10 hover:text-gold-light"
                   onClick={handlePrint}
                 >
                   <Printer aria-hidden="true" />
@@ -573,7 +581,7 @@ export default function Report() {
                 <Button
                   variant="ghost"
                   size="lg"
-                  className="text-cream-primary hover:bg-cream-primary/10 hover:text-cream-primary"
+                  className="text-cream-primary hover:bg-gold-primary/10 hover:text-gold-light"
                   onClick={handleSave}
                 >
                   {saved ? (
@@ -584,10 +592,10 @@ export default function Report() {
                   {saved ? 'Saved to Dashboard' : 'Save to Dashboard'}
                 </Button>
               </div>
-            </div>
+            </CampaignSection>
           </div>
         </div>
-      </div>
+      </EditorialContainer>
 
       {/* Colour detail modal */}
       <Dialog.Root
@@ -597,12 +605,12 @@ export default function Report() {
         }}
       >
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-[2000] bg-espresso/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <Dialog.Overlay className="fixed inset-0 z-[2000] bg-surface-0/70 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
           <Dialog.Content
             aria-describedby={
               modalColour ? 'colour-detail-description' : undefined
             }
-            className="fixed inset-0 z-[2000] flex flex-col overflow-y-auto bg-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+            className="fixed inset-0 z-[2000] flex flex-col overflow-y-auto bg-surface-2 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
           >
             {modalColour && (
               <div className="mx-auto flex w-full max-w-[var(--container-narrow)] flex-1 flex-col px-6 py-10 md:py-16">
@@ -614,7 +622,7 @@ export default function Report() {
                     <button
                       type="button"
                       aria-label="Close colour detail"
-                      className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-cream-dark text-espresso transition-colors duration-200 ease-out hover:border-gold-primary hover:text-gold-primary"
+                      className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-surface-3 text-cream-primary transition-colors duration-200 ease-out hover:border-gold-primary hover:text-gold-primary"
                     >
                       <X className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -631,16 +639,16 @@ export default function Report() {
                 />
 
                 <Dialog.Title asChild>
-                  <h2 className="mt-8 font-serif text-[length:var(--text-h2)] text-espresso">
+                  <h2 className="mt-8 font-serif text-[length:var(--text-h2)] text-cream-primary">
                     {modalColour.name}
                   </h2>
                 </Dialog.Title>
-                <p className="mt-1 text-[length:var(--text-body)] tabular-nums text-espresso-muted">
+                <p className="mt-1 text-[length:var(--text-body)] tabular-nums text-cream-primary/55">
                   {modalColour.hex}
                 </p>
                 <p
                   id="colour-detail-description"
-                  className="mt-4 max-w-md text-[length:var(--text-body)] text-espresso-light"
+                  className="mt-4 max-w-md text-[length:var(--text-body)] text-cream-primary/80"
                 >
                   {modalColour.recommendation}
                 </p>

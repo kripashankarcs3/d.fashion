@@ -27,10 +27,10 @@ export function EmptyAnalysisState({
           ),
         )}
       </div>
-      <h2 className="font-serif text-[length:var(--text-h3)] text-espresso">
+      <h2 className="font-serif text-[length:var(--text-h3)] text-cream-primary">
         {title}
       </h2>
-      <p className="max-w-md text-[length:var(--text-body)] text-espresso-light">
+      <p className="max-w-md text-[length:var(--text-body)] text-cream-primary/80">
         {description}
       </p>
       <Link href="/upload" className="mt-2">

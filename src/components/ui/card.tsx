@@ -5,30 +5,29 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const cardVariants = cva(
   [
-    'rounded-lg border bg-card text-card-foreground',
-    'shadow-[var(--shadow-card)]',
-    'transition-[box-shadow,border-color,transform] duration-[var(--duration-fast)] ease-out',
+    'border bg-card text-card-foreground',
+    'transition-[border-color] duration-[var(--duration-normal)] ease-[var(--ease-editorial)]',
   ].join(' '),
   {
     variants: {
       variant: {
-        default:
-          'border-card-border hover:shadow-[var(--shadow-card-hover)]',
-        feature:
-          'border-transparent bg-cream-dark hover:scale-[1.015] hover:shadow-[var(--shadow-card-hover)]',
-        report:
-          'border-card-border hover:shadow-[var(--shadow-card-hover)]',
-        statistic:
-          'border-card-border hover:shadow-[var(--shadow-card-hover)]',
-        testimonial:
-          'border-card-border hover:scale-[1.01] hover:shadow-[var(--shadow-card-hover)]',
+        default: 'rounded-none border-card-border hover:border-gold-border-hover',
+        /* Squared, unshadowed, hairline-only — the editorial default. */
+        editorial: 'rounded-none border-transparent bg-transparent',
+        /* A quiet tinted surface with no rule at all. */
+        surface: 'rounded-none border-transparent bg-surface-4/60',
+        feature: 'rounded-none border-transparent bg-surface-4/60 hover:bg-surface-5/60',
+        /* A quiet, unassuming surface for dense reporting. */
+        report: 'rounded-none border-gold-hairline bg-surface-3/50 hover:border-gold-border',
+        statistic: 'rounded-none border-gold-hairline',
+        testimonial: 'rounded-none border-gold-hairline hover:border-gold-border',
       },
       interactive: {
         true: 'cursor-pointer',
         false: '',
       },
       selected: {
-        true: 'border-gold-primary shadow-[var(--shadow-card-hover)]',
+        true: 'border-gold-primary',
         false: '',
       },
       disabled: {
@@ -141,7 +140,7 @@ const CardSkeleton = React.forwardRef<HTMLDivElement, CardSkeletonProps>(
           ref={i === 0 ? ref : undefined}
           aria-hidden="true"
           className={cn(
-            'rounded-lg border border-card-border bg-card p-8 shadow-[var(--shadow-card)]',
+            'rounded-none border border-gold-hairline bg-surface-3 p-8',
             className,
           )}
           {...props}

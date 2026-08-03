@@ -1,86 +1,141 @@
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
 import { Link } from 'wouter';
-import Container from '@/components/Container';
-import { Button } from '@/components/ui/button';
+import EditorialContainer from '@/components/editorial/EditorialContainer';
+import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
+import EyebrowLabel from '@/components/editorial/EyebrowLabel';
+import { Check } from 'lucide-react';
 
 const plans = [
   {
     name: 'Starter',
     price: 'Free',
+    period: '',
     note: 'Core colour analysis',
+    features: ['1 colour analysis', 'Basic palette view', 'Season identification'],
+    featured: false,
+    cta: 'Start Free',
+    href: '/upload',
   },
   {
     name: 'Essentials',
-    price: '₹499/month',
-    note: 'Full report + palette download',
+    price: '₹499',
+    period: '/month',
+    note: 'Most popular',
+    features: ['Full colour report', 'Palette download', 'Makeup shade guide', 'Hair colour options'],
     featured: true,
+    cta: 'Get Essentials',
+    href: '/pricing',
   },
   {
     name: 'Atelier',
-    price: '₹999/month',
-    note: 'Try-on, stylist chat, priority',
+    price: '₹999',
+    period: '/month',
+    note: 'The complete experience',
+    features: ['Everything in Essentials', 'Virtual Try-On', 'AI Stylist Chat', 'Priority support'],
+    featured: false,
+    cta: 'Go Atelier',
+    href: '/pricing',
   },
 ];
 
 export default function PricingTeaser() {
   return (
-    <section className="bg-cream-dark py-30">
-      <Container>
+    <section className="relative bg-surface-1 py-section-xl">
+      <EditorialContainer>
+        {/* Header — left-aligned, editorial */}
         <motion.div
-          initial={{ opacity: 0, y: 32 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
-          className="text-center"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.55, ease: [0, 0, 0.2, 1] }}
+          className="max-w-2xl"
         >
-          <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
-            Pricing
+          <EyebrowLabel rule tone="gold">Pricing</EyebrowLabel>
+          <EditorialHeading as="h2" size="lg" className="mt-5 text-cream-primary">
+            Choose how deep <Emphasis>you go.</Emphasis>
+          </EditorialHeading>
+          <p className="mt-5 max-w-md text-lede font-light text-cream-primary/60">
+            Start for free. Upgrade when you are ready for more.
           </p>
-          <h2 className="mt-4 font-serif text-[length:var(--text-h2)] text-espresso">
-            Choose how deep you go.
-          </h2>
         </motion.div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {/* Plans grid */}
+        <div className="mt-20 grid grid-cols-1 gap-5 md:grid-cols-3">
           {plans.map((plan, i) => (
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.5, delay: i * 0.1, ease: [0, 0, 0.2, 1] }}
-              className={`rounded-lg bg-white p-8 text-center shadow-card transition-shadow duration-200 ease-out hover:shadow-card-hover ${
-                plan.featured ? 'border-2 border-gold-primary' : 'border border-border'
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.55, delay: i * 0.1, ease: [0, 0, 0.2, 1] }}
+              className={`relative flex flex-col rounded-sm p-8 ${
+                plan.featured
+                  ? 'border border-gold-primary bg-gold-primary text-surface-1 md:-my-3'
+                  : 'border border-gold-hairline bg-surface-3 text-cream-primary'
               }`}
             >
               {plan.featured && (
-                <span className="inline-flex items-center rounded-sm bg-gold-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-espresso">
-                  Most Popular
-                </span>
+                <div className="absolute -top-2.5 left-8">
+                  <span className="rounded-sm bg-surface-1 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-gold-primary">
+                    Most Popular
+                  </span>
+                </div>
               )}
-              <p className="mt-4 font-serif text-[length:var(--text-h4)] text-espresso">
-                {plan.name}
-              </p>
-              <p className="mt-3 text-[length:var(--text-h3)] font-light text-espresso">
-                {plan.price}
-              </p>
-              <p className="mt-2 text-[length:var(--text-body-sm)] text-espresso-light">
-                {plan.note}
-              </p>
+
+              <div className="mb-6">
+                <p className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${plan.featured ? 'text-surface-2' : 'text-gold-light'}`}>
+                  {plan.note}
+                </p>
+                <h3 className={`mt-2 font-serif text-h4 ${plan.featured ? 'text-surface-1' : 'text-cream-primary'}`}>
+                  {plan.name}
+                </h3>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className={`font-serif text-[2.5rem] font-light leading-none ${plan.featured ? 'text-surface-1' : 'text-cream-primary'}`}>
+                    {plan.price}
+                  </span>
+                  {plan.period && (
+                    <span className={`text-body-sm ${plan.featured ? 'text-surface-1/60' : 'text-cream-primary/55'}`}>
+                      {plan.period}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <ul className="mb-8 flex-1 space-y-3">
+                {plan.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5">
+                    <Check className={`mt-0.5 h-4 w-4 shrink-0 ${plan.featured ? 'text-surface-1' : 'text-gold-primary'}`} aria-hidden />
+                    <span className={`text-body-sm ${plan.featured ? 'text-surface-1/80' : 'text-cream-primary/80'}`}>
+                      {f}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={plan.href}
+                className={`inline-flex min-h-10 w-full items-center justify-center rounded-sm text-body-sm font-semibold tracking-button transition-all duration-200 ${
+                  plan.featured
+                    ? 'bg-surface-1 text-gold-primary hover:bg-surface-2'
+                    : 'border border-gold-border bg-transparent text-cream-primary hover:border-gold-primary hover:bg-gold-primary/10'
+                }`}
+              >
+                {plan.cta}
+              </Link>
             </motion.div>
           ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <Link href="/pricing">
-            <Button variant="secondary" size="lg">
-              Compare plans
-              <ArrowRight aria-hidden="true" />
-            </Button>
-          </Link>
-        </div>
-      </Container>
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-12 text-center text-caption text-cream-primary/45"
+        >
+          No credit card required for the free plan. Cancel anytime.
+        </motion.p>
+      </EditorialContainer>
     </section>
   );
 }
