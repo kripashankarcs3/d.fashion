@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'wouter';
 import PageMasthead from '@/components/editorial/PageMasthead';
@@ -7,6 +7,7 @@ import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHead
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import CampaignSection from '@/components/editorial/CampaignSection';
 import { CAMPAIGN } from '@/lib/editorial-images';
+import { ROUTES } from '@/config/navigation';
 import { Check, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -154,9 +155,6 @@ function formatInr(value: number): string {
 }
 
 export default function Pricing() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
   const [annual, setAnnual] = useState(false);
 
   return (
@@ -477,7 +475,10 @@ export default function Pricing() {
               Your colour analysis is free forever. Upgrade only when you&rsquo;re
               ready.
             </p>
-            <Link href="/signup?plan=Starter" className="btn-campaign mt-8 inline-block">
+            <Link
+              href={`${ROUTES.signup}?plan=Starter`}
+              className="btn-campaign mt-8 inline-block"
+            >
               Get Started Free →
             </Link>
           </CampaignSection>

@@ -6,6 +6,7 @@ import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import { useStyleStore } from '@/store/useStyleStore';
 import { getSeasonInfo } from '@/lib/colour-data';
+import { ROUTES } from '@/config/navigation';
 
 const FALLBACK_PALETTE = [
   { hex: '#B8974A', name: 'Antique Gold' },
@@ -69,11 +70,11 @@ export default function TryOnPreview() {
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Link href="/try-on" className="btn-campaign">
+              <Link href={ROUTES.tryOn} className="btn-campaign">
                 Try It On →
               </Link>
               <Link
-                href="/upload"
+                href={ROUTES.upload}
                 className="eyebrow text-cream-primary/45 transition-colors hover:text-cream-primary/70"
               >
                 Upload first to personalise

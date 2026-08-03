@@ -1,12 +1,9 @@
-import { useEffect } from 'react';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import PageMasthead from '@/components/editorial/PageMasthead';
 import { Emphasis } from '@/components/editorial/EditorialHeading';
 import UploadFlow from '@/components/UploadFlow';
 
 export default function Upload() {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
-
   return (
     <section className="w-full min-h-screen bg-surface-1 pt-28 pb-24">
       <EditorialContainer width="narrow">

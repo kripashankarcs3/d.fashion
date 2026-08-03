@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import StylistChat from '@/components/StylistChat';
 import PageMasthead from '@/components/editorial/PageMasthead';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
@@ -33,9 +33,6 @@ const knowledge = [
 ];
 
 export default function Chat() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
   const [activePrompt, setActivePrompt] = useState('');
 
   return (

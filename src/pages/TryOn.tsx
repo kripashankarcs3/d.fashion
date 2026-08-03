@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/config/navigation';
 import { Badge } from '@/components/ui/badge';
 import PageMasthead from '@/components/editorial/PageMasthead';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
@@ -233,10 +234,6 @@ const tabs: { id: Mode; label: string; icon: typeof Shirt }[] = [
 ];
 
 export default function TryOn() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   const referenceImageUrl = useStyleStore((s) => s.referenceImageUrl);
   const analysisResult = useStyleStore((s) => s.analysisResult);
   const addWardrobeItem = useStyleStore((s) => s.addWardrobeItem);
@@ -358,7 +355,7 @@ export default function TryOn() {
               Virtual try-on needs a reference photo of you. Analyse one to
               unlock your palette.
             </p>
-            <Link href="/upload" className="mt-8 inline-block">
+            <Link href={ROUTES.upload} className="mt-8 inline-block">
               <Button size="lg">Upload a Selfie</Button>
             </Link>
           </div>

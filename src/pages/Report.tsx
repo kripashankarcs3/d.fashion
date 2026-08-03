@@ -7,6 +7,7 @@ import { Bookmark, Check, Copy, Printer, Share2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { ROUTES } from '@/config/navigation';
 import {
   Tooltip,
   TooltipContent,
@@ -143,10 +144,6 @@ export default function Report() {
   const [modalColour, setModalColour] = useState<ColourItem | null>(null);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   useEffect(() => {
     setSaved(
@@ -312,7 +309,7 @@ export default function Report() {
               </div>
 
               <div className="mt-8 flex flex-col gap-3">
-                <Link href="/try-on">
+                <Link href={ROUTES.tryOn}>
                   <Button size="lg" className="w-full">
                     Try On Your Colours
                   </Button>
@@ -557,7 +554,7 @@ export default function Report() {
                 with your stylist.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <Link href="/try-on" className="btn-campaign">
+                <Link href={ROUTES.tryOn} className="btn-campaign">
                   Try On Your Colours →
                 </Link>
                 <Button

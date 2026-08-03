@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { analyzeImage } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
+import { ROUTES } from '@/config/navigation';
 
 export function useAnalysis() {
   const recordAnalysis = useStyleStore((s) => s.recordAnalysis);
@@ -25,7 +26,7 @@ export function useAnalysis() {
         label: 'Selfie analysed',
         timestamp: new Date().toISOString(),
       });
-      navigate('/report');
+      navigate(ROUTES.report);
     },
   });
 

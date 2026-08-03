@@ -1,5 +1,6 @@
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/config/navigation';
 
 interface EmptyAnalysisStateProps {
   title?: string;
@@ -33,7 +34,7 @@ export function EmptyAnalysisState({
       <p className="max-w-md text-[length:var(--text-body)] text-cream-primary/80">
         {description}
       </p>
-      <Link href="/upload" className="mt-2">
+      <Link href={ROUTES.upload} className="mt-2">
         <Button variant="primary" size="lg">
           Analyse My Colours
         </Button>

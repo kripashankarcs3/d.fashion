@@ -2,20 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import HashLink from '@/components/nav/HashLink';
+import {
+  ACCOUNT_MENU,
+  APP_NAV,
+  MARKETING_NAV,
+  OVERLAY_ROUTES,
+  ROUTES,
+  type NavLink,
+} from '@/config/navigation';
 import { signOut as firebaseSignOut } from '@/services/auth';
 import { useAuthStore } from '@/store/useAuthStore';
-
-const navLinks = [
-  { href: '/upload', label: 'Colour Analysis' },
-  { href: '/report', label: 'My Report' },
-  { href: '/try-on', label: 'Virtual Try-On' },
-  { href: '/chat', label: 'Stylist' },
-  { href: '/pricing', label: 'Collections' },
-  { href: '/dashboard', label: 'Dashboard' },
-];
-
-/** Routes that open on a full-bleed dark campaign frame. */
-const OVERLAY_ROUTES = new Set(['/']);
 
 const drawerVariants = {
   open: { y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
@@ -52,6 +49,12 @@ export default function Navbar() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const clearSession = useAuthStore((s) => s.clearSession);
 
+  /* Signed-out visitors get the marketing story; signed-in members get the
+     product. No nav link dead-ends at a login redirect; the CTA deliberately
+     routes guests through sign-in (it resumes via ?redirect=/upload). */
+  const navLinks: NavLink[] = isAuthenticated ? APP_NAV : MARKETING_NAV;
+  const ctaLabel = isAuthenticated ? 'New Analysis' : 'Begin Analysis';
+
   /* Over a campaign frame the header rides transparent in gold ink; once
      the page scrolls past the image it settles onto a surface ground. */
   const overlay = OVERLAY_ROUTES.has(location) && !scrolled;
@@ -86,14 +89,9 @@ export default function Navbar() {
     };
   }, [accountOpen]);
 
-  const accountMenu = [
-    { href: '/dashboard', label: 'My Profile' },
-    { href: '/report', label: 'My Reports' },
-    { href: '/pricing', label: 'Subscription' },
-  ];
-
   const handleSignOut = async () => {
     setAccountOpen(false);
+    setMenuOpen(false);
     try {
       await firebaseSignOut();
     } catch {
@@ -156,7 +154,7 @@ export default function Navbar() {
           aria-label="Primary"
         >
           <Link
-            href="/"
+            href={ROUTES.home}
             className="shrink-0 font-display text-[26px] leading-none tracking-[-0.01em] transition-opacity duration-300 hover:opacity-70"
             aria-label="D'Fashion — home"
           >
@@ -171,32 +169,41 @@ export default function Navbar() {
 
           <div className="hidden items-center gap-9 lg:flex">
             {navLinks.map((link) => {
-              const active =
-                location === link.href ||
-                (link.href === '/try-on' && location === '/tryon');
+              const active = !link.hash && location === link.href;
+              const className = cn(
+                'group relative inline-flex min-h-11 items-center eyebrow-micro transition-opacity duration-300 ease-out',
+                active ? 'opacity-100' : 'opacity-65 hover:opacity-100',
+              );
+              const underline = (
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'absolute inset-x-0 bottom-[18px] h-px origin-left bg-gold-primary transition-transform duration-500 ease-[var(--ease-editorial)]',
+                    active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
+                  )}
+                />
+              );
               return (
                 <motion.div
-                  key={link.href}
+                  key={link.label}
                   whileHover={{ y: -1 }}
                   transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <Link
-                    href={link.href}
-                    aria-current={active ? 'page' : undefined}
-                    className={cn(
-                      'group relative inline-flex min-h-11 items-center eyebrow-micro transition-opacity duration-300 ease-out',
-                      active ? 'opacity-100' : 'opacity-65 hover:opacity-100',
-                    )}
-                  >
-                    {link.label}
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        'absolute inset-x-0 bottom-[18px] h-px origin-left bg-gold-primary transition-transform duration-500 ease-[var(--ease-editorial)]',
-                        active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
-                      )}
-                    />
-                  </Link>
+                  {link.hash ? (
+                    <HashLink href={link.href} hash={link.hash} className={className}>
+                      {link.label}
+                      {underline}
+                    </HashLink>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      aria-current={active ? 'page' : undefined}
+                      className={className}
+                    >
+                      {link.label}
+                      {underline}
+                    </Link>
+                  )}
                 </motion.div>
               );
             })}
@@ -205,7 +212,7 @@ export default function Navbar() {
           <div className="flex shrink-0 items-center gap-5">
             {!isAuthenticated ? (
               <Link
-                href="/login"
+                href={ROUTES.login}
                 className="hidden min-h-11 items-center eyebrow-micro opacity-65 transition-opacity duration-300 hover:opacity-100 lg:inline-flex"
               >
                 Sign In
@@ -218,12 +225,7 @@ export default function Navbar() {
                   aria-expanded={accountOpen}
                   aria-haspopup="menu"
                   aria-label="Account menu"
-                  className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-full border font-display text-[15px] transition-colors duration-300',
-                    overlay
-                      ? 'border-gold-border hover:border-gold-light'
-                      : 'border-gold-border hover:border-gold-light',
-                  )}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gold-border font-display text-[15px] transition-colors duration-300 hover:border-gold-light"
                 >
                   {initials || '·'}
                 </button>
@@ -244,7 +246,7 @@ export default function Navbar() {
                           {user?.email}
                         </span>
                       </p>
-                      {accountMenu.map((item) => (
+                      {ACCOUNT_MENU.map((item) => (
                         <Link
                           key={item.href}
                           href={item.href}
@@ -274,11 +276,8 @@ export default function Navbar() {
                 whileTap={{ scale: 0.97 }}
                 transition={{ duration: 0.15 }}
               >
-                <Link
-                  href="/upload"
-                  className="btn-campaign"
-                >
-                  Begin
+                <Link href={ROUTES.upload} className="btn-campaign">
+                  {ctaLabel}
                 </Link>
               </motion.div>
             </div>
@@ -330,25 +329,40 @@ export default function Navbar() {
               aria-label="Mobile"
             >
               {navLinks.map((link, index) => {
-                const active =
-                  location === link.href ||
-                  (link.href === '/try-on' && location === '/tryon');
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    aria-current={active ? 'page' : undefined}
-                    className={cn(
-                      'group flex min-h-11 items-baseline gap-4 border-b border-gold-hairline py-5 transition-colors duration-300',
-                      active ? 'text-gold-primary' : 'text-gold-soft',
-                    )}
-                  >
+                const active = !link.hash && location === link.href;
+                const className = cn(
+                  'group flex min-h-11 items-baseline gap-4 border-b border-gold-hairline py-5 transition-colors duration-300',
+                  active ? 'text-gold-primary' : 'text-gold-soft',
+                );
+                const body = (
+                  <>
                     <span className="eyebrow-micro text-gold-muted tabular-nums">
                       {String(index + 1).padStart(2, '0')}
                     </span>
                     <span className="font-display text-[32px] leading-tight">
                       {link.label}
                     </span>
+                  </>
+                );
+                return link.hash ? (
+                  <HashLink
+                    key={link.label}
+                    href={link.href}
+                    hash={link.hash}
+                    className={className}
+                    onNavigate={() => setMenuOpen(false)}
+                  >
+                    {body}
+                  </HashLink>
+                ) : (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={className}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {body}
                   </Link>
                 );
               })}
@@ -357,7 +371,7 @@ export default function Navbar() {
             <div className="shrink-0 px-[var(--gutter)] pb-10 pt-6">
               {!isAuthenticated ? (
                 <Link
-                  href="/login"
+                  href={ROUTES.login}
                   className="mb-4 flex min-h-11 w-full items-center justify-center border border-gold-border eyebrow-micro text-gold-primary transition-colors duration-300 hover:bg-gold-primary hover:text-surface-1"
                 >
                   Sign In
@@ -368,31 +382,32 @@ export default function Navbar() {
                     {user?.name}
                     <span className="block">{user?.email}</span>
                   </p>
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    {accountMenu.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="flex min-h-11 items-center justify-center border border-gold-border eyebrow-micro text-gold-soft transition-colors duration-300 hover:text-gold-primary"
-                      >
-                        {item.label.replace('My ', '')}
-                      </Link>
+                  <ul className="mt-4 space-y-1">
+                    {ACCOUNT_MENU.map((item) => (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className="flex min-h-11 items-center eyebrow-micro text-gold-soft transition-colors duration-300 hover:text-gold-primary"
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                   <button
                     type="button"
                     onClick={handleSignOut}
-                    className="mt-4 min-h-11 text-left eyebrow-micro text-error"
+                    className="mt-2 min-h-11 text-left eyebrow-micro text-error"
                   >
                     Sign Out
                   </button>
                 </div>
               )}
               <Link
-                href="/upload"
+                href={ROUTES.upload}
                 className="flex min-h-[52px] w-full items-center justify-center bg-gold-primary eyebrow-micro text-surface-1 transition-opacity duration-300 hover:opacity-85"
               >
-                Begin Your Analysis
+                {isAuthenticated ? 'Start a New Analysis' : 'Begin Your Analysis'}
               </Link>
             </div>
           </motion.div>

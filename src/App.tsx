@@ -1,12 +1,21 @@
-import React, { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
-import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
+import { Redirect, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import AppShell from '@/components/AppShell';
-import RequireAuth from '@/components/RequireAuth';
+import { GuestOnly, Protected } from '@/components/RouteGuards';
+import ScrollManager from '@/components/ScrollManager';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import {
+  AUTHENTICATED_HOME,
+  FALLBACK_PAGE_TITLE,
+  PAGE_TITLES,
+  ROUTES,
+  ROUTE_ALIASES,
+} from '@/config/navigation';
+import { useAuthStore } from '@/store/useAuthStore';
 
 import Home from '@/pages/Home';
 import NotFound from '@/pages/not-found';
@@ -33,75 +42,120 @@ const PageFallback = () => (
   </div>
 );
 
-const PAGE_TITLES: Record<string, string> = {
-  '/': "D'Fashion — Discover Your Colour Season",
-  '/upload': "Upload — D'Fashion",
-  '/report': "Your Colour Report — D'Fashion",
-  '/try-on': "Virtual Try-On — D'Fashion",
-  '/tryon': "Virtual Try-On — D'Fashion",
-  '/chat': "D'Style Stylist Chat — D'Fashion",
-  '/dashboard': "Dashboard — D'Fashion",
-  '/pricing': "Pricing — D'Fashion",
-  '/login': "Sign In — D'Fashion",
-  '/signup': "Sign Up — D'Fashion",
-};
+/** A protected page: auth gate first, then its own error boundary. */
+function AppRoute({ name, children }: { name: string; children: ReactNode }) {
+  return (
+    <Protected fallback={<PageFallback />}>
+      <ErrorBoundary pageName={name}>{children}</ErrorBoundary>
+    </Protected>
+  );
+}
+
+/** The front door: signed-out visitors go to login, members to the dashboard. */
+function EntryRedirect() {
+  const authReady = useAuthStore((s) => s.authReady);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  if (!authReady) return <PageFallback />;
+  return <Redirect to={isAuthenticated ? AUTHENTICATED_HOME : ROUTES.login} />;
+}
 
 function Router() {
   const [location] = useLocation();
 
   useEffect(() => {
-    document.title = PAGE_TITLES[location] ?? "D'Fashion";
+    document.title =
+      PAGE_TITLES[ROUTE_ALIASES[location] ?? location] ?? FALLBACK_PAGE_TITLE;
   }, [location]);
 
   return (
-    <RequireAuth fallback={<PageFallback />}>
-      <AppShell>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={location}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8, transition: { duration: 0.18, ease: 'easeIn' } }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="will-change-transform"
-          >
-            <Suspense fallback={<PageFallback />}>
-              <Switch>
-                <Route path="/" component={Home} />
-                <Route path="/upload">
-                  <ErrorBoundary pageName="Upload"><Upload /></ErrorBoundary>
+    <AppShell>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={location}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8, transition: { duration: 0.18, ease: 'easeIn' } }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="will-change-transform"
+        >
+          <ScrollManager path={location} />
+          <Suspense fallback={<PageFallback />}>
+            <Switch>
+              {/* Entry point — auth-switched. Signed-out visitors land on login;
+                  signed-in members on the dashboard. */}
+              <Route path={ROUTES.root}>
+                <EntryRedirect />
+              </Route>
+
+              {/* Public — the campaign landing page. */}
+              <Route path={ROUTES.home}>
+                <ErrorBoundary pageName="Home">
+                  <Home />
+                </ErrorBoundary>
+              </Route>
+              <Route path={ROUTES.pricing}>
+                <ErrorBoundary pageName="Pricing">
+                  <Pricing />
+                </ErrorBoundary>
+              </Route>
+
+              {/* Guest only */}
+              <Route path={ROUTES.login}>
+                <GuestOnly fallback={<PageFallback />}>
+                  <ErrorBoundary pageName="Sign in">
+                    <Login />
+                  </ErrorBoundary>
+                </GuestOnly>
+              </Route>
+              <Route path={ROUTES.signup}>
+                <GuestOnly fallback={<PageFallback />}>
+                  <ErrorBoundary pageName="Sign up">
+                    <Signup />
+                  </ErrorBoundary>
+                </GuestOnly>
+              </Route>
+
+              {/* Requires a session */}
+              <Route path={ROUTES.dashboard}>
+                <AppRoute name="Dashboard">
+                  <Dashboard />
+                </AppRoute>
+              </Route>
+              <Route path={ROUTES.upload}>
+                <AppRoute name="Upload">
+                  <Upload />
+                </AppRoute>
+              </Route>
+              <Route path={ROUTES.report}>
+                <AppRoute name="Report">
+                  <Report />
+                </AppRoute>
+              </Route>
+              <Route path={ROUTES.tryOn}>
+                <AppRoute name="Try-On">
+                  <TryOn />
+                </AppRoute>
+              </Route>
+              <Route path={ROUTES.chat}>
+                <AppRoute name="D'Style">
+                  <Chat />
+                </AppRoute>
+              </Route>
+
+              {/* Legacy paths */}
+              {Object.entries(ROUTE_ALIASES).map(([from, to]) => (
+                <Route key={from} path={from}>
+                  <Redirect to={to} replace />
                 </Route>
-                <Route path="/report">
-                  <ErrorBoundary pageName="Report"><Report /></ErrorBoundary>
-                </Route>
-                <Route path="/try-on">
-                  <ErrorBoundary pageName="Try-On"><TryOn /></ErrorBoundary>
-                </Route>
-                <Route path="/tryon">
-                  <ErrorBoundary pageName="Try-On"><TryOn /></ErrorBoundary>
-                </Route>
-                <Route path="/chat">
-                  <ErrorBoundary pageName="D'Style"><Chat /></ErrorBoundary>
-                </Route>
-                <Route path="/dashboard">
-                  <ErrorBoundary pageName="Dashboard"><Dashboard /></ErrorBoundary>
-                </Route>
-                <Route path="/pricing">
-                  <ErrorBoundary pageName="Pricing"><Pricing /></ErrorBoundary>
-                </Route>
-                <Route path="/login">
-                  <ErrorBoundary pageName="Sign in"><Login /></ErrorBoundary>
-                </Route>
-                <Route path="/signup">
-                  <ErrorBoundary pageName="Sign up"><Signup /></ErrorBoundary>
-                </Route>
-                <Route component={NotFound} />
-              </Switch>
-            </Suspense>
-          </motion.div>
-        </AnimatePresence>
-      </AppShell>
-    </RequireAuth>
+              ))}
+
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
+        </motion.div>
+      </AnimatePresence>
+    </AppShell>
   );
 }
 
