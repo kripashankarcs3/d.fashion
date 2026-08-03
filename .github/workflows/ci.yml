@@ -26,7 +26,8 @@ jobs:
       # typecheck resolves nothing and reports every import as missing.
       - run: npm ci
         working-directory: server
-      - run: npm run typecheck
+      - run: npm run typecheck:client
+      - run: npm --prefix server run typecheck
       - run: npm run build
 
   backend:
