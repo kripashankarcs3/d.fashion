@@ -36,6 +36,16 @@ dist-ssr
 # Server temporary uploads
 server/tmp/
 
+# Local visual-QA scratch — throwaway Playwright scripts and the screenshots
+# they emit. Kept out of the repo so design verification never lands in a diff.
+/shot.mjs
+/check*.mjs
+/debug-*.mjs
+/verify-*.mjs
+/*.desktop.png
+/*.laptop.png
+/*.mobile.png
+
 # Local design bible (do not publish)
 D_Fashion_Master_Design_Bible_v2.0.md
 
