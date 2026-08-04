@@ -4,6 +4,7 @@ import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import { Check } from 'lucide-react';
+import { ROUTES } from '@/config/navigation';
 
 const plans = [
   {
@@ -14,7 +15,7 @@ const plans = [
     features: ['1 colour analysis', 'Basic palette view', 'Season identification'],
     featured: false,
     cta: 'Start Free',
-    href: '/upload',
+    href: ROUTES.upload,
   },
   {
     name: 'Essentials',
@@ -24,7 +25,7 @@ const plans = [
     features: ['Full colour report', 'Palette download', 'Makeup shade guide', 'Hair colour options'],
     featured: true,
     cta: 'Get Essentials',
-    href: '/pricing',
+    href: ROUTES.pricing,
   },
   {
     name: 'Atelier',
@@ -34,7 +35,7 @@ const plans = [
     features: ['Everything in Essentials', 'Virtual Try-On', 'AI Stylist Chat', 'Priority support'],
     featured: false,
     cta: 'Go Atelier',
-    href: '/pricing',
+    href: ROUTES.pricing,
   },
 ];
 

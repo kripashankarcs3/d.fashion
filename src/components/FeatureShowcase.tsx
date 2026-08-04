@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 import CampaignSpread from '@/components/editorial/CampaignSpread';
 import { CAMPAIGN } from '@/lib/editorial-images';
+import { ROUTES } from '@/config/navigation';
 
 const CHAPTERS = [
   {
@@ -17,7 +18,7 @@ const CHAPTERS = [
     ),
     body: 'A personalised colour wheel built on your skin undertone, depth, and contrast. Everything from outfit picks to makeup shades flows through this single lens.',
     cta: 'GET MY SEASON →',
-    href: '/upload',
+    href: ROUTES.upload,
     photo: CAMPAIGN.season,
     photoSide: 'right' as const,
     photoWidth: 'md:w-[62%]',
@@ -38,7 +39,7 @@ const CHAPTERS = [
     ),
     body: 'The model reads the undertone beneath your skin in seconds and explains exactly what it found — no guesswork, no generic answers.',
     cta: 'ANALYSE MY UNDERTONE →',
-    href: '/upload',
+    href: ROUTES.upload,
     photo: CAMPAIGN.undertone,
     photoSide: 'left' as const,
     photoWidth: 'md:w-[58%]',
@@ -58,7 +59,7 @@ const CHAPTERS = [
     ),
     body: 'Your report names the two or three archetypes that describe how you present to the world, each paired with the wardrobe guidance that follows naturally.',
     cta: 'SEE SAMPLE REPORT →',
-    href: '/report',
+    href: ROUTES.report,
     photo: CAMPAIGN.archetype,
     photoSide: 'right' as const,
     photoWidth: 'md:w-[65%]',
@@ -78,7 +79,7 @@ const CHAPTERS = [
     ),
     body: 'Watch an outfit, makeup look, or hairstyle rendered in your exact palette. Your colours move from the report to something you can actually wear.',
     cta: 'TRY IT ON →',
-    href: '/try-on',
+    href: ROUTES.tryOn,
     photo: CAMPAIGN.tryOn,
     photoSide: 'left' as const,
     photoWidth: 'md:w-[60%]',

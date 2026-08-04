@@ -50,11 +50,13 @@ export const PUBLIC_PATHS = new Set<string>([ROUTES.home, ROUTES.pricing]);
 export const GUEST_ONLY_PATHS = new Set<string>([ROUTES.login, ROUTES.signup]);
 
 /**
- * Where signing in lands you when no `?redirect=` was carried along. Note this
- * is *not* what `/` renders — the campaign landing page stays the front door for
- * everyone, so a member can always walk back through the story.
+ * Where signing in lands you when no `?redirect=` was carried along.
+ * Members land on the marketing Home page first — the ResumeAnalysisBanner
+ * greets them with their season, swatches, and links to their report/dashboard.
+ * This way the beautiful campaign story is the first thing they see, and they
+ * can navigate to the dashboard from the banner whenever they want.
  */
-export const AUTHENTICATED_HOME = ROUTES.dashboard;
+export const AUTHENTICATED_HOME = ROUTES.home;
 
 /* --------------------------------------------------------------- header nav */
 
