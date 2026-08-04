@@ -1,5 +1,3 @@
-// SELL. Public campaign story. Renders the same for everyone except a
-// personalised resume strip for returning members. Never shows analysis detail.
 import Hero from '@/components/Hero';
 import ProblemStrip from '@/components/ProblemStrip';
 import HowItWorks from '@/components/HowItWorks';

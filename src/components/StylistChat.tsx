@@ -6,7 +6,6 @@ import { Send, Sparkles } from 'lucide-react';
 import { error } from '@/lib/toast';
 import { sendChatMessage } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
-import { ROUTES } from '@/config/navigation';
 
 interface Message {
   role: 'user' | 'ai';
@@ -28,7 +27,7 @@ function initialMessage(hasAnalysis: boolean): Message {
   return {
     role: 'ai',
     text: 'Upload a selfie first to get personalised style advice. ',
-    link: { href: ROUTES.upload, label: 'Upload a selfie →' },
+    link: { href: '/upload', label: 'Upload a selfie →' },
   };
 }
 

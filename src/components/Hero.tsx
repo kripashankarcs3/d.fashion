@@ -22,12 +22,12 @@ export default function Hero() {
     offset: ['start start', 'end start'],
   });
   const imageY = useTransform(scrollYProgress, [0, 1], ['0%', '10%']);
-  const imageScale = useTransform(scrollYProgress, [0, 1], [0.95, 1.02]);
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1.08, 1.14]);
 
   return (
     <section
       ref={sectionRef}
-      className="relative isolate flex min-h-[120vh] overflow-hidden bg-[#070707]"
+      className="relative isolate flex min-h-screen overflow-hidden bg-[#070707]"
     >
       {/* ── LAYER 1: Full-bleed image — absolute fill ── */}
       <motion.div
@@ -38,18 +38,11 @@ export default function Hero() {
         <img
           src={CAMPAIGN.opening.src}
           alt={CAMPAIGN.opening.alt}
-          style={{
-            objectPosition: 'center 25%',
-          }}
+          style={{ objectPosition: CAMPAIGN.opening.position }}
           {...({ fetchpriority: 'high' } as React.ImgHTMLAttributes<HTMLImageElement>)}
           loading="eager"
           decoding="async"
-          className="campaign-photo-grade campaign-hero-img absolute inset-0 h-full w-full object-cover"
-        />
-        {/* Cinematic grade + grain overlay to remove seams and add film look */}
-        <div
-          aria-hidden
-          className="absolute inset-0 pointer-events-none campaign-grade-overlay"
+          className="campaign-photo-grade absolute inset-0 h-full w-full object-cover"
         />
 
         {/* Layered cinematic scrims — vignette first, then the directional
@@ -96,8 +89,8 @@ export default function Hero() {
       </>
 
       {/* ── LAYER 2: Content — lives inside the image ── */}
-      <div className="relative flex min-h-[120vh] items-end px-gutter pb-20 pt-36 lg:items-start lg:pb-24 lg:pt-40">
-        <div className="w-full max-w-[40rem]">
+      <div className="relative flex min-h-screen items-end px-gutter pb-20 pt-36 lg:items-center lg:pb-24">
+        <div className="w-full max-w-[52rem]">
           {/* Eyebrow label — slide in from the column edge */}
           <motion.div
             initial={{ opacity: 0, x: -24 }}
