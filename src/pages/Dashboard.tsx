@@ -1,5 +1,3 @@
-// ORIENT. The member's hub: status at a glance, what changed, the archive,
-// and the launcher. Summarises; never explains. Every summary links out.
 import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
@@ -121,7 +119,7 @@ export default function Dashboard() {
               />
             </div>
 
-            <QuickActions emptyState />
+            <QuickActions />
           </>
         ) : (
           <>
@@ -140,13 +138,6 @@ export default function Dashboard() {
                 Analysed {format(new Date(analysisResult.analyzedAt), 'MMMM yyyy')} ·{' '}
                 {analysisResult.colorProfile.undertone} undertone
               </p>
-              <Link
-                href={ROUTES.report}
-                className="mt-4 inline-flex items-center gap-1.5 text-nav text-gold-primary transition-colors duration-200 ease-out hover:text-gold-light"
-              >
-                View full report
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
             </motion.header>
 
             {/* Current palette strip */}
@@ -169,72 +160,19 @@ export default function Dashboard() {
                   />
                 ))}
               </motion.div>
-              <Link
-                href={ROUTES.report}
-                className="ml-auto inline-flex items-center gap-1 text-nav text-cream-primary/55 transition-colors duration-200 ease-out hover:text-cream-primary"
-              >
-                See all {seasonInfo.palette.length} colours
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
             </div>
 
-            <QuickActions />
-
-            {/* Compare with previous */}
-            {analysisHistory.length > 0 &&
-              analysisHistory[analysisHistory.length - 1] && (
-                <section className="mt-16">
-                  <SectionHeading label="Progress" title="Compare with Previous" />
-                  <div className="mt-6 border border-gold-hairline bg-surface-3 p-8">
-                    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
-                      {(() => {
-                        const previous =
-                          analysisHistory[analysisHistory.length - 1];
-                        const previousSeason = getSeasonInfo(
-                          previous.colourSeason,
-                          previous.colorProfile.undertone,
-                        );
-                        return (
-                          <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
-                              Previous analysis
-                            </p>
-                            <h3 className="mt-2 font-serif text-[length:var(--text-h4)] text-cream-primary">
-                              {previousSeason.season}
-                            </h3>
-                            <p className="mt-1 text-[length:var(--text-caption)] text-cream-primary/55">
-                              Analysed{' '}
-                              {format(new Date(previous.analyzedAt), 'MMMM yyyy')}
-                            </p>
-                            <PaletteRow colours={previousSeason.palette} />
-                          </div>
-                        );
-                      })()}
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
-                          Current analysis
-                        </p>
-                        <h3 className="mt-2 font-serif text-[length:var(--text-h4)] text-cream-primary">
-                          {seasonInfo.season}
-                        </h3>
-                        <p className="mt-1 text-[length:var(--text-caption)] text-cream-primary/55">
-                          Analysed{' '}
-                          {format(new Date(analysisResult.analyzedAt), 'MMMM yyyy')}
-                        </p>
-                        <PaletteRow colours={seasonInfo.palette} />
-                      </div>
-                    </div>
-                    <div className="mt-8 border-t border-gold-hairline pt-6">
-                      <p className="max-w-2xl text-[length:var(--text-body-sm)] text-cream-primary/80">
-                        {compareSummary(
-                          analysisResult,
-                          analysisHistory[analysisHistory.length - 1],
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </section>
-              )}
+            {/* Full colour palette */}
+            <section className="mt-12">
+              <SectionHeading label="Your Palette" title="Your Colour Palette" />
+              <div className="mt-6 border border-gold-hairline bg-surface-3 p-8">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+                  {seasonInfo.palette.map((colour) => (
+                    <ColorSwatch key={colour.hex + colour.name} {...colour} />
+                  ))}
+                </div>
+              </div>
+            </section>
 
             {/* Saved items */}
             <section className="mt-16">
@@ -361,6 +299,62 @@ export default function Dashboard() {
               </section>
             )}
 
+            {/* Compare with previous */}
+            {analysisHistory.length > 0 &&
+              analysisHistory[analysisHistory.length - 1] && (
+                <section className="mt-16">
+                  <SectionHeading label="Progress" title="Compare with Previous" />
+                  <div className="mt-6 border border-gold-hairline bg-surface-3 p-8">
+                    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
+                      {(() => {
+                        const previous =
+                          analysisHistory[analysisHistory.length - 1];
+                        const previousSeason = getSeasonInfo(
+                          previous.colourSeason,
+                          previous.colorProfile.undertone,
+                        );
+                        return (
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                              Previous analysis
+                            </p>
+                            <h3 className="mt-2 font-serif text-[length:var(--text-h4)] text-cream-primary">
+                              {previousSeason.season}
+                            </h3>
+                            <p className="mt-1 text-[length:var(--text-caption)] text-cream-primary/55">
+                              Analysed{' '}
+                              {format(new Date(previous.analyzedAt), 'MMMM yyyy')}
+                            </p>
+                            <PaletteRow colours={previousSeason.palette} />
+                          </div>
+                        );
+                      })()}
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">
+                          Current analysis
+                        </p>
+                        <h3 className="mt-2 font-serif text-[length:var(--text-h4)] text-cream-primary">
+                          {seasonInfo.season}
+                        </h3>
+                        <p className="mt-1 text-[length:var(--text-caption)] text-cream-primary/55">
+                          Analysed{' '}
+                          {format(new Date(analysisResult.analyzedAt), 'MMMM yyyy')}
+                        </p>
+                        <PaletteRow colours={seasonInfo.palette} />
+                      </div>
+                    </div>
+                    <div className="mt-8 border-t border-gold-hairline pt-6">
+                      <p className="max-w-2xl text-[length:var(--text-body-sm)] text-cream-primary/80">
+                        {compareSummary(
+                          analysisResult,
+                          analysisHistory[analysisHistory.length - 1],
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+              )}
+
             {/* Analysis history */}
             <section className="mt-16">
               <SectionHeading label="Activity" title="Analysis History" />
@@ -411,6 +405,8 @@ export default function Dashboard() {
                 )}
               </div>
             </section>
+
+            <QuickActions />
           </>
         )}
       </EditorialContainer>
@@ -429,16 +425,13 @@ function SectionHeading({ label, title }: { label?: string; title: string }) {
   );
 }
 
-function QuickActions({ emptyState = false }: { emptyState?: boolean }) {
-  const allActions = [
-    { href: ROUTES.upload, title: 'New Analysis', description: 'Upload another selfie', icon: Upload },
-    { href: ROUTES.tryOn, title: 'Virtual Try-On', description: 'See colours on you', icon: Shirt },
-    { href: ROUTES.chat, title: 'AI Stylist', description: 'Get personalised advice', icon: MessageSquare },
-    { href: ROUTES.report, title: 'Full Report', description: 'Revisit your analysis', icon: Sparkles },
+function QuickActions() {
+  const actions = [
+    { href: '/upload', title: 'New Analysis', description: 'Upload another selfie', icon: Upload },
+    { href: '/try-on', title: 'Virtual Try-On', description: 'See colours on you', icon: Shirt },
+    { href: '/chat', title: 'AI Stylist', description: 'Get personalised advice', icon: MessageSquare },
+    { href: '/report', title: 'Full Report', description: 'Revisit your analysis', icon: Sparkles },
   ];
-  const actions = emptyState
-    ? allActions.filter((a) => a.href === ROUTES.upload)
-    : allActions;
 
   return (
     <section className="mt-16">

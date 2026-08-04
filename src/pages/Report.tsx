@@ -1,11 +1,9 @@
-// EXPLAIN. The full artefact of ONE analysis. Shareable and printable,
-// so it must never contain account-level or activity data.
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { success, error } from '@/lib/toast';
 import * as Dialog from '@radix-ui/react-dialog';
-import { ArrowLeft, Bookmark, Check, Copy, Printer, Share2, X } from 'lucide-react';
+import { Bookmark, Check, Copy, Printer, Share2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -253,13 +251,6 @@ export default function Report() {
     <div className="w-full pb-28">
       <header className="border-b border-gold-hairline pb-10 pt-28">
         <EditorialContainer>
-          <Link
-            href={ROUTES.dashboard}
-            className="mb-6 inline-flex items-center gap-1.5 text-nav text-cream-primary/55 transition-colors duration-200 ease-out hover:text-cream-primary"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Back to dashboard
-          </Link>
           <EyebrowLabel tone="gold">Your Colour Report</EyebrowLabel>
           <EditorialHeading as="h1" size="xl" className="mt-4">
             {seasonInfo.season}

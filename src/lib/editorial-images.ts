@@ -22,7 +22,7 @@ export const CAMPAIGN: Record<string, EditorialPhoto> = {
   opening: {
     src: unsplash('1524504388940-b1c1722653e1'),
     alt: 'A woman in a neutral-toned outfit photographed in warm natural light',
-    position: '80% 25%',
+    position: 'center 28%',
   },
   /* Closing spread — darker, quieter, end-of-magazine register. */
   closing: {
