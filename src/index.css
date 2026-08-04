@@ -82,8 +82,8 @@
   /* ── Fluid editorial display scale ──
      Campaign typography that scales continuously rather than in breakpoint
      steps, so a headline is composed for its column at every width. */
-  --text-campaign: clamp(3rem, 12.5vw, 11.5rem);
-  --text-campaign--line-height: 0.88;
+  --text-campaign: clamp(2.2rem, 5.5vw, 6rem);
+  --text-campaign--line-height: 0.90;
   --text-campaign--letter-spacing: -0.03em;
   --text-editorial-xl: clamp(2.75rem, 8.5vw, 7.5rem);
   --text-editorial-xl--line-height: 0.94;
@@ -521,7 +521,53 @@
   /* Grade, not a dimmer. Blacks deepen and teal enriches, but the exposure
      on skin is left alone so the subject never goes muddy. */
   .campaign-photo-grade {
-    filter: brightness(0.94) contrast(1.14) saturate(0.88);
+      filter: brightness(0.94) contrast(1.14) saturate(0.88);
+      will-change: transform, filter;
+  }
+
+    /* Cinematic grade + film grain overlay sits above the photo to hide
+       subtle seams and add a filmic tint and texture. */
+    .campaign-grade-overlay {
+      mix-blend-mode: overlay;
+      background: linear-gradient(120deg, rgba(10, 40, 36, 0.14), rgba(24, 8, 18, 0.08));
+      opacity: 0.9;
+      pointer-events: none;
+      will-change: opacity, transform;
+      animation: gradeShift 18s linear infinite;
+    }
+
+    .campaign-grade-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      /* subtle multi-layer grain using very small repeating gradients */
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 2px),
+        repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 2px);
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      animation: grainFlicker 0.9s steps(3) infinite;
+    }
+
+  /* Hero image — desktop only right-shift so mobile has no gap */
+  @media (min-width: 1024px) {
+    .campaign-hero-img {
+      transform: translateX(12%);
+      transform-origin: center center;
+    }
+  }
+
+  @keyframes gradeShift {
+    0% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-0.6%) scale(1.005); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  @keyframes grainFlicker {
+    0% { opacity: 0.05; }
+    50% { opacity: 0.07; }
+    100% { opacity: 0.05; }
   }
 
   /* ── Cinematic campaign spread ──

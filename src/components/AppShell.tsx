@@ -3,8 +3,7 @@ import { useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
-
-const AUTH_ROUTES = new Set(['/login', '/signup']);
+import { GUEST_ONLY_PATHS } from '@/config/navigation';
 
 interface AppShellProps {
   children: ReactNode;
@@ -13,7 +12,7 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const [location] = useLocation();
 
-  if (AUTH_ROUTES.has(location)) {
+  if (GUEST_ONLY_PATHS.has(location)) {
     return <>{children}</>;
   }
 
@@ -26,7 +25,7 @@ export default function AppShell({ children }: AppShellProps) {
         Skip to content
       </a>
       <Navbar />
-      <main id="main-content" tabIndex={-1} className="flex-1 scroll-mt-16 outline-none">
+      <main id="main-content" tabIndex={-1} className="flex-1 scroll-mt-[70px] outline-none">
         {children}
       </main>
       <Footer />
