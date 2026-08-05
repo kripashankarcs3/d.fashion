@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import FavoriteService from "../services/favorite.service";
 import Favorite from "../models/favorite.model";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -26,6 +27,11 @@ export const getFavorites = asyncHandler(async (req: Request, res: Response) => 
 });
 
 export const deleteFavorite = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    res.status(404).json({ success: false, message: "Not found" });
+    return;
+  }
+
   const userId = (req as any).user.id;
   const favorite = await Favorite.findById(req.params.id);
 

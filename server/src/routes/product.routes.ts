@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.middleware";
+import { requireAdmin } from "../middleware/requireAdmin";
 
 import {
   createProduct,
@@ -21,10 +22,10 @@ router.get("/category/:category", getProductsByCategory);
 
 router.get("/:id", getProduct);
 
-router.post("/", authenticate, createProduct);
+router.post("/", authenticate, requireAdmin, createProduct);
 
-router.put("/:id", authenticate, updateProduct);
+router.put("/:id", authenticate, requireAdmin, updateProduct);
 
-router.delete("/:id", authenticate, deleteProduct);
+router.delete("/:id", authenticate, requireAdmin, deleteProduct);
 
 export default router;

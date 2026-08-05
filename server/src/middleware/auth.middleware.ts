@@ -59,13 +59,9 @@ export const authenticate = async (
         };
         next();
         return;
-      } catch (firebaseError) {
-        console.error("Firebase auth error:", firebaseError);
-        res.status(401).json({
-          success: false,
-          message: "Invalid or expired token",
-        });
-        return;
+      } catch {
+        // Not a Firebase ID token (e.g. a local register/login JWT) — fall
+        // through to local JWT verification below instead of hard-failing.
       }
     }
 

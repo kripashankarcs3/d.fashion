@@ -57,6 +57,7 @@ export interface AnalysisResult {
   recommendations: Recommendations;
   analyzedAt: string;
   colourSeason?: string;
+  seasonConfidence?: number;
   bestNeutrals?: string[];
   styleArchetypes?: StyleArchetype[];
 }
@@ -97,6 +98,8 @@ interface StyleStore {
   saveReport: (result: AnalysisResult) => boolean;
   setAnalysisResult: (result: AnalysisResult) => void;
   addWardrobeItem: (item: WardrobeItem) => void;
+  renameWardrobeItem: (id: string, name: string) => void;
+  removeWardrobeItem: (id: string) => void;
   addActivityEvent: (event: Omit<ActivityEvent, 'id'>) => void;
   setUserPreferences: (prefs: Partial<UserPreferences>) => void;
   setReferenceImageUrl: (url: string | null) => void;
@@ -158,6 +161,16 @@ export const useStyleStore = create<StyleStore>()(
       setAnalysisResult: (result) => set({ analysisResult: result }),
       addWardrobeItem: (item) =>
         set((state) => ({ wardrobeItems: [...state.wardrobeItems, item] })),
+      renameWardrobeItem: (id, name) =>
+        set((state) => ({
+          wardrobeItems: state.wardrobeItems.map((item) =>
+            item.id === id ? { ...item, name } : item,
+          ),
+        })),
+      removeWardrobeItem: (id) =>
+        set((state) => ({
+          wardrobeItems: state.wardrobeItems.filter((item) => item.id !== id),
+        })),
       addActivityEvent: (event) =>
         set((state) => ({
           activityLog: [

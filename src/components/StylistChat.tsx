@@ -105,7 +105,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
   };
 
   return (
-    <div className="flex h-[620px] flex-col overflow-hidden border border-border bg-surface-3">
+    <div className="flex h-[38.75rem] flex-col overflow-hidden border border-border bg-surface-3">
       {/* Header */}
       <div className="flex items-center gap-4 border-b border-border p-6">
         <span
@@ -115,7 +115,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
           <Sparkles className="h-5 w-5" />
         </span>
         <div>
-          <p className="text-[13px] font-semibold text-gold-primary">
+          <p className="text-[0.8125rem] font-semibold text-gold-primary">
             D&rsquo;Style
           </p>
           <p className="text-[length:var(--text-caption)] text-cream-primary/55">

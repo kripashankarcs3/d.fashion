@@ -3,14 +3,16 @@ dotenv.config();
 
 import mongoose from "mongoose";
 import app from "./app";
-import { env } from "./config/env";
+import { env, assertJwtSecretForProduction } from "./config/env";
 import { connectDB } from "./config/database";
 import { ImageService } from "./services/image.service";
 
-const UPLOAD_TTL_MS = 24 * 60 * 60 * 1000;
+const UPLOAD_TTL_MS = 2 * 60 * 60 * 1000;
 
 const startServer = async () => {
   try {
+    assertJwtSecretForProduction();
+
     const missingYouCam = env.YOUCAM_API_KEY ? [] : ["YOUCAM_API_KEY"];
     if (missingYouCam.length > 0) {
       if (env.NODE_ENV === "production") {

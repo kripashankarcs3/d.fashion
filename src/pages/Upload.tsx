@@ -5,7 +5,7 @@ import UploadFlow from '@/components/UploadFlow';
 
 export default function Upload() {
   return (
-    <section className="w-full min-h-screen bg-surface-1 pt-28 pb-24">
+    <section className="w-full min-h-[100svh] bg-surface-1 pt-28 pb-24">
       <EditorialContainer width="narrow">
         {/* Masthead */}
         <PageMasthead
@@ -15,7 +15,7 @@ export default function Upload() {
               Upload your photo <Emphasis>to begin.</Emphasis>
             </>
           }
-          lede="Secure. Private. Your photo is deleted after analysis."
+          lede="Secure. Private. Your original photo is deleted immediately after analysis; the enhanced copy is removed within two hours."
         />
 
         {/* UploadFlow — unchanged functionality */}

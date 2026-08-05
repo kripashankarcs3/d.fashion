@@ -30,6 +30,12 @@ export const ROUTES = {
   report: '/report',
   tryOn: '/try-on',
   chat: '/chat',
+  privacy: '/privacy',
+  terms: '/terms',
+  about: '/about',
+  contact: '/contact',
+  faq: '/faq',
+  blog: '/blog',
 } as const;
 
 /** Legacy paths kept alive as redirects so old links and bookmarks never 404. */
@@ -37,13 +43,32 @@ export const ROUTE_ALIASES: Record<string, string> = {
   '/tryon': ROUTES.tryOn,
 };
 
+/**
+ * The absolute origin used for canonical URLs, Open Graph, and sitemap.xml.
+ * Set `VITE_SITE_URL` at build time to your production domain; until then the
+ * reserved `.example.com` placeholder is used so no real third-party site is
+ * ever pointed at.
+ */
+export const SITE_URL: string =
+  (import.meta.env.VITE_SITE_URL as string | undefined) ??
+  'https://deestyle.example.com';
+
 /** Reachable without an account. The root (`/`) is intentionally absent — it is
  *  auth-switched and bounces signed-out visitors to login. Everything else here
  *  requires a session.
  *  Documentation/test fixture — the router expresses this fact structurally via
  *  the `<Protected>` / `<GuestOnly>` wrappers, and `e2e/smoke.js` imports these
  *  sets so the test's public/protected route lists can never disagree. */
-export const PUBLIC_PATHS = new Set<string>([ROUTES.home, ROUTES.pricing]);
+export const PUBLIC_PATHS = new Set<string>([
+  ROUTES.home,
+  ROUTES.pricing,
+  ROUTES.privacy,
+  ROUTES.terms,
+  ROUTES.about,
+  ROUTES.contact,
+  ROUTES.faq,
+  ROUTES.blog,
+]);
 
 /** Only for signed-out visitors — an authenticated user is bounced to the app.
  *  Documentation/test fixture — see `PUBLIC_PATHS`. */
@@ -69,8 +94,9 @@ export const MARKETING_NAV: NavLink[] = [
   { href: ROUTES.pricing, label: 'Pricing' },
 ];
 
-/** Signed-in header, ordered by the product journey: analyse → read → wear → ask. */
+/** Signed-in header, ordered by the product journey: home → analyse → read → wear → ask. */
 export const APP_NAV: NavLink[] = [
+  { href: ROUTES.home, label: 'Home' },
   { href: ROUTES.dashboard, label: 'Dashboard' },
   { href: ROUTES.upload, label: 'Analysis' },
   { href: ROUTES.report, label: 'My Report' },
@@ -110,22 +136,113 @@ export const FOOTER_ACCOUNT_GUEST: NavLink[] = [
   { href: ROUTES.signup, label: 'Create Account' },
 ];
 
-/* ------------------------------------------------------------- page titles */
+export const FOOTER_COMPANY: NavLink[] = [
+  { href: ROUTES.about, label: 'About' },
+  { href: ROUTES.contact, label: 'Contact' },
+  { href: ROUTES.blog, label: 'Journal' },
+  { href: ROUTES.faq, label: 'FAQ' },
+];
 
-export const PAGE_TITLES: Record<string, string> = {
-  [ROUTES.root]: "D'Fashion — Welcome",
-  [ROUTES.home]: "D'Fashion — Discover Your Colour Season",
-  [ROUTES.upload]: "Upload — D'Fashion",
-  [ROUTES.report]: "Your Colour Report — D'Fashion",
-  [ROUTES.tryOn]: "Virtual Try-On — D'Fashion",
-  [ROUTES.chat]: "D'Style Stylist Chat — D'Fashion",
-  [ROUTES.dashboard]: "Dashboard — D'Fashion",
-  [ROUTES.pricing]: "Pricing — D'Fashion",
-  [ROUTES.login]: "Sign In — D'Fashion",
-  [ROUTES.signup]: "Sign Up — D'Fashion",
+export const FOOTER_LEGAL: NavLink[] = [
+  { href: ROUTES.privacy, label: 'Privacy Policy' },
+  { href: ROUTES.terms, label: 'Terms of Service' },
+  { href: ROUTES.privacy, hash: 'cookies', label: 'Cookie Policy' },
+  { href: ROUTES.terms, hash: 'refunds', label: 'Refund Policy' },
+];
+
+/* ------------------------------------------------------------- page meta */
+
+export interface PageMeta {
+  title: string;
+  description: string;
+}
+
+export const PAGE_META: Record<string, PageMeta> = {
+  [ROUTES.root]: {
+    title: "D'Fashion — Welcome",
+    description:
+      'Personalised colour analysis for your skin tone, undertone, and style personality.',
+  },
+  [ROUTES.home]: {
+    title: "D'Fashion — Discover Your Colour Season",
+    description:
+      'Discover the colours that were made for you. AI-powered colour analysis personalised to your skin tone, undertone, and style personality.',
+  },
+  [ROUTES.pricing]: {
+    title: "Pricing — D'Fashion",
+    description:
+      'Simple, transparent pricing for personalised colour analysis. Analyse your colours, read your report, and shop your palette.',
+  },
+  [ROUTES.upload]: {
+    title: "Upload — D'Fashion",
+    description:
+      'Upload a clear photo in natural light and let D\u2019Fashion read your skin undertone, depth, and contrast.',
+  },
+  [ROUTES.report]: {
+    title: "Your Colour Report — D'Fashion",
+    description:
+      'Your personalised colour season, palette, neutrals, makeup shades, and wardrobe guidance.',
+  },
+  [ROUTES.tryOn]: {
+    title: "Virtual Try-On — D'Fashion",
+    description:
+      'See outfits, makeup, and hairstyles rendered in your exact palette before you buy.',
+  },
+  [ROUTES.chat]: {
+    title: "D'Style Stylist Chat — D'Fashion",
+    description:
+      'Ask your personal AI stylist anything about your palette, wardrobe, and colour choices.',
+  },
+  [ROUTES.dashboard]: {
+    title: "Dashboard — D'Fashion",
+    description:
+      'Your colour intelligence at a glance — palette, reports, wardrobe, and weekly guidance.',
+  },
+  [ROUTES.login]: {
+    title: "Sign In — D'Fashion",
+    description: 'Sign in to access your colour report and dashboard.',
+  },
+  [ROUTES.signup]: {
+    title: "Sign Up — D'Fashion",
+    description:
+      'Create your D\u2019Fashion account and discover the colours made for you.',
+  },
+  [ROUTES.privacy]: {
+    title: "Privacy Policy — D'Fashion",
+    description:
+      'How D\u2019Fashion collects, uses, and protects your data — including exactly what happens to the photos you upload.',
+  },
+  [ROUTES.terms]: {
+    title: "Terms of Service — D'Fashion",
+    description:
+      'The terms that govern your use of the D\u2019Fashion colour analysis service.',
+  },
+  [ROUTES.about]: {
+    title: "About — D'Fashion",
+    description:
+      'The story behind D\u2019Fashion — colour intelligence, rendered personal.',
+  },
+  [ROUTES.contact]: {
+    title: "Contact — D'Fashion",
+    description:
+      'Get in touch with the D\u2019Fashion team for support, press, and partnerships.',
+  },
+  [ROUTES.faq]: {
+    title: "FAQ — D'Fashion",
+    description:
+      'Answers to common questions about colour analysis, your report, privacy, and payments.',
+  },
+  [ROUTES.blog]: {
+    title: "Journal — D'Fashion",
+    description:
+      'Essays and guides on colour analysis, undertones, and building a wardrobe in your palette.',
+  },
 };
 
-export const FALLBACK_PAGE_TITLE = "Page Not Found — D'Fashion";
+export const FALLBACK_PAGE_META: PageMeta = {
+  title: "Page Not Found — D'Fashion",
+  description: "The page you're looking for could not be found.",
+};
 
 /** Routes whose hero sits under a transparent, full-bleed header. */
 export const OVERLAY_ROUTES = new Set<string>([ROUTES.home]);

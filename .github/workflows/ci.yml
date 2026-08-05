@@ -72,7 +72,6 @@ jobs:
           JWT_SECRET: ci-test-secret
           MONGODB_URI: mongodb://localhost:27017/deestyle_ci
           YOUCAM_API_KEY: ci-dummy-key
-          YOUCAM_API_SECRET: ci-dummy-secret
         run: |
           cd server
           npm ci

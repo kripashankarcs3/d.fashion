@@ -1,3 +1,5 @@
+import Anthropic from "@anthropic-ai/sdk";
+import { env } from "../config/env";
 import {
   deriveSeason,
   deriveUndertone,
@@ -214,4 +216,33 @@ export function generateStylistReply(message: string, context?: StylistContext):
 
   // ── Fallback ──
   return `I want to give you something genuinely useful, so let me work with what I know: your season is **${season}** (${undertone} undertone), which means colours like **${paletteLine}** tend to flatter you, while ${avoidLine} are best kept small. Ask me about an occasion, a specific colour, makeup, hair, or how to style your wardrobe — and I will tailor the answer to you.`;
+}
+
+export async function generateStylistReplyAI(
+  message: string,
+  ctx?: StylistContext
+): Promise<string> {
+  if (!env.ANTHROPIC_API_KEY) return generateStylistReply(message, ctx);
+
+  try {
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+    const res = await client.messages.create({
+      model: "claude-sonnet-5",
+      max_tokens: 700,
+      system:
+        "You are D'Style, a warm, expert personal colour-and-style consultant for D'Fashion. " +
+        "Ground every answer in the user's colour analysis JSON below. Never invent an analysis " +
+        "they don't have. Be specific and concise; use **bold** for colour names.\n" +
+        `USER ANALYSIS: ${JSON.stringify(ctx?.analysisResult ?? null)}\n` +
+        `USER WARDROBE: ${JSON.stringify(ctx?.wardrobeItems ?? [])}`,
+      messages: [{ role: "user", content: message }],
+    });
+    return res.content
+      .filter((block) => block.type === "text")
+      .map((block) => block.text)
+      .join("\n");
+  } catch (err) {
+    console.warn("Claude stylist failed, using rules engine:", (err as Error).message);
+    return generateStylistReply(message, ctx);
+  }
 }

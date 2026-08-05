@@ -21,8 +21,8 @@ const CHAPTERS = [
     photo: CAMPAIGN.season,
     photoSide: 'right' as const,
     photoWidth: 'md:w-[62%]',
-    heightClassName: 'md:min-h-[85vh] lg:min-h-[92vh]',
-    headingSize: 'clamp(2.75rem, 5.4vw, 6.5rem)',
+    heightClassName: 'min-h-[max(34rem,min(82svh,50rem))] lg:min-h-[max(36rem,min(88svh,54rem))]',
+    headingSize: 'clamp(2.5rem, 1.0rem + 3.6vw, 5.75rem)',
     objectPosition: '62% 34%',
   },
   {
@@ -42,8 +42,8 @@ const CHAPTERS = [
     photo: CAMPAIGN.undertone,
     photoSide: 'left' as const,
     photoWidth: 'md:w-[58%]',
-    heightClassName: 'md:min-h-[80vh] lg:min-h-[86vh]',
-    headingSize: 'clamp(2.5rem, 4.9vw, 5.75rem)',
+    heightClassName: 'min-h-[max(32rem,min(80svh,48rem))] lg:min-h-[max(34rem,min(86svh,52rem))]',
+    headingSize: 'clamp(2.25rem, 0.9rem + 3.2vw, 5.25rem)',
     objectPosition: '30% 28%',
   },
   {
@@ -62,8 +62,8 @@ const CHAPTERS = [
     photo: CAMPAIGN.archetype,
     photoSide: 'right' as const,
     photoWidth: 'md:w-[65%]',
-    heightClassName: 'md:min-h-[82vh] lg:min-h-[90vh]',
-    headingSize: 'clamp(2.6rem, 5.1vw, 6rem)',
+    heightClassName: 'min-h-[max(33rem,min(82svh,49rem))] lg:min-h-[max(35rem,min(90svh,53rem))]',
+    headingSize: 'clamp(2.4rem, 0.95rem + 3.4vw, 5.5rem)',
     objectPosition: '70% 30%',
   },
   {
@@ -82,8 +82,8 @@ const CHAPTERS = [
     photo: CAMPAIGN.tryOn,
     photoSide: 'left' as const,
     photoWidth: 'md:w-[60%]',
-    heightClassName: 'md:min-h-[78vh] lg:min-h-[84vh]',
-    headingSize: 'clamp(2.5rem, 4.8vw, 5.5rem)',
+    heightClassName: 'min-h-[max(30rem,min(78svh,46rem))] lg:min-h-[max(32rem,min(84svh,50rem))]',
+    headingSize: 'clamp(2.25rem, 0.9rem + 3.1vw, 5rem)',
     objectPosition: '35% 30%',
   },
 ];
@@ -111,7 +111,7 @@ export default function FeatureShowcase() {
           >
             <Link
               href={chapter.href}
-              className="btn-campaign mt-10 inline-block rounded-none border-gold-border px-[28px] py-[14px] text-center text-[11px] hover:border-gold-border-hover hover:bg-gold-primary/10"
+              className="btn-campaign mt-10 inline-block rounded-none border-gold-border px-[1.75rem] py-[0.875rem] text-center text-[0.6875rem] hover:border-gold-border-hover hover:bg-gold-primary/10"
             >
               {chapter.cta}
             </Link>

@@ -76,14 +76,14 @@ export default function PricingTeaser() {
             >
               {plan.featured && (
                 <div className="absolute -top-2.5 left-8">
-                  <span className="rounded-sm bg-surface-1 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-gold-primary">
+                  <span className="rounded-sm bg-surface-1 px-3 py-1 text-[0.625rem] font-bold uppercase tracking-[0.14em] text-gold-primary">
                     Most Popular
                   </span>
                 </div>
               )}
 
               <div className="mb-6">
-                <p className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${plan.featured ? 'text-surface-2' : 'text-gold-light'}`}>
+                <p className={`text-[0.6875rem] font-semibold uppercase tracking-[0.16em] ${plan.featured ? 'text-surface-2' : 'text-gold-light'}`}>
                   {plan.note}
                 </p>
                 <h3 className={`mt-2 font-serif text-h4 ${plan.featured ? 'text-surface-1' : 'text-cream-primary'}`}>

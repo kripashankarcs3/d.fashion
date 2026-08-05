@@ -20,7 +20,7 @@ import EditorialContainer from '@/components/editorial/EditorialContainer';
 import { useStyleStore } from '@/store/useStyleStore';
 import { useTryOn } from '@/hooks/useTryOn';
 import { getSeasonInfo } from '@/lib/colour-data';
-import { listTryOnTemplates } from '@/services/api';
+import { listTryOnTemplates, assetUrl } from '@/services/api';
 import { cn, srcsetFromUrl } from '@/lib/utils';
 
 type Mode = 'outfits' | 'makeup' | 'hair';
@@ -592,7 +592,7 @@ export default function TryOn() {
                           </p>
                           <div className="mt-2 aspect-[3/4] w-full overflow-hidden border border-gold-hairline">
                             <img
-                              src={referenceImageUrl}
+                              src={assetUrl(referenceImageUrl)}
                               alt="Your reference photo"
                               width={480}
                               height={640}

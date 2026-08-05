@@ -21,7 +21,7 @@ const drawerVariants = {
 
 function Hamburger({ open }: { open: boolean }) {
   return (
-    <span aria-hidden="true" className="relative block h-[11px] w-[22px]">
+    <span aria-hidden="true" className="relative block h-[0.6875rem] w-[1.375rem]">
       <span
         className={cn(
           'absolute left-0 top-0 h-px w-full bg-gold-primary transition-transform duration-400 ease-[var(--ease-editorial)]',
@@ -150,12 +150,12 @@ export default function Navbar() {
     >
       <div className="mx-auto w-full max-w-container-editorial px-[var(--gutter)]">
         <nav
-          className="flex h-[70px] items-center justify-between gap-8"
+          className="flex h-[4.375rem] items-center justify-between gap-8"
           aria-label="Primary"
         >
           <Link
             href={ROUTES.home}
-            className="shrink-0 font-display text-[26px] leading-none tracking-[-0.01em] transition-opacity duration-300 hover:opacity-70"
+            className="shrink-0 font-display text-[1.625rem] leading-none tracking-[-0.01em] transition-opacity duration-300 hover:opacity-70"
             aria-label="D'Fashion — home"
           >
             <motion.span
@@ -178,7 +178,7 @@ export default function Navbar() {
                 <span
                   aria-hidden="true"
                   className={cn(
-                    'absolute inset-x-0 bottom-[18px] h-px origin-left bg-gold-primary transition-transform duration-500 ease-[var(--ease-editorial)]',
+                    'absolute inset-x-0 bottom-[1.125rem] h-px origin-left bg-gold-primary transition-transform duration-500 ease-[var(--ease-editorial)]',
                     active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
                   )}
                 />
@@ -225,7 +225,7 @@ export default function Navbar() {
                   aria-expanded={accountOpen}
                   aria-haspopup="menu"
                   aria-label="Account menu"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gold-border font-display text-[15px] transition-colors duration-300 hover:border-gold-light"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gold-border font-display text-[0.9375rem] transition-colors duration-300 hover:border-gold-light"
                 >
                   {initials || '·'}
                 </button>
@@ -238,7 +238,7 @@ export default function Navbar() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute right-0 top-[calc(100%+14px)] z-[var(--z-navbar)] w-60 border border-gold-hairline bg-surface-4 py-3 text-gold-primary shadow-md"
+                      className="absolute right-0 top-[calc(100%+0.875rem)] z-[var(--z-navbar)] w-60 border border-gold-hairline bg-surface-4 py-3 text-gold-primary shadow-md"
                     >
                       <p className="border-b border-gold-hairline px-5 pb-3 text-body-sm text-gold-primary">
                         {user?.name}
@@ -310,8 +310,8 @@ export default function Navbar() {
             exit="closed"
             className="fixed inset-0 z-[var(--z-navbar)] flex flex-col bg-surface-0 text-gold-primary will-change-transform lg:hidden"
           >
-            <div className="flex h-[70px] shrink-0 items-center justify-between px-[var(--gutter)]">
-              <span className="font-display text-[26px] leading-none">
+            <div className="flex h-[4.375rem] shrink-0 items-center justify-between px-[var(--gutter)]">
+              <span className="font-display text-[1.625rem] leading-none">
                 D&rsquo;Fashion
               </span>
               <button
@@ -339,7 +339,7 @@ export default function Navbar() {
                     <span className="eyebrow-micro text-gold-muted tabular-nums">
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <span className="font-display text-[32px] leading-tight">
+                    <span className="font-display text-[2rem] leading-tight">
                       {link.label}
                     </span>
                   </>
@@ -405,7 +405,7 @@ export default function Navbar() {
               )}
               <Link
                 href={ROUTES.upload}
-                className="flex min-h-[52px] w-full items-center justify-center bg-gold-primary eyebrow-micro text-surface-1 transition-opacity duration-300 hover:opacity-85"
+                className="flex min-h-[3.25rem] w-full items-center justify-center bg-gold-primary eyebrow-micro text-surface-1 transition-opacity duration-300 hover:opacity-85"
               >
                 {isAuthenticated ? 'Start a New Analysis' : 'Begin Your Analysis'}
               </Link>

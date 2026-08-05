@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import fs from "fs";
 import path from "path";
 import { sendSuccess, sendError } from "../utils/response";
 import { ImageService } from "../services/image.service";
@@ -6,6 +7,7 @@ import RecommendationService from "../services/recommendation.service";
 import YouCamService from "../services/youcam.service";
 import {
   deriveSeason,
+  deriveSeasonConfidence,
   deriveUndertone,
   getSeasonProfile,
   lipColorName,
@@ -17,6 +19,9 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
   let originalImage = "";
   let optimizedImage = "";
   let enhancedImage = "";
+  // Tracks the enhanced-image path so the catch block can unlink it even
+  // before it has been assigned to `enhancedImage`.
+  let enhancedImagePath: string | null = null;
 
   try {
     if (!req.file) {
@@ -26,16 +31,26 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     const image = ImageService.processImage(req.file);
     originalImage = image.path;
 
-    // ── 1. AI Photo Enhance (real YouCam, with local fallback) ──
+    // ── 1–3. Run the three independent YouCam pipelines in parallel.
+    //         They only need originalImage, so a sequential await here triples
+    //         worst-case latency for no benefit. Each stage degrades to a
+    //         local fallback on its own. ──
+    const [enhanceRes, skinRes, toneRes] = await Promise.allSettled([
+      YouCamService.enhancePhoto(originalImage, 1),
+      YouCamService.analyzeSkin(originalImage),
+      YouCamService.analyzeColorTones(originalImage),
+    ]);
+
     let enhancedImageUrl = "";
-    try {
-      const remoteUrl = await YouCamService.enhancePhoto(originalImage, 1);
-      if (remoteUrl) {
-        enhancedImage = await ImageService.saveRemoteImage(remoteUrl, "enhanced");
+    const enhanceOk = enhanceRes.status === "fulfilled" && enhanceRes.value;
+    if (enhanceOk) {
+      try {
+        enhancedImage = await ImageService.saveRemoteImage(enhanceRes.value, "enhanced");
+        enhancedImagePath = enhancedImage;
         enhancedImageUrl = `/uploads/${path.basename(enhancedImage)}`;
+      } catch (err: any) {
+        console.warn("YouCam photo enhance failed, using local optimization:", err?.message);
       }
-    } catch (err: any) {
-      console.warn("YouCam photo enhance failed, using local optimization:", err?.message);
     }
 
     if (!enhancedImageUrl) {
@@ -43,12 +58,13 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
       enhancedImageUrl = `/uploads/${path.basename(optimizedImage)}`;
     }
 
-    // ── 2. AI Skin Analysis (real YouCam) ──
     let youcamResult: any = null;
-    try {
-      youcamResult = await YouCamService.analyzeSkin(originalImage);
-    } catch (err: any) {
-      const detail = err?.response?.data ? JSON.stringify(err.response.data) : err.message;
+    if (skinRes.status === "fulfilled") {
+      youcamResult = skinRes.value;
+    } else {
+      const detail = (skinRes.reason as any)?.response?.data
+        ? JSON.stringify((skinRes.reason as any).response.data)
+        : (skinRes.reason as Error).message;
       console.warn("YouCam skin analysis failed, using fallback:", detail);
     }
 
@@ -100,21 +116,24 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
       (typeof skinTypeItem?.value === "string" && skinTypeItem.value) ||
       "Combination";
 
-    // ── 3. AI Facial Color Tones Analyzer (real YouCam) ──
     let color = {};
-    try {
-      const toneResult = await YouCamService.analyzeColorTones(originalImage);
-      if (toneResult?.color) {
-        color = toneResult.color;
-      }
-    } catch (err: any) {
-      const detail = err?.response?.data ? JSON.stringify(err.response.data) : err.message;
+    if (toneRes.status === "fulfilled" && toneRes.value?.color) {
+      color = toneRes.value.color;
+    } else if (toneRes.status === "rejected") {
+      const detail = (toneRes.reason as any)?.response?.data
+        ? JSON.stringify((toneRes.reason as any).response.data)
+        : (toneRes.reason as Error).message;
       console.warn("YouCam color tones analysis failed, using fallback:", detail);
     }
 
     const skinToneHex = (color as any).skin_color ?? "#D2A679";
     const undertone = deriveUndertone(skinToneHex);
-    const season = deriveSeason(undertone);
+    const season = deriveSeason(undertone, {
+      skinHex: skinToneHex,
+      hairColor: (color as any).hair_color_name ?? undefined,
+      eyeColor: (color as any).eye_color_name ?? undefined,
+    });
+    const seasonConfidence = deriveSeasonConfidence(skinToneHex, undertone);
     const seasonProfile = getSeasonProfile(season, undertone);
 
     const colorProfile = {
@@ -147,6 +166,7 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
       skinConcerns,
       colorProfile,
       colourSeason: season,
+      seasonConfidence,
       bestNeutrals: seasonProfile.neutrals,
       styleArchetypes: seasonProfile.archetypes,
       recommendations,
@@ -154,6 +174,19 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     });
   } catch (err) {
     console.error("Upload Error:", err);
+    // Unlink the enhanced file immediately on the error path rather than
+    // waiting for the 24h sweeper. Use fire-and-forget fs.unlink so that
+    // a missing file (ENOENT) or any other I/O error never masks the
+    // original failure.
+    if (enhancedImagePath) {
+      fs.unlink(enhancedImagePath, () => {});
+    }
+    // If the analysis partially succeeded, the enhanced/optimized copy must
+    // not survive until the 24h sweeper — unlink it on the error path.
+    const cleanup = [enhancedImage, optimizedImage]
+      .filter(Boolean)
+      .map((p) => ImageService.deleteImage(p as string).catch(() => undefined));
+    await Promise.all(cleanup);
     next(err);
   } finally {
     if (originalImage) await ImageService.deleteImage(originalImage);

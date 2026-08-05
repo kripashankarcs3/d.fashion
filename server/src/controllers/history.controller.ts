@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import HistoryService from "../services/history.service";
 import History from "../models/history.model";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -40,6 +41,11 @@ export const getHistory = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const deleteHistory = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    res.status(404).json({ success: false, message: "Not found" });
+    return;
+  }
+
   const userId = (req as any).user.id;
   const history = await History.findById(req.params.id);
 
