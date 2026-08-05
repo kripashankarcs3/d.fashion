@@ -38,9 +38,18 @@ class RecommendationService {
     };
 
     const hairBySeason: Record<string, string[]> = {
-      "Warm Autumn": ["Dark Brown", "Chestnut Brown", "Copper Brown"],
-      "Cool Winter": ["Natural Black", "Ash Brown", "Cool Espresso"],
+      "Light Spring": ["Warm Blonde", "Light Golden Brown", "Honey Brown"],
+      "True Warm Spring": ["Golden Brown", "Caramel Brown", "Warm Chestnut"],
+      "Bright Spring": ["Copper Brown", "Warm Chestnut", "Rich Golden Brown"],
+      "Light Summer": ["Ash Blonde", "Cool Mushroom Brown", "Soft Taupe"],
+      "True Cool Summer": ["Cool Brown", "Ash Brown", "Mauve-Toned Brown"],
       "Soft Summer": ["Ash Brown", "Mushroom Blonde", "Soft Cool Brown"],
+      "Soft Autumn": ["Mushroom Brown", "Warm Taupe", "Soft Chestnut"],
+      "Warm Autumn": ["Dark Brown", "Chestnut Brown", "Copper Brown"],
+      "Deep Autumn": ["Espresso", "Deep Chestnut", "Black-Brown"],
+      "Deep Winter": ["Black", "Cool Espresso", "Deep Ash Brown"],
+      "Cool Winter": ["Natural Black", "Ash Brown", "Cool Espresso"],
+      "Bright Winter": ["Blue-Black", "Jet Black", "Cool Espresso"],
     };
 
     const toneWord =
@@ -51,12 +60,30 @@ class RecommendationService {
           : "balanced, neutral undertone";
 
     const styleBySeason: Record<string, string> = {
-      "Warm Autumn":
-        "Your warm golden undertone pairs beautifully with earth tones and gold accents — bronze, olive, and terracotta bring out your glow.",
-      "Cool Winter":
-        "Your cool undertone is intensified by jewel tones and silver accents — royal blue, magenta, and crisp white make you shine.",
+      "Light Spring":
+        "Your light, warm freshness is amplified by airy, clear shades — peach, butter yellow, and soft turquoise bring you to life.",
+      "True Warm Spring":
+        "Your warm golden undertone pairs beautifully with clear warm colours — coral, golden yellow, and turquoise give you a healthy glow.",
+      "Bright Spring":
+        "Your bright, high-contrast warmth loves saturated colour — vivid orange, hot pink, and emerald sharpened by crisp warm white.",
+      "Light Summer":
+        "Your cool, gentle softness is flattered by powdery pastels — baby blue, dusty pink, and lavender in light, airy fabrics.",
+      "True Cool Summer":
+        "Your clear cool undertone shines in rose, raspberry, and soft blue — muted, refined shades that keep you fresh without going stark.",
       "Soft Summer":
         "Your neutral-cool undertone suits muted, blended tones — dusty rose, powder blue, and grey sage flatter you without overpowering.",
+      "Soft Autumn":
+        "Your muted warmth blends beautifully with earthy, softened tones — olive, camel, and terracotta in natural fabrics.",
+      "Warm Autumn":
+        "Your warm golden undertone pairs beautifully with earth tones and gold accents — bronze, olive, and terracotta bring out your glow.",
+      "Deep Autumn":
+        "Your rich warmth is anchored by deep, saturated earth tones — espresso, forest, and burnt orange give you undeniable presence.",
+      "Deep Winter":
+        "Your cool depth thrives in black and jewel tones — navy, emerald, and burgundy in sharp, structured silhouettes.",
+      "Cool Winter":
+        "Your cool undertone is intensified by jewel tones and silver accents — royal blue, magenta, and crisp white make you shine.",
+      "Bright Winter":
+        "Your high-contrast cool clarity loves pure white and black sharpened with electric colour — royal blue and hot pink are your power shades.",
     };
 
     return {

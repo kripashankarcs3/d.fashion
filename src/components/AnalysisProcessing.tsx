@@ -35,7 +35,7 @@ export default function AnalysisProcessing({
     : 100;
 
   return (
-    <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-border bg-surface-3 p-8 shadow-card">
+    <div className="flex min-h-[18.75rem] flex-col items-center justify-center rounded-lg border border-border bg-surface-3 p-8 shadow-card">
       {previewUrl ? (
         <div className="relative mb-8 w-28 overflow-hidden rounded-md border border-border">
           <img
@@ -73,7 +73,7 @@ export default function AnalysisProcessing({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: [0, 0, 0.2, 1] }}
-            className="text-[15px] italic text-cream-primary/80"
+            className="text-[0.9375rem] italic text-cream-primary/80"
           >
             {uploading ? 'Uploading your photo…' : STAGES[index]}
           </motion.p>

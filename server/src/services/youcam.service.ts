@@ -137,7 +137,7 @@ class YouCamService {
       const taskId = task?.data?.task_id;
       if (!taskId) throw new Error("Failed to start skin-analysis task");
 
-      return this.pollTaskResult("skin-analysis", taskId, 60, 3000);
+      return this.pollTaskResult("skin-analysis", taskId, 20, 2500);
     };
 
     try {
@@ -165,7 +165,7 @@ class YouCamService {
     const taskId = task?.data?.task_id;
     if (!taskId) throw new Error("Failed to start skin-tone-analysis task");
 
-    const result = await this.pollTaskResult("skin-tone-analysis", taskId, 60, 3000);
+    const result = await this.pollTaskResult("skin-tone-analysis", taskId, 20, 2500);
     return result?.data?.results ?? null;
   }
 
@@ -182,7 +182,7 @@ class YouCamService {
     const taskId = task?.data?.task_id;
     if (!taskId) throw new Error("Failed to start enhance task");
 
-    const result = await this.pollTaskResult("enhance", taskId, 60, 3000);
+    const result = await this.pollTaskResult("enhance", taskId, 20, 2500);
     return result?.data?.results?.url ?? null;
   }
 

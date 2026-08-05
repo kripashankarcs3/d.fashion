@@ -1,4 +1,4 @@
-import multer from "multer";
+import multer, { MulterError } from "multer";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
@@ -36,7 +36,7 @@ const fileFilter: multer.Options["fileFilter"] = (
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error(`Invalid file type: ${file.mimetype}`));
+    cb(new MulterError("LIMIT_UNEXPECTED_FILE", `Invalid file type: ${file.mimetype}`));
   }
 };
 

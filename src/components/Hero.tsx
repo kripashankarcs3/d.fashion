@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { Link } from 'wouter';
 import { CAMPAIGN } from '@/lib/editorial-images';
+import EditorialImage from '@/components/editorial/EditorialImage';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import HashLink from '@/components/nav/HashLink';
@@ -10,8 +11,8 @@ import { ROUTES } from '@/config/navigation';
 const easeEditorial = [0.22, 1, 0.36, 1] as const;
 
 const STATS = [
-  { value: '4 Seasons', sub: 'colour profiles' },
-  { value: '12 Types', sub: 'style archetypes' },
+  { value: '4 Seasons', sub: 'colour families' },
+  { value: '12 Types', sub: 'colour seasons' },
   { value: '<30 sec', sub: 'AI analysis' },
 ];
 
@@ -27,7 +28,7 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative isolate flex min-h-screen overflow-hidden bg-[#070707]"
+      className="relative isolate flex min-h-[max(40rem,min(100svh,58rem))] overflow-hidden bg-[#070707]"
     >
       {/* ── LAYER 1: Full-bleed image — absolute fill ── */}
       <motion.div
@@ -35,14 +36,16 @@ export default function Hero() {
         style={{ y: imageY, scale: imageScale }}
         className="absolute inset-0 -z-10 will-change-transform"
       >
-        <img
-          src={CAMPAIGN.opening.src}
+        <EditorialImage
+          src={CAMPAIGN.opening.base}
           alt={CAMPAIGN.opening.alt}
-          style={{ objectPosition: CAMPAIGN.opening.position }}
-          {...({ fetchpriority: 'high' } as React.ImgHTMLAttributes<HTMLImageElement>)}
-          loading="eager"
-          decoding="async"
-          className="campaign-photo-grade absolute inset-0 h-full w-full object-cover"
+          ratio="fill"
+          position={CAMPAIGN.opening.position}
+          priority
+          sizes="100vw"
+          className="h-full w-full"
+          cinematic={false}
+          imgClassName="campaign-photo-grade"
         />
 
         {/* Layered cinematic scrims — vignette first, then the directional
@@ -56,40 +59,32 @@ export default function Hero() {
       {/* ── Ambient floating particles ── */}
       <>
         {[
-          { top: '15%', left: '8%', size: 3, dur: 5.5, delay: 0, opacity: 0.25 },
+          { top: '15%', left: '8%',  size: 3, dur: 5.5, delay: 0,   opacity: 0.25 },
           { top: '35%', left: '62%', size: 2, dur: 7.0, delay: 1.2, opacity: 0.18 },
           { top: '60%', left: '82%', size: 4, dur: 6.2, delay: 0.6, opacity: 0.20 },
           { top: '22%', left: '44%', size: 2, dur: 8.0, delay: 2.1, opacity: 0.15 },
           { top: '72%', left: '18%', size: 3, dur: 5.0, delay: 1.7, opacity: 0.22 },
           { top: '48%', left: '90%', size: 2, dur: 6.8, delay: 0.3, opacity: 0.17 },
         ].map((p, i) => (
-          <motion.div
+          <div
             key={i}
             aria-hidden="true"
-            className="pointer-events-none absolute rounded-full bg-gold-primary will-change-transform"
+            className="animate-float pointer-events-none absolute rounded-full bg-gold-primary"
             style={{
               top: p.top,
               left: p.left,
               width: p.size,
               height: p.size,
               opacity: p.opacity,
-            }}
-            animate={{
-              y: [-10, 10, -10],
-              opacity: [p.opacity * 0.5, p.opacity, p.opacity * 0.5],
-            }}
-            transition={{
-              duration: p.dur,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: p.delay,
+              animationDuration: `${p.dur}s`,
+              animationDelay: `${p.delay}s`,
             }}
           />
         ))}
       </>
 
       {/* ── LAYER 2: Content — lives inside the image ── */}
-      <div className="relative flex min-h-screen items-end px-gutter pb-20 pt-36 lg:items-center lg:pb-24">
+      <div className="relative flex min-h-[max(40rem,min(100svh,58rem))] items-end px-gutter pb-20 pt-36 lg:items-center lg:pb-24">
         <div className="w-full max-w-[52rem]">
           {/* Eyebrow label — slide in from the column edge */}
           <motion.div
@@ -181,21 +176,21 @@ export default function Hero() {
           <p className="font-serif text-h4 font-light text-gold-primary">
             98<span className="text-body-sm text-gold-light">%</span>
           </p>
-          <p className="text-[9px] uppercase tracking-eyebrow text-gold-muted">
+          <p className="text-[0.5625rem] uppercase tracking-eyebrow text-gold-muted">
             Match
           </p>
         </div>
         <div className="h-px w-8 bg-gold-primary/35" />
         <div className="text-center">
           <p className="font-serif text-h5 font-light text-gold-primary">Warm</p>
-          <p className="text-[9px] uppercase tracking-eyebrow text-gold-muted">
+          <p className="text-[0.5625rem] uppercase tracking-eyebrow text-gold-muted">
             Undertone
           </p>
         </div>
         <div className="h-px w-8 bg-gold-primary/35" />
         <div className="text-center">
           <p className="font-serif text-h5 font-light text-gold-primary">4</p>
-          <p className="text-[9px] uppercase tracking-eyebrow text-gold-muted">
+          <p className="text-[0.5625rem] uppercase tracking-eyebrow text-gold-muted">
             Archetypes
           </p>
         </div>

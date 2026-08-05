@@ -58,6 +58,78 @@ describe("getSeasonProfile", () => {
   });
 });
 
+describe("deriveSeason (12-season engine)", () => {
+  it("keeps legacy 3-season mapping when no features are provided", () => {
+    expect(deriveSeason("warm")).toBe("Warm Autumn");
+    expect(deriveSeason("cool")).toBe("Cool Winter");
+    expect(deriveSeason("neutral")).toBe("Soft Summer");
+  });
+
+  it("derives Deep Autumn for warm undertone with deep skin", () => {
+    expect(
+      deriveSeason("warm", { skinHex: "#3B2318", hairColor: "Black", eyeColor: "Dark Brown" })
+    ).toBe("Deep Autumn");
+  });
+
+  it("derives Light Spring for warm undertone with light skin and blonde hair", () => {
+    expect(
+      deriveSeason("warm", { skinHex: "#F1D5C0", hairColor: "Light Blonde", eyeColor: "Blue" })
+    ).toBe("Light Spring");
+  });
+
+  it("derives Soft Autumn for warm undertone with muted contrast", () => {
+    expect(
+      deriveSeason("warm", { skinHex: "#A08C7A", hairColor: "Brown", eyeColor: "Hazel" })
+    ).toBe("Soft Autumn");
+  });
+
+  it("derives Bright Winter for cool undertone with high contrast", () => {
+    expect(
+      deriveSeason("cool", { skinHex: "#F7F8FB", hairColor: "Black", eyeColor: "Blue" })
+    ).toBe("Bright Winter");
+  });
+
+  it("derives Deep Winter for cool undertone with deep skin", () => {
+    expect(
+      deriveSeason("cool", { skinHex: "#2A241F", hairColor: "Black", eyeColor: "Black" })
+    ).toBe("Deep Winter");
+  });
+
+  it("derives Light Summer for cool undertone with light skin and blonde hair", () => {
+    expect(
+      deriveSeason("cool", { skinHex: "#E8C9C0", hairColor: "Blonde", eyeColor: "Light Blue" })
+    ).toBe("Light Summer");
+  });
+
+  it("resolves neutral undertone to warm family for deep skin", () => {
+    expect(
+      deriveSeason("neutral", { skinHex: "#4A2A17", hairColor: "Black", eyeColor: "Dark Brown" })
+    ).toBe("Deep Autumn");
+  });
+
+  it("resolves neutral undertone to cool family for fair skin", () => {
+    expect(
+      deriveSeason("neutral", { skinHex: "#E8C9C0", hairColor: "Brown", eyeColor: "Blue" })
+    ).toBe("Light Summer");
+  });
+});
+
+describe("getSeasonProfile", () => {
+  it("exposes all 12 season profiles", () => {
+    const expected = [
+      "Light Spring", "True Warm Spring", "Bright Spring",
+      "Light Summer", "True Cool Summer", "Soft Summer",
+      "Soft Autumn", "Warm Autumn", "Deep Autumn",
+      "Deep Winter", "Cool Winter", "Bright Winter",
+    ];
+    for (const season of expected) {
+      const profile = getSeasonProfile(season);
+      expect(profile.season).toBe(season);
+      expect(profile.palette.length).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe("colourName", () => {
   it("maps known palette hexes to friendly names", () => {
     expect(colourName("#B8860B")).toBe("goldenrod");

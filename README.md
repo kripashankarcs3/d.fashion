@@ -80,7 +80,6 @@ CLIENT_ORIGIN=http://localhost:5173
 JWT_SECRET=your-jwt-secret-here
 MONGODB_URI=mongodb://localhost:27017/deestyle
 YOUCAM_API_KEY=your-youcam-api-key-here
-YOUCAM_API_SECRET=   # optional — the S2S API authenticates with the API key alone
 ```
 
 ## Verification
@@ -107,7 +106,6 @@ The Express server serves both the API and the built frontend (SPA fallback incl
 ```bash
 # Full stack with MongoDB:
 export YOUCAM_API_KEY=your_key_here
-export YOUCAM_API_SECRET=your_secret_here
 docker compose up --build -d
 # App at http://localhost:3001
 

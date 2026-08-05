@@ -291,7 +291,7 @@ export default function UploadFlow() {
     : error;
 
   return (
-    <div className="mx-auto w-full max-w-[600px]">
+    <div className="mx-auto w-full max-w-[37.5rem]">
       {/* Privacy copy — appears above the zone */}
       <p className="mb-6 flex items-center justify-center gap-2 text-center text-caption text-cream-primary/55">
         <Lock className="h-3.5 w-3.5 text-gold-primary" aria-hidden="true" />
@@ -394,7 +394,7 @@ export default function UploadFlow() {
                 onDrop={handleDrop}
                 aria-busy={isPending}
                 className={cn(
-                  'flex min-h-[300px] w-full flex-col items-center justify-center rounded-lg border border-dashed px-8 text-center',
+                  'flex min-h-[18.75rem] w-full flex-col items-center justify-center rounded-lg border border-dashed px-8 text-center',
                   'transition-all duration-200 ease-out',
                   dragOver
                     ? 'scale-[1.02] border-gold-primary bg-surface-4'
@@ -408,7 +408,7 @@ export default function UploadFlow() {
                 </span>
                 <span
                   id="upload-instructions"
-                  className="mt-6 text-[17px] font-light text-cream-primary/80"
+                  className="mt-6 text-[1.0625rem] font-light text-cream-primary/80"
                 >
                   Drag your photo here
                 </span>

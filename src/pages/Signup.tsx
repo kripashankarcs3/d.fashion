@@ -84,12 +84,12 @@ export default function Signup() {
   };
 
   return (
-    <div className="grid min-h-screen grid-cols-1 bg-[#070707] lg:grid-cols-2">
+    <div className="grid min-h-[100svh] grid-cols-1 bg-[#070707] lg:grid-cols-2">
       {/* LEFT: editorial campaign image — runs under the form's left edge so
           the dissolve resolves there instead of at the grid line */}
       <div className="relative hidden lg:block">
         <EditorialImage
-          src={CAMPAIGN.opening.src}
+          src={CAMPAIGN.opening.base}
           alt={CAMPAIGN.opening.alt}
           ratio="fill"
           scrim="right"
@@ -152,7 +152,7 @@ export default function Signup() {
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
               <div className="w-full border-t border-gold-hairline" />
             </div>
-            <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em] text-cream-primary/50">
+            <div className="relative flex justify-center text-[0.625rem] uppercase tracking-[0.2em] text-cream-primary/50">
               <span className="bg-[#070707] px-3 font-medium">or continue with email</span>
             </div>
           </div>

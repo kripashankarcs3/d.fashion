@@ -247,7 +247,7 @@ export default function Pricing() {
                   {plan.tagline}
                 </p>
 
-                <div className="mt-8 min-h-[96px]">
+                <div className="mt-8 min-h-[6rem]">
                   <div className="flex items-end gap-2">
                     <span className={cn('relative overflow-hidden text-[length:var(--text-h2)] font-light', plan.popular ? 'text-cream-primary' : 'text-cream-primary')}>
                       <AnimatePresence mode="wait" initial={false}>
@@ -460,7 +460,7 @@ export default function Pricing() {
         {/* Final CTA */}
         <div className="mt-20">
           <CampaignSection
-            src={CAMPAIGN.atelier.src}
+            src={CAMPAIGN.atelier.base}
             alt={CAMPAIGN.atelier.alt}
             position={CAMPAIGN.atelier.position}
             anchor="center"

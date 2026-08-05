@@ -8,7 +8,7 @@ export default function NotFound() {
   const analysisResult = useStyleStore((s) => s.analysisResult);
 
   return (
-    <div className="flex min-h-[80vh] w-full items-center justify-center px-5 py-16 md:px-8">
+    <div className="flex min-h-[80svh] w-full items-center justify-center px-5 py-16 md:px-8">
       <div className="relative w-full max-w-2xl overflow-hidden rounded-[8px] border border-gold-hairline bg-surface-3/80 p-8 text-center shadow-[var(--shadow-card)] sm:p-12">
         <div
           aria-hidden="true"
@@ -25,7 +25,7 @@ export default function NotFound() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.45, ease: [0, 0, 0.2, 1] }}
-          className="mt-6 font-serif leading-none text-gold-primary text-[96px] md:text-[200px]"
+          className="mt-6 font-serif leading-none text-gold-primary text-[6rem] md:text-[12.5rem]"
         >
           404
         </motion.h1>

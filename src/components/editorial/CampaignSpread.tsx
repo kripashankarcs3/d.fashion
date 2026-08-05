@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import EyebrowLabel from './EyebrowLabel';
 import Reveal from './Reveal';
+import { campaignSrcset, CAMPAIGN_WIDTHS } from './EditorialImage';
 import { cn } from '@/lib/utils';
 
 interface CampaignSpreadProps {
@@ -14,7 +15,7 @@ interface CampaignSpreadProps {
   heading: ReactNode;
   body: string;
   children?: ReactNode; // CTA block
-  photo: { src: string; alt: string };
+  photo: { base: string; alt: string };
   /** Which side the photograph sits on. Copy always takes the other side. */
   photoSide?: 'left' | 'right';
   /** Photograph width on desktop. Keep inside 55–65%. */
@@ -22,7 +23,7 @@ interface CampaignSpreadProps {
   /** object-position for the photo, e.g. '62% 34%'. */
   objectPosition?: string;
   /** Section min-height on desktop. */
-  heightClassName?: string; // default 'md:min-h-[85vh] lg:min-h-[92vh]'
+  heightClassName?: string; // default 'min-h-[max(34rem,min(82svh,50rem))] lg:min-h-[max(36rem,min(88svh,54rem))]'
   /** Headline size. Keep the top of the clamp between 5.5rem and 7rem. */
   headingSize?: string; // default 'clamp(2.75rem, 5.4vw, 6.5rem)'
   priority?: boolean;
@@ -39,7 +40,7 @@ export default function CampaignSpread({
   photoSide = 'right',
   photoWidth = 'md:w-[62%]',
   objectPosition = '50% 34%',
-  heightClassName = 'md:min-h-[85vh] lg:min-h-[92vh]',
+  heightClassName = 'min-h-[max(34rem,min(82svh,50rem))] lg:min-h-[max(36rem,min(88svh,54rem))]',
   headingSize = 'clamp(2.75rem, 5.4vw, 6.5rem)',
   priority = false,
   className,
@@ -50,7 +51,7 @@ export default function CampaignSpread({
     <section
       id={id}
       className={cn(
-        'scroll-mt-[70px] relative isolate flex flex-col overflow-hidden md:block',
+        'scroll-mt-[4.375rem] relative isolate flex flex-col overflow-hidden md:block',
         mirrored ? 'campaign-ground-mirror' : 'campaign-ground',
         heightClassName,
         className,
@@ -65,14 +66,30 @@ export default function CampaignSpread({
           mirrored ? 'md:left-0' : 'md:right-0',
         )}
       >
-        <img
-          src={photo.src}
-          alt={photo.alt}
-          loading={priority ? 'eager' : 'lazy'}
-          decoding="async"
-          style={{ objectPosition }}
-          className="campaign-photo-grade h-full w-full object-cover"
-        />
+        <picture>
+          <source
+            type="image/avif"
+            srcSet={campaignSrcset(photo.base, 'avif', CAMPAIGN_WIDTHS)}
+            sizes="(min-width: 768px) 62vw, 100vw"
+          />
+          <source
+            type="image/webp"
+            srcSet={campaignSrcset(photo.base, 'webp', CAMPAIGN_WIDTHS)}
+            sizes="(min-width: 768px) 62vw, 100vw"
+          />
+          <img
+            src={`${photo.base}-1080.jpg`}
+            srcSet={campaignSrcset(photo.base, 'jpg', CAMPAIGN_WIDTHS)}
+            sizes="(min-width: 768px) 62vw, 100vw"
+            alt={photo.alt}
+            width={1600}
+            height={2000}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            style={{ objectPosition }}
+            className="campaign-photo-grade h-full w-full object-cover"
+          />
+        </picture>
         {/* Vignette sits UNDER the dissolve: once the frame has resolved to the
             page's black, nothing may darken it further or the seam reappears. */}
         <div
@@ -111,7 +128,7 @@ export default function CampaignSpread({
               <EyebrowLabel
                 tone="inverse"
                 className={cn(
-                  'flex items-center gap-4 text-[11px] text-cream-primary/75',
+                  'flex items-center gap-4 text-[0.6875rem] text-cream-primary/75',
                   mirrored && 'md:flex-row-reverse',
                 )}
               >
@@ -157,7 +174,7 @@ export default function CampaignSpread({
           <Reveal variant="fade" delay={0.28} amount={0.15}>
             <p
               className={cn(
-                'mt-8 max-w-[34ch] font-sans text-[15px] font-light leading-[1.7] text-cream-primary/75 md:max-w-[560px]',
+                'mt-8 max-w-[34ch] font-sans text-[0.9375rem] font-light leading-[1.7] text-cream-primary/75 md:max-w-[35rem]',
                 mirrored && 'md:ml-auto md:text-right',
               )}
             >

@@ -10,16 +10,23 @@ import ScrollManager from '@/components/ScrollManager';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import {
   AUTHENTICATED_HOME,
-  FALLBACK_PAGE_TITLE,
-  PAGE_TITLES,
+  FALLBACK_PAGE_META,
+  PAGE_META,
   ROUTES,
   ROUTE_ALIASES,
 } from '@/config/navigation';
+import { applyPageMeta } from '@/lib/seo';
 import { useAuthStore } from '@/store/useAuthStore';
 
-import Home from '@/pages/Home';
 import NotFound from '@/pages/not-found';
+import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
+import DashboardSkeleton from '@/components/skeletons/DashboardSkeleton';
+import ReportSkeleton from '@/components/skeletons/ReportSkeleton';
 
+const Home = lazy(() => import('@/pages/Home'));
+// Prefetch Home immediately after initial JS parses — eliminates the
+// lazy-load flash on every subsequent navigation to /home.
+void import('@/pages/Home');
 const Upload = lazy(() => import('@/pages/Upload'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Report = lazy(() => import('@/pages/Report'));
@@ -28,6 +35,12 @@ const TryOn = lazy(() => import('@/pages/TryOn'));
 const Pricing = lazy(() => import('@/pages/Pricing'));
 const Login = lazy(() => import('@/pages/Login'));
 const Signup = lazy(() => import('@/pages/Signup'));
+const Privacy = lazy(() => import('@/pages/Privacy'));
+const Terms = lazy(() => import('@/pages/Terms'));
+const About = lazy(() => import('@/pages/About'));
+const Contact = lazy(() => import('@/pages/Contact'));
+const Faq = lazy(() => import('@/pages/Faq'));
+const Blog = lazy(() => import('@/pages/Blog'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,7 +50,7 @@ const queryClient = new QueryClient({
 });
 
 const PageFallback = () => (
-  <div className="min-h-[60vh] flex items-center justify-center">
+  <div className="min-h-[60svh] flex items-center justify-center">
     <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
   </div>
 );
@@ -64,8 +77,9 @@ function Router() {
   const [location] = useLocation();
 
   useEffect(() => {
-    document.title =
-      PAGE_TITLES[ROUTE_ALIASES[location] ?? location] ?? FALLBACK_PAGE_TITLE;
+    const meta =
+      PAGE_META[ROUTE_ALIASES[location] ?? location] ?? FALLBACK_PAGE_META;
+    applyPageMeta(location, meta);
   }, [location]);
 
   return (
@@ -88,15 +102,49 @@ function Router() {
                 <EntryRedirect />
               </Route>
 
-              {/* Public — the campaign landing page. */}
+              {/* Public — the campaign landing page. Per-route skeleton. */}
               <Route path={ROUTES.home}>
-                <ErrorBoundary pageName="Home">
-                  <Home />
-                </ErrorBoundary>
+                <Suspense fallback={<HomeSkeleton />}>
+                  <ErrorBoundary pageName="Home">
+                    <Home />
+                  </ErrorBoundary>
+                </Suspense>
               </Route>
               <Route path={ROUTES.pricing}>
                 <ErrorBoundary pageName="Pricing">
                   <Pricing />
+                </ErrorBoundary>
+              </Route>
+
+              {/* Public marketing / trust pages */}
+              <Route path={ROUTES.privacy}>
+                <ErrorBoundary pageName="Privacy">
+                  <Privacy />
+                </ErrorBoundary>
+              </Route>
+              <Route path={ROUTES.terms}>
+                <ErrorBoundary pageName="Terms">
+                  <Terms />
+                </ErrorBoundary>
+              </Route>
+              <Route path={ROUTES.about}>
+                <ErrorBoundary pageName="About">
+                  <About />
+                </ErrorBoundary>
+              </Route>
+              <Route path={ROUTES.contact}>
+                <ErrorBoundary pageName="Contact">
+                  <Contact />
+                </ErrorBoundary>
+              </Route>
+              <Route path={ROUTES.faq}>
+                <ErrorBoundary pageName="FAQ">
+                  <Faq />
+                </ErrorBoundary>
+              </Route>
+              <Route path={ROUTES.blog}>
+                <ErrorBoundary pageName="Journal">
+                  <Blog />
                 </ErrorBoundary>
               </Route>
 
@@ -116,11 +164,13 @@ function Router() {
                 </GuestOnly>
               </Route>
 
-              {/* Requires a session */}
+              {/* Requires a session — Dashboard and Report get per-route skeletons. */}
               <Route path={ROUTES.dashboard}>
-                <AppRoute name="Dashboard">
-                  <Dashboard />
-                </AppRoute>
+                <Suspense fallback={<DashboardSkeleton />}>
+                  <AppRoute name="Dashboard">
+                    <Dashboard />
+                  </AppRoute>
+                </Suspense>
               </Route>
               <Route path={ROUTES.upload}>
                 <AppRoute name="Upload">
@@ -128,9 +178,11 @@ function Router() {
                 </AppRoute>
               </Route>
               <Route path={ROUTES.report}>
-                <AppRoute name="Report">
-                  <Report />
-                </AppRoute>
+                <Suspense fallback={<ReportSkeleton />}>
+                  <AppRoute name="Report">
+                    <Report />
+                  </AppRoute>
+                </Suspense>
               </Route>
               <Route path={ROUTES.tryOn}>
                 <AppRoute name="Try-On">

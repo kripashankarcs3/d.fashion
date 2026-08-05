@@ -17,23 +17,36 @@ const FALLBACK_PALETTE = [
   { hex: '#3E6B5E', name: 'Eucalyptus' },
 ];
 
-const BlazerSvg = ({ color }: { color: string }) => (
-  <svg viewBox="0 0 200 250" className="mx-auto h-64 w-52 transition-colors duration-500" style={{ color }}>
-    <path d="M30 80 C 30 70, 50 65, 75 60 L 75 250 L 30 250 Z" fill="currentColor" opacity="0.9" />
-    <path d="M170 80 C 170 70, 150 65, 125 60 L 125 250 L 170 250 Z" fill="currentColor" opacity="0.9" />
-    <path d="M75 60 L 100 85 L 125 60 L 125 250 L 75 250 Z" fill="currentColor" opacity="0.85" />
-    <path d="M60 40 L 75 60 L 100 85 L 75 140 L 60 40 Z" fill="#ffffff" opacity="0.12" />
-    <path d="M140 40 L 125 60 L 100 85 L 125 140 L 140 40 Z" fill="#ffffff" opacity="0.12" />
-    <path d="M60 40 L 75 60 L 100 85 L 125 60 L 140 40" stroke="#2C1810" strokeWidth="2.5" strokeLinecap="round" />
-    <path d="M75 60 L 75 250" stroke="#2C1810" strokeWidth="1.5" opacity="0.3" />
-    <path d="M125 60 L 125 250" stroke="#2C1810" strokeWidth="1.5" opacity="0.3" />
-    <path d="M100 85 L 100 250" stroke="#2C1810" strokeWidth="2" strokeDasharray="4 4" opacity="0.35" />
-    <circle cx="88" cy="150" r="4" fill="#B8974A" stroke="#2C1810" strokeWidth="1" />
-    <circle cx="112" cy="150" r="4" fill="#B8974A" stroke="#2C1810" strokeWidth="1" />
-    <circle cx="88" cy="180" r="4" fill="#B8974A" stroke="#2C1810" strokeWidth="1" />
-    <circle cx="112" cy="180" r="4" fill="#B8974A" stroke="#2C1810" strokeWidth="1" />
-  </svg>
-);
+function GarmentDisplay({ color }: { color: string }) {
+  return (
+    <div className="relative mx-auto flex h-64 w-52 flex-col overflow-hidden rounded-sm">
+      {/* Main garment body — colour block */}
+      <div
+        className="flex-1 transition-colors duration-500"
+        style={{ backgroundColor: color }}
+      />
+      {/* Lapel shadow — adds depth without pretending to be real */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(135deg, transparent 40%, rgba(0,0,0,0.18) 40%, rgba(0,0,0,0.18) 55%, transparent 55%)`,
+        }}
+        aria-hidden
+      />
+      {/* Collar notch */}
+      <div
+        className="absolute left-1/2 top-0 h-12 w-0.5 -translate-x-1/2 bg-black/20"
+        aria-hidden
+      />
+      {/* Garment label at bottom */}
+      <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+        <span className="rounded-sm bg-black/30 px-2 py-0.5 text-[0.5rem] uppercase tracking-[0.15em] text-white/70 backdrop-blur-sm">
+          Classic Blazer
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function TryOnPreview() {
   const analysisResult = useStyleStore((s) => s.analysisResult);
@@ -88,7 +101,7 @@ export default function TryOnPreview() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.65, delay: 0.1, ease: [0, 0, 0.2, 1] }}
-            className="mx-auto w-full max-w-[360px]"
+            className="mx-auto w-full max-w-[22.5rem]"
           >
             {/* Card — dark frosted */}
             <div className="relative overflow-hidden rounded-sm border border-gold-hairline bg-gold-primary/[0.03] backdrop-blur-md aspect-[4/5] flex flex-col justify-between p-6">
@@ -97,20 +110,14 @@ export default function TryOnPreview() {
 
               {/* Garment */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <BlazerSvg color={activeColour.hex} />
+                <GarmentDisplay color={activeColour.hex} />
               </div>
 
               {/* Top badge */}
               <div className="relative z-10">
-                <span className="inline-flex items-center gap-2 rounded-full border border-gold-hairline bg-surface-3/80 px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-cream-primary/80 backdrop-blur-md">
-                  <motion.span
-                    animate={{ opacity: [1, 0.4, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    aria-hidden
-                    style={{ willChange: 'opacity' }}
-                    className="h-1.5 w-1.5 rounded-full bg-gold-light"
-                  />
-                  Interactive Preview
+                <span className="inline-flex items-center gap-2 rounded-full border border-gold-hairline bg-surface-3/80 px-3.5 py-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.14em] backdrop-blur-md">
+                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gold-light" />
+                  <span className="animate-gold-shimmer">Interactive Preview</span>
                 </span>
               </div>
 
@@ -118,8 +125,9 @@ export default function TryOnPreview() {
               <div className="relative z-10 rounded-sm border border-gold-hairline bg-surface-4/80 p-4 backdrop-blur-md">
                 <div className="flex items-center justify-between">
                   <div>
+                    <p className="text-caption text-cream-primary/45 mb-1">Classic Blazer</p>
                     <p className="font-serif text-h5 text-cream-primary">{activeColour.name}</p>
-                    <p className="mt-0.5 font-mono text-[10px] text-cream-primary/45">{activeColour.hex}</p>
+                    <p className="mt-0.5 font-mono text-[0.625rem] text-cream-primary/45">{activeColour.hex}</p>
                   </div>
                   <div className="h-10 w-10 rounded-sm border border-gold-hairline" style={{ backgroundColor: activeColour.hex }} />
                 </div>
@@ -146,6 +154,16 @@ export default function TryOnPreview() {
                   />
                 ))}
               </div>
+            </div>
+
+            <div className="mt-6 border-t border-gold-hairline pt-5">
+              <Link
+                href={ROUTES.upload}
+                className="eyebrow flex items-center gap-2 text-gold-primary/70 transition-colors hover:text-gold-primary"
+              >
+                <span className="h-px w-4 bg-current" aria-hidden />
+                Try on your own photo
+              </Link>
             </div>
           </motion.div>
         </div>

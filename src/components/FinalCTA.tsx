@@ -12,7 +12,7 @@ const PALETTE_PREVIEW = ['#C19A6B', '#B8974A', '#3E6B5E', '#8B4513', '#D4AF71'];
 export default function FinalCTA() {
   return (
     <CampaignSection
-      src={CAMPAIGN.closing.src}
+      src={CAMPAIGN.closing.base}
       alt={CAMPAIGN.closing.alt}
       position={CAMPAIGN.closing.position}
       anchor="center"

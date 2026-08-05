@@ -89,9 +89,6 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
       return res.status(400).json({ success: false, message: "Invalid image URL" });
     }
 
-    let resultUrl = garmentImageUrl;
-    let source = "fallback";
-
     try {
       const selfieFilePath = serverUploadFilePath(req.body.personImageUrl);
       const youcamResult = selfieFilePath
@@ -99,8 +96,10 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
         : await YouCamService.tryOnClothes(personImageUrl, garmentImageUrl);
 
       if (youcamResult) {
-        resultUrl = extractResultUrl(youcamResult, garmentImageUrl);
-        source = "youcam";
+        const resultUrl = extractResultUrl(youcamResult, "");
+        if (resultUrl) {
+          return res.status(200).json({ success: true, resultUrl, source: "youcam" });
+        }
       }
     } catch (err) {
       const detail = (err as any)?.response?.data
@@ -109,7 +108,13 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
       console.warn("YouCam clothes try-on failed:", detail);
     }
 
-    return res.status(200).json({ success: true, resultUrl, source });
+    // Never hand the caller their own photo (or the garment photo) labelled
+    // as a successful try-on. That is worse than an error.
+    return res.status(502).json({
+      success: false,
+      message: "Try-on is temporarily unavailable. Please try again shortly.",
+      source: "fallback",
+    });
   } catch (err) {
     next(err);
   }
@@ -124,9 +129,6 @@ export const tryOnMakeup = async (req: Request, res: Response, next: NextFunctio
       return res.status(400).json({ success: false, message: "personImageUrl is required" });
     }
 
-    let resultUrl = personImageUrl;
-    let source = "fallback";
-
     try {
       const selfieFilePath = serverUploadFilePath(req.body.personImageUrl);
       const youcamResult = selfieFilePath
@@ -134,8 +136,10 @@ export const tryOnMakeup = async (req: Request, res: Response, next: NextFunctio
         : await YouCamService.tryOnMakeup(personImageUrl, productId);
 
       if (youcamResult) {
-        resultUrl = extractResultUrl(youcamResult, personImageUrl);
-        source = "youcam";
+        const resultUrl = extractResultUrl(youcamResult, "");
+        if (resultUrl) {
+          return res.status(200).json({ success: true, resultUrl, source: "youcam" });
+        }
       }
     } catch (err) {
       const detail = (err as any)?.response?.data
@@ -144,7 +148,11 @@ export const tryOnMakeup = async (req: Request, res: Response, next: NextFunctio
       console.warn("YouCam makeup try-on failed:", detail);
     }
 
-    return res.status(200).json({ success: true, resultUrl, source });
+    return res.status(502).json({
+      success: false,
+      message: "Try-on is temporarily unavailable. Please try again shortly.",
+      source: "fallback",
+    });
   } catch (err) {
     next(err);
   }
@@ -159,9 +167,6 @@ export const tryOnHair = async (req: Request, res: Response, next: NextFunction)
       return res.status(400).json({ success: false, message: "personImageUrl and styleId are required" });
     }
 
-    let resultUrl = personImageUrl;
-    let source = "fallback";
-
     try {
       const selfieFilePath = serverUploadFilePath(req.body.personImageUrl);
       const youcamResult = selfieFilePath
@@ -169,8 +174,10 @@ export const tryOnHair = async (req: Request, res: Response, next: NextFunction)
         : await YouCamService.tryOnHair(personImageUrl, styleId);
 
       if (youcamResult) {
-        resultUrl = extractResultUrl(youcamResult, personImageUrl);
-        source = "youcam";
+        const resultUrl = extractResultUrl(youcamResult, "");
+        if (resultUrl) {
+          return res.status(200).json({ success: true, resultUrl, source: "youcam" });
+        }
       }
     } catch (err) {
       const detail = (err as any)?.response?.data
@@ -179,7 +186,11 @@ export const tryOnHair = async (req: Request, res: Response, next: NextFunction)
       console.warn("YouCam hair try-on failed:", detail);
     }
 
-    return res.status(200).json({ success: true, resultUrl, source });
+    return res.status(502).json({
+      success: false,
+      message: "Try-on is temporarily unavailable. Please try again shortly.",
+      source: "fallback",
+    });
   } catch (err) {
     next(err);
   }

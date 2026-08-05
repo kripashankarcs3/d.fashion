@@ -19,7 +19,7 @@ export function useTryOn() {
         timestamp: new Date().toISOString(),
       });
     },
-    onError: () => error('Try-on failed. Please try again.'),
+    onError: () => error('Try-on is temporarily unavailable. Please try again shortly.'),
   });
 
   const makeup = useMutation({
@@ -28,7 +28,7 @@ export function useTryOn() {
       if (!url) throw new Error("No reference image.");
       return tryOnMakeup(url, productId);
     },
-    onError: () => error('Makeup try-on failed.'),
+    onError: () => error('Makeup try-on is temporarily unavailable. Please try again shortly.'),
   });
 
   const hair = useMutation({
@@ -37,7 +37,7 @@ export function useTryOn() {
       if (!url) throw new Error("No reference image.");
       return tryOnHair(url, styleId);
     },
-    onError: () => error('Hair try-on failed.'),
+    onError: () => error('Hair try-on is temporarily unavailable. Please try again shortly.'),
   });
 
   return { clothes, makeup, hair };

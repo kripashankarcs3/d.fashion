@@ -12,7 +12,7 @@ export function EmptyAnalysisState({
   description = 'Upload a selfie to reveal your colour season and personal palette.',
 }: EmptyAnalysisStateProps) {
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 px-6 text-center">
+    <div className="min-h-[60svh] flex flex-col items-center justify-center gap-6 px-6 text-center">
       <div className="flex items-end gap-2" aria-hidden="true">
         {['#F5F0E8', '#D4AF71', '#B8974A', '#8B6B56', '#2C1810'].map(
           (colour, i) => (

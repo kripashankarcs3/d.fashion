@@ -4,30 +4,54 @@ import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import Reveal from '@/components/editorial/Reveal';
-import { CAMPAIGN } from '@/lib/editorial-images';
+import { CAMPAIGN, type EditorialPhoto } from '@/lib/editorial-images';
 import { ROUTES } from '@/config/navigation';
 
-const steps = [
+interface Step {
+  number: string;
+  title: string;
+  description: string;
+  tag: string;
+  needs: string[];
+  image: EditorialPhoto;
+}
+
+const steps: Step[] = [
   {
     number: '01',
     title: 'Upload Your Photo',
     description:
       'A clear selfie in natural light is all it takes. No filters, no makeup — just your face.',
-    tag: 'Under 1 min',
+    tag: '~30 sec',
+    needs: ['Natural light', 'No filters', 'Face the camera', 'Bare face preferred'],
+    image: CAMPAIGN.process,
   },
   {
     number: '02',
     title: 'AI Reads Your Colours',
     description:
       'The model reads skin undertone, depth, and contrast. Your colour season emerges in seconds.',
-    tag: 'Instant',
+    tag: '~90 sec',
+    needs: ['Nothing — fully automatic'],
+    image: CAMPAIGN.undertone,
   },
   {
     number: '03',
     title: 'Receive Your Style Profile',
     description:
       'A complete palette, style archetypes, makeup shades, and wardrobe guidance — personalised to you.',
-    tag: 'Full Report',
+    tag: 'Instant',
+    needs: ['Check your email', 'Or view in-app'],
+    image: CAMPAIGN.atelier,
+  },
+  {
+    number: '04',
+    title: 'Wear It',
+    description:
+      'Take your palette shopping, into your wardrobe, and to the mirror. The colours that suit you don\'t change.',
+    tag: 'Yours forever',
+    needs: ['No re-analysis needed', 'Share with friends'],
+    image: CAMPAIGN.closing,
   },
 ];
 
@@ -45,7 +69,7 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="scroll-mt-[70px] relative overflow-hidden bg-surface-2 py-section-xl"
+      className="scroll-mt-[4.375rem] relative overflow-hidden bg-surface-2 py-section-xl"
     >
       {/* Ambient glow */}
       <div
@@ -72,7 +96,7 @@ export default function HowItWorks() {
             className="will-change-[clip-path]"
           >
             <EditorialHeading as="h2" size="xl" className="text-cream-primary">
-              Three steps to your{' '}
+              Four steps to your{' '}
               <Emphasis>palette.</Emphasis>
             </EditorialHeading>
           </motion.div>
@@ -104,13 +128,57 @@ export default function HowItWorks() {
         />
 
         {/* Steps */}
-        <motion.div
-          variants={staggerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-          className="mt-0 grid grid-cols-1 gap-5 md:grid-cols-3"
-        >
+        <div className="relative">
+          {/* Desktop connector — a line that draws itself across the badge
+              line while the section scrolls into view. Sits behind the
+              opaque cards, so only the gaps read as connecting. */}
+          <motion.svg
+            aria-hidden="true"
+            viewBox="0 0 1200 40"
+            preserveAspectRatio="none"
+            className="pointer-events-none absolute inset-x-0 top-6 hidden md:block"
+            fill="none"
+          >
+            <motion.path
+              d="M0 20 H1200"
+              stroke="rgba(201,168,76,0.4)"
+              strokeWidth="1"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            />
+          </motion.svg>
+
+          {/* Mobile connector — same line, running vertically through the
+              stacked cards. */}
+          <motion.svg
+            aria-hidden="true"
+            viewBox="0 0 1 100"
+            preserveAspectRatio="none"
+            className="pointer-events-none absolute bottom-4 left-4 top-4 w-px md:hidden"
+            fill="none"
+          >
+            <motion.path
+              d="M0.5 0 V100"
+              stroke="rgba(201,168,76,0.4)"
+              strokeWidth="1"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            />
+          </motion.svg>
+
+          <motion.div
+            variants={staggerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            className="mt-0 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4"
+          >
           {steps.map((step, idx) => (
             <motion.div
               key={step.number}
@@ -148,9 +216,27 @@ export default function HowItWorks() {
               <p className="mt-3 text-body-sm leading-relaxed text-cream-primary/70">
                 {step.description}
               </p>
+
+              {/* Micro-list */}
+              {step.needs.length > 0 && (
+                <ul className="mt-4 flex flex-col gap-1.5">
+                  {step.needs.map((need) => (
+                    <li key={need} className="flex items-center gap-2 text-caption text-cream-primary/50">
+                      <span className="h-px w-3 shrink-0 bg-gold-primary/40" aria-hidden />
+                      {need}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Hover-reveal duration chip */}
+              <div className="mt-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <span className="text-caption text-gold-primary/80 font-medium">{step.tag}</span>
+              </div>
             </motion.div>
           ))}
-        </motion.div>
+          </motion.div>
+        </div>
       </EditorialContainer>
     </section>
   );
