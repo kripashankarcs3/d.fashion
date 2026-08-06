@@ -28,7 +28,7 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative isolate flex min-h-[max(40rem,min(100svh,58rem))] overflow-hidden bg-[#070707]"
+      className="relative isolate flex min-h-[max(40rem,min(100svh,58rem))] overflow-hidden bg-[#0B0B0E]"
     >
       {/* ── LAYER 1: Full-bleed image — absolute fill ── */}
       <motion.div

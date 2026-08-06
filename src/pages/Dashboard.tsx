@@ -41,8 +41,8 @@ const ACTION_LABEL: Record<string, string> = {
 // ---------------------------------------------------------------------------
 // Chart colour constants
 // ---------------------------------------------------------------------------
-const GOLD = '#C9A84C';
-const CREAM = 'rgba(232,223,200,0.8)';
+const GOLD = '#F3E2B3';
+const CREAM = 'rgba(246,246,248,0.8)';
 const SURFACE_3 = 'rgba(255,255,255,0.04)';
 const AXIS_TICK_STYLE = { fill: CREAM, fontSize: 11 };
 
@@ -263,7 +263,7 @@ function PaletteUsageChart({
         <RechartsTooltip
           contentStyle={{
             background: '#1A1810',
-            border: '1px solid rgba(201,168,76,0.25)',
+            border: '1px solid rgba(243,226,179,0.25)',
             borderRadius: 4,
             color: CREAM,
             fontSize: 12,
@@ -351,7 +351,7 @@ function SkinScoreTrendsChart({
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={chartData} margin={{ top: 8, right: 16, bottom: 0, left: -16 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(201,168,76,0.12)" />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(243,226,179,0.12)" />
         <XAxis dataKey="date" tick={AXIS_TICK_STYLE} axisLine={false} tickLine={false} />
         <YAxis
           domain={[0, 100]}
@@ -362,7 +362,7 @@ function SkinScoreTrendsChart({
         <RechartsTooltip
           contentStyle={{
             background: '#1A1810',
-            border: '1px solid rgba(201,168,76,0.25)',
+            border: '1px solid rgba(243,226,179,0.25)',
             borderRadius: 4,
             color: CREAM,
             fontSize: 12,
@@ -443,7 +443,7 @@ function WardrobeCoverageChart({
           margin={{ top: 4, right: 8, bottom: 40, left: -24 }}
           barCategoryGap="30%"
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(201,168,76,0.12)" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(243,226,179,0.12)" vertical={false} />
           <XAxis
             dataKey="name"
             tick={{ fill: CREAM, fontSize: 9 }}
@@ -462,7 +462,7 @@ function WardrobeCoverageChart({
           <RechartsTooltip
             contentStyle={{
               background: '#1A1810',
-              border: '1px solid rgba(201,168,76,0.25)',
+              border: '1px solid rgba(243,226,179,0.25)',
               borderRadius: 4,
               color: CREAM,
               fontSize: 12,
@@ -477,7 +477,7 @@ function WardrobeCoverageChart({
               <Cell
                 key={entry.hex}
                 fill={entry.inWardrobe > 0 ? entry.hex : SURFACE_3}
-                stroke={entry.inWardrobe > 0 ? 'transparent' : 'rgba(201,168,76,0.2)'}
+                stroke={entry.inWardrobe > 0 ? 'transparent' : 'rgba(243,226,179,0.2)'}
               />
             ))}
           </Bar>
@@ -504,7 +504,13 @@ function InsightsSection({
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="mt-16">
+    <motion.section
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+      className="mt-16"
+    >
       {/* Mobile toggle */}
       <div className="flex items-end justify-between gap-4">
         <SectionHeading label="Insights" title="Visual Insights" />
@@ -572,7 +578,7 @@ function InsightsSection({
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
 
@@ -902,7 +908,13 @@ export default function Dashboard() {
             </div>
 
             {/* Full colour palette */}
-            <section className="mt-12">
+            <motion.section
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-12"
+            >
               <SectionHeading label="Your Palette" title="Your Colour Palette" />
               <div className="mt-6 border border-gold-hairline bg-surface-3 p-8">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
@@ -911,7 +923,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
-            </section>
+            </motion.section>
 
             {/* Saved items */}
             <section className="mt-16">
@@ -966,7 +978,13 @@ export default function Dashboard() {
 
             {/* Saved reports */}
             {allSavedReports.length > 0 && (
-              <section className="mt-16">
+              <motion.section
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.1 }}
+                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                className="mt-16"
+              >
                 <SectionHeading label="Saved" title="Saved Reports" />
                 <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {allSavedReports.map((report) => {
@@ -993,13 +1011,19 @@ export default function Dashboard() {
                     );
                   })}
                 </div>
-              </section>
+              </motion.section>
             )}
 
             {/* Compare with previous */}
             {analysisHistory.length > 0 &&
               analysisHistory[analysisHistory.length - 1] && (
-                <section className="mt-16">
+                <motion.section
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.1 }}
+                  transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                  className="mt-16"
+                >
                   <SectionHeading label="Progress" title="Compare with Previous" />
                   <div className="mt-6 border border-gold-hairline bg-surface-3 p-8">
                     <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
@@ -1049,11 +1073,17 @@ export default function Dashboard() {
                       </p>
                     </div>
                   </div>
-                </section>
+                </motion.section>
               )}
 
             {/* Analysis history */}
-            <section className="mt-16">
+            <motion.section
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-16"
+            >
               <SectionHeading label="Activity" title="Analysis History" />
               <div className="mt-6 border border-gold-hairline bg-surface-3 p-8">
                 {history.length === 0 ? (
@@ -1101,7 +1131,7 @@ export default function Dashboard() {
                   </ul>
                 )}
               </div>
-            </section>
+            </motion.section>
 
             {/* Insights — recharts visualisations */}
             <InsightsSection

@@ -142,7 +142,7 @@ export default function SocialProof() {
                     <motion.figure
                       initial={{ opacity: 0, y: 32 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      whileHover={{ y: -6, borderColor: 'rgba(201, 168, 76, 0.35)' }}
+                      whileHover={{ y: -6, borderColor: 'rgba(243, 226, 179, 0.35)' }}
                       viewport={{ once: true, amount: 0.15 }}
                       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                       className="h-full rounded-sm border border-gold-hairline bg-surface-3 p-7"

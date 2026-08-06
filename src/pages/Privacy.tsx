@@ -6,8 +6,9 @@ export default function Privacy() {
   return (
     <ContentPage
       eyebrow="Legal"
-      title="Privacy Policy"
+      title={<>Privacy Policy</>}
       lede="What we collect, why we collect it, and exactly what happens to the photos you upload."
+      className="bg-surface-1"
     >
       <ProseSection label="1" title="What we collect">
         <p>
