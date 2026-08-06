@@ -47,7 +47,7 @@ function DepthVisual() {
       >
         {/* Static mid-point dot */}
         <span
-          className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface-3 bg-gold-light shadow-[0_0_0_2px_rgba(184,151,74,0.4)]"
+          className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface-3 bg-gold-light shadow-[0_0_0_2px_rgba(243,226,179,0.4)]"
         />
       </div>
       {/* Side labels */}
@@ -126,7 +126,7 @@ export default function ScienceSection() {
   return (
     <section
       id="the-science"
-      className="scroll-mt-[4.375rem] relative overflow-hidden bg-surface-2 py-section-xl"
+      className="scroll-mt-16 relative overflow-hidden bg-surface-2 py-section-xl"
     >
       {/* Ambient glow */}
       <div
@@ -134,7 +134,7 @@ export default function ScienceSection() {
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           backgroundImage:
-            'radial-gradient(ellipse 65% 50% at 50% 100%, rgba(184,151,74,0.05) 0%, transparent 70%)',
+            'radial-gradient(ellipse 65% 50% at 50% 100%, rgba(243,226,179,0.05) 0%, transparent 70%)',
         }}
       />
 

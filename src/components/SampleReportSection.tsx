@@ -149,7 +149,7 @@ export default function SampleReportSection() {
   return (
     <section
       id="sample-report"
-      className="scroll-mt-[4.375rem] relative overflow-hidden bg-surface-0 py-section-xl"
+      className="scroll-mt-16 relative overflow-hidden bg-surface-0 py-section-xl"
     >
       <EditorialContainer>
         {/* Section header */}

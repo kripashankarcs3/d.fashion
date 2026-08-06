@@ -14,6 +14,7 @@ interface CampaignSectionProps {
   priority?: boolean;
   className?: string;
   contentClassName?: string;
+  contentPadding?: string;
   cinematic?: boolean;
   cinematicIntensity?: number;
   fadeEdges?: boolean;
@@ -49,6 +50,7 @@ export default function CampaignSection({
   priority = false,
   className,
   contentClassName,
+  contentPadding,
   cinematic = true,
   cinematicIntensity = 0.9,
   fadeEdges = true,
@@ -56,7 +58,7 @@ export default function CampaignSection({
   return (
     <section
       className={cn(
-        'relative isolate overflow-hidden bg-[#070707]',
+        'relative isolate overflow-hidden bg-[#0B0B0E]',
         heightClasses[height],
         className,
       )}
@@ -79,7 +81,8 @@ export default function CampaignSection({
 
       <div
         className={cn(
-          'relative flex h-full min-h-[inherit] px-[var(--gutter)] pb-14 pt-24 md:pb-20 lg:pb-24',
+          'relative flex h-full min-h-[inherit] px-[var(--gutter)] pt-24',
+          contentPadding ?? 'pb-14 md:pb-20 lg:pb-24',
           anchorClasses[anchor],
         )}
       >

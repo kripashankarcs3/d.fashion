@@ -67,9 +67,12 @@ function errorMessageFor(err: unknown): string {
   const status = (err as { response?: { status?: number } })?.response?.status;
   const message = (err as { response?: { data?: { message?: string } } })
     ?.response?.data?.message;
+  if (status === 401) return 'Please sign in to analyse your colours.';
   if (status === 400) return 'Please upload a clearer photo in natural light.';
   if (status === 422 || status === 413)
     return 'The file could not be processed. Please try a different photo.';
+  if (status === 429) return 'Too many requests. Please wait a moment and try again.';
+  if (!status) return 'Could not reach the server. Please check your connection and try again.';
   return message ?? 'Something went wrong on our end. Please try again in a moment.';
 }
 

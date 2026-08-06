@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import StylistChat from '@/components/StylistChat';
 import PageMasthead from '@/components/editorial/PageMasthead';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
-import { MessageSquare, Palette, Shirt } from 'lucide-react';
+import { MessageSquare, Palette, Shirt, Sparkles } from 'lucide-react';
 
 const samplePrompts = [
   'What should I wear to a casual Friday at a creative agency?',
@@ -32,11 +33,40 @@ const knowledge = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
 export default function Chat() {
   const [activePrompt, setActivePrompt] = useState('');
 
   return (
-    <div className="w-full pt-28 pb-24">
+    <div className="w-full pt-28 pb-24 relative overflow-hidden">
+      {/* Subtle styling ambient glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/4 top-1/3 -z-10 h-[600px] w-[600px] rounded-full opacity-[0.03]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #F3E2B3 0%, transparent 70%)',
+          filter: 'blur(60px)',
+        }}
+      />
+      
       <EditorialContainer width="content">
         <PageMasthead
           label="AI Stylist"
@@ -49,12 +79,31 @@ export default function Chat() {
           className="pb-0"
         />
 
-        <div className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start"
+        >
           {/* Conversation */}
-          <StylistChat initialPrompt={activePrompt} />
+          <motion.div variants={itemVariants} className="relative">
+            {/* Elegant AI Avatar header card */}
+            <div className="mb-4 flex items-center gap-3 border border-gold-hairline/40 bg-surface-3 px-4 py-3 rounded-sm">
+              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-primary/10 text-gold-primary overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-tr from-gold-primary/20 to-transparent animate-pulse" />
+                <Sparkles className="h-5 w-5 animate-spin" style={{ animationDuration: '6s' }} />
+              </div>
+              <div>
+                <h3 className="font-editorial text-body font-light text-cream-primary leading-tight">D&rsquo;Style Stylist</h3>
+                <p className="text-[0.65rem] text-gold-primary uppercase tracking-widest font-semibold mt-0.5">Online &amp; Ready</p>
+              </div>
+            </div>
+            
+            <StylistChat initialPrompt={activePrompt} />
+          </motion.div>
 
           {/* Quick actions */}
-          <div className="space-y-12">
+          <motion.div variants={itemVariants} className="space-y-12">
             {/* Quick questions — hairline list, no card chrome */}
             <div className="border-b border-gold-hairline pb-8">
               <EyebrowLabel tone="muted" className="mb-4">
@@ -101,9 +150,10 @@ export default function Chat() {
                 ))}
               </ul>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </EditorialContainer>
     </div>
   );
 }
+

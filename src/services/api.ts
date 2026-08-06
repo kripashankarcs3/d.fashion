@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AnalysisResult, WardrobeItem } from '@/store/useStyleStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001/api';
 
@@ -10,15 +11,10 @@ export const assetUrl = (p?: string | null): string =>
 export const api = axios.create({ baseURL: BASE, timeout: 30000 });
 
 api.interceptors.request.use((config) => {
-  const raw = localStorage.getItem('dfashion_auth');
-  if (raw) {
-    try {
-      const token = JSON.parse(raw)?.state?.token as string | undefined;
-      if (token) config.headers.Authorization = `Bearer ${token}`;
-    } catch {
-      // Corrupt persisted session — proceed without a token.
-    }
-  }
+  // Read token directly from Zustand in-memory store — it is never
+  // persisted to localStorage (Firebase manages the session).
+  const token = useAuthStore.getState().token;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -39,8 +35,12 @@ export const analyzeImage = (
   });
 };
 
-export const tryOnClothes = (personImageUrl: string, garmentImageUrl: string) =>
-  api.post<{ resultUrl: string; source: 'youcam' | 'fallback' }>('/tryon/clothes', { personImageUrl, garmentImageUrl }, { timeout: 180_000 });
+export const tryOnClothes = (personImageUrl: string, garmentImageUrl: string, colourHex?: string) =>
+  api.post<{ resultUrl: string; source: 'youcam' | 'fallback'; colourHex?: string }>(
+    '/tryon/clothes',
+    { personImageUrl, garmentImageUrl, colourHex },
+    { timeout: 180_000 },
+  );
 
 export const tryOnMakeup = (personImageUrl: string, productId: string) =>
   api.post<{ resultUrl: string; source: 'youcam' | 'fallback' }>('/tryon/makeup', { personImageUrl, productId }, { timeout: 180_000 });

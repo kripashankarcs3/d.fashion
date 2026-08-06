@@ -244,12 +244,12 @@ function downloadPaletteCard(
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  const cream = '#E8DFC8';
-  const gold = '#C9A84C';
-  const muted = 'rgba(232,223,200,0.62)';
-  const hairline = 'rgba(184,150,74,0.45)';
+  const cream = '#F6F6F8';
+  const gold = '#F3E2B3';
+  const muted = 'rgba(209,211,216,0.62)';
+  const hairline = 'rgba(243,226,179,0.45)';
 
-  ctx.fillStyle = '#0E0E0E';
+  ctx.fillStyle = '#0B0B0E';
   ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = hairline;
   ctx.lineWidth = 4;
@@ -343,13 +343,19 @@ interface SectionProps {
 
 function Section({ label, title, children }: SectionProps) {
   return (
-    <section className="border-t border-gold-hairline pt-8">
+    <motion.section
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+      className="border-t border-gold-hairline pt-8"
+    >
       <EyebrowLabel tone="gold">{label}</EyebrowLabel>
       <EditorialHeading as="h2" size="sm" className="mt-3">
         {title}
       </EditorialHeading>
       <div className="mt-6">{children}</div>
-    </section>
+    </motion.section>
   );
 }
 
@@ -441,15 +447,15 @@ function RadarPanel({ concerns }: { concerns: SkinConcerns }) {
       <div className="border border-gold-hairline p-4">
         <ResponsiveContainer width="100%" height={340}>
           <RadarChart data={data} cx="50%" cy="50%" outerRadius="72%">
-            <PolarGrid stroke="rgba(184,150,74,0.25)" />
+            <PolarGrid stroke="rgba(243,226,179,0.25)" />
             <PolarAngleAxis
               dataKey="concern"
-              tick={{ fill: 'rgba(232,223,200,0.55)', fontSize: 11 }}
+              tick={{ fill: 'rgba(225,225,223,0.55)', fontSize: 11 }}
             />
             <Radar
               dataKey="score"
-              stroke="#C9A84C"
-              fill="#C9A84C"
+              stroke="#F3E2B3"
+              fill="#F3E2B3"
               fillOpacity={0.28}
               isAnimationActive
             />
