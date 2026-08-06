@@ -48,9 +48,14 @@ export const ROUTE_ALIASES: Record<string, string> = {
  * Set `VITE_SITE_URL` at build time to your production domain; until then the
  * reserved `.example.com` placeholder is used so no real third-party site is
  * ever pointed at.
+ *
+ * Read through optional chaining because this module is also imported by the
+ * e2e suite under plain Node, where `import.meta.env` is a Vite-only global and
+ * therefore undefined — reading a property straight off it crashed the tests
+ * before they could open a browser.
  */
 export const SITE_URL: string =
-  (import.meta.env.VITE_SITE_URL as string | undefined) ??
+  (import.meta.env?.VITE_SITE_URL as string | undefined) ??
   'https://deestyle.example.com';
 
 /** Reachable without an account. The root (`/`) is intentionally absent — it is
@@ -79,7 +84,7 @@ export const GUEST_ONLY_PATHS = new Set<string>([ROUTES.login, ROUTES.signup]);
  * is *not* what `/` renders — the campaign landing page stays the front door for
  * everyone, so a member can always walk back through the story.
  */
-export const AUTHENTICATED_HOME = ROUTES.dashboard;
+export const AUTHENTICATED_HOME = ROUTES.home;
 
 /* --------------------------------------------------------------- header nav */
 
