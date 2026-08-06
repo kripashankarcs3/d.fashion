@@ -161,9 +161,8 @@ function ProfileCompletionMeter({
                 />
               )}
               <span
-                className={`text-[length:var(--text-caption)] leading-tight ${
-                  step.done ? 'text-cream-primary' : 'text-cream-primary/55'
-                }`}
+                className={`text-[length:var(--text-caption)] leading-tight ${step.done ? 'text-cream-primary' : 'text-cream-primary/55'
+                  }`}
               >
                 {step.label}
               </span>
