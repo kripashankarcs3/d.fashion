@@ -62,7 +62,17 @@ app.use(
 const allowedOrigins = env.CLIENT_ORIGIN.split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
-app.use(cors({ origin: allowedOrigins }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    credentials: true,
+  })
+);
 
 // Serve uploaded images. Helmet's default `crossOriginResourcePolicy:
 // same-origin` would block cross-origin <img> loads of these files, so the

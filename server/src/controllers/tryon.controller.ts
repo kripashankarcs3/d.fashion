@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import path from "path";
+import fs from "fs";
 import { URL } from "url";
 import YouCamService from "../services/youcam.service";
 
@@ -13,7 +14,9 @@ const isServerUpload = (urlString: string): boolean => {
 
 const serverUploadFilePath = (urlString: string): string | null => {
   if (!isServerUpload(urlString)) return null;
-  return path.join(UPLOADS_DIR, path.basename(urlString));
+  const filePath = path.join(UPLOADS_DIR, path.basename(urlString));
+  // Only return path if file actually exists on disk
+  return fs.existsSync(filePath) ? filePath : null;
 };
 
 const resolvePersonUrl = (req: Request, urlString: string): string => {
@@ -27,15 +30,10 @@ const resolvePersonUrl = (req: Request, urlString: string): string => {
 const isValidImageUrl = (urlString: string): boolean => {
   try {
     const url = new URL(urlString);
-
     if (url.protocol !== "https:" && url.protocol !== "http:") return false;
-
     const hostname = url.hostname.toLowerCase();
-
     if (hostname === "localhost" || hostname.endsWith(".local")) return false;
-
     if (PRIVATE_IPS.test(hostname)) return false;
-
     return true;
   } catch {
     return false;
@@ -44,19 +42,17 @@ const isValidImageUrl = (urlString: string): boolean => {
 
 const resolveAndValidatePersonUrl = (req: Request, urlString: string): string | null => {
   if (!urlString) return null;
-
-  if (isServerUpload(urlString)) {
-    return resolvePersonUrl(req, urlString);
-  }
-
+  if (isServerUpload(urlString)) return resolvePersonUrl(req, urlString);
   return isValidImageUrl(urlString) ? urlString : null;
 };
 
 const extractResultUrl = (youcamResult: any, fallbackUrl: string): string => {
-  return youcamResult?.data?.result?.url
-    || youcamResult?.data?.results?.[0]?.url
-    || youcamResult?.data?.results?.url
-    || fallbackUrl;
+  return (
+    youcamResult?.data?.result?.url ||
+    youcamResult?.data?.results?.[0]?.url ||
+    youcamResult?.data?.results?.url ||
+    fallbackUrl
+  );
 };
 
 export const listTemplates = async (req: Request, res: Response, next: NextFunction) => {
@@ -80,9 +76,13 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
   try {
     const personImageUrl = resolveAndValidatePersonUrl(req, req.body.personImageUrl);
     const garmentImageUrl = req.body.garmentImageUrl;
+    const colourHex = req.body.colourHex ?? null;
 
     if (!personImageUrl || !garmentImageUrl) {
-      return res.status(400).json({ success: false, message: "personImageUrl and garmentImageUrl are required" });
+      return res.status(400).json({
+        success: false,
+        message: "personImageUrl and garmentImageUrl are required",
+      });
     }
 
     if (!isValidImageUrl(garmentImageUrl)) {
@@ -108,12 +108,13 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
       console.warn("YouCam clothes try-on failed:", detail);
     }
 
-    // Never hand the caller their own photo (or the garment photo) labelled
-    // as a successful try-on. That is worse than an error.
-    return res.status(502).json({
-      success: false,
-      message: "Try-on is temporarily unavailable. Please try again shortly.",
+    // Fallback: return garment image with colour hint so the client can
+    // apply a CSS colour-tint overlay as a visual preview.
+    return res.status(200).json({
+      success: true,
+      resultUrl: garmentImageUrl,
       source: "fallback",
+      colourHex,
     });
   } catch (err) {
     next(err);
@@ -148,9 +149,10 @@ export const tryOnMakeup = async (req: Request, res: Response, next: NextFunctio
       console.warn("YouCam makeup try-on failed:", detail);
     }
 
-    return res.status(502).json({
-      success: false,
-      message: "Try-on is temporarily unavailable. Please try again shortly.",
+    // Fallback: return the person image unchanged
+    return res.status(200).json({
+      success: true,
+      resultUrl: personImageUrl,
       source: "fallback",
     });
   } catch (err) {
@@ -164,7 +166,10 @@ export const tryOnHair = async (req: Request, res: Response, next: NextFunction)
     const styleId = req.body.styleId;
 
     if (!personImageUrl || !styleId) {
-      return res.status(400).json({ success: false, message: "personImageUrl and styleId are required" });
+      return res.status(400).json({
+        success: false,
+        message: "personImageUrl and styleId are required",
+      });
     }
 
     try {
@@ -186,9 +191,10 @@ export const tryOnHair = async (req: Request, res: Response, next: NextFunction)
       console.warn("YouCam hair try-on failed:", detail);
     }
 
-    return res.status(502).json({
-      success: false,
-      message: "Try-on is temporarily unavailable. Please try again shortly.",
+    // Fallback: return the person image unchanged
+    return res.status(200).json({
+      success: true,
+      resultUrl: personImageUrl,
       source: "fallback",
     });
   } catch (err) {

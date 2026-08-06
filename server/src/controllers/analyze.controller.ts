@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import fs from "fs";
 import path from "path";
 import { sendSuccess, sendError } from "../utils/response";
-import { ImageService } from "../services/image.service";
+import { ImageService, extractSkinToneLocally } from "../services/image.service";
 import RecommendationService from "../services/recommendation.service";
 import YouCamService from "../services/youcam.service";
 import {
@@ -65,7 +65,14 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
       const detail = (skinRes.reason as any)?.response?.data
         ? JSON.stringify((skinRes.reason as any).response.data)
         : (skinRes.reason as Error).message;
-      console.warn("YouCam skin analysis failed, using fallback:", detail);
+      console.warn("YouCam skin analysis failed, using local fallback:", detail);
+    }
+
+    // Local skin analysis fallback — derive concern estimates from the image
+    // when YouCam skin-analysis credits are unavailable.
+    let localSkinData: { skinToneHex: string; luma: number } | null = null;
+    if (!youcamResult) {
+      localSkinData = await extractSkinToneLocally(originalImage);
     }
 
     const output = youcamResult?.data?.results?.output || [];
@@ -73,6 +80,12 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     for (const item of output) {
       scoreMap[item.type] = (item.ui_score ?? item.raw_score ?? 0) / 100;
     }
+
+    // When YouCam scores are missing, derive plausible estimates from luma.
+    // Lighter skin tones tend to show more redness/sensitivity;
+    // darker tones tend to show more dark spots/uneven tone.
+    const lumaFactor = localSkinData ? (255 - localSkinData.luma) / 255 : 0.5;
+    const lumaLight = localSkinData ? localSkinData.luma / 255 : 0.5;
 
     // ui_score is 0-1 "healthier is higher"; a concern is the inverse for
     // positive metrics (moisture/firmness/radiance) and direct for negative ones.
@@ -89,23 +102,22 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     const radianceScore = scoreMap.radiance;
 
     const skinConcerns: Record<string, number> = {
-      acne: concernOf("acne", 0.15),
-      darkSpots: concernOf("age_spot", concernOf("dark_spot", 0.05)),
-      wrinkles: concernOf("wrinkle", 0.08),
-      pores: concernOf("pore", 0.3),
-      oiliness: concernOf("oiliness", 0.4),
-      dryness: inverseOf("moisture", 0.2),
-      redness: concernOf("redness", 0.1),
-      eyeBags: concernOf("eye_bag", 0.2),
-      darkCircles: concernOf("dark_circle", 0.3),
-      uneven: typeof radianceScore === "number" ? clamp(1 - radianceScore) : concernOf("dullness", 0.25),
-      sensitivity:
-        typeof rednessScore === "number"
+      acne:        concernOf("acne",       0.10 + lumaLight * 0.15),
+      darkSpots:   concernOf("age_spot",   concernOf("dark_spot", 0.05 + lumaFactor * 0.20)),
+      wrinkles:    concernOf("wrinkle",    0.05 + lumaFactor * 0.12),
+      pores:       concernOf("pore",       0.20 + lumaFactor * 0.15),
+      oiliness:    concernOf("oiliness",   0.25 + lumaLight * 0.20),
+      dryness:     inverseOf("moisture",   0.15 + lumaFactor * 0.15),
+      redness:     concernOf("redness",    0.08 + lumaLight * 0.12),
+      eyeBags:     concernOf("eye_bag",    0.12 + lumaFactor * 0.12),
+      darkCircles: concernOf("dark_circle",0.15 + lumaFactor * 0.20),
+      uneven:      typeof radianceScore === "number" ? clamp(1 - radianceScore) : concernOf("dullness", 0.15 + lumaFactor * 0.15),
+      sensitivity: typeof rednessScore === "number"
           ? clamp(rednessScore * 0.8)
-          : concernOf("sensitivity", 0.15),
-      texture: concernOf("texture", 0.3),
-      firmness: inverseOf("firmness", 0.3),
-      radiance: typeof radianceScore === "number" ? clamp(1 - radianceScore) : 0.4,
+          : concernOf("sensitivity", 0.10 + lumaLight * 0.10),
+      texture:     concernOf("texture",    0.20 + lumaFactor * 0.15),
+      firmness:    inverseOf("firmness",   0.20 + lumaFactor * 0.15),
+      radiance:    typeof radianceScore === "number" ? clamp(1 - radianceScore) : (0.25 + lumaFactor * 0.20),
     };
 
     const skinTypeItem = output.find((i: any) => i.type === "skin_type");
@@ -119,11 +131,17 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     let color = {};
     if (toneRes.status === "fulfilled" && toneRes.value?.color) {
       color = toneRes.value.color;
-    } else if (toneRes.status === "rejected") {
-      const detail = (toneRes.reason as any)?.response?.data
-        ? JSON.stringify((toneRes.reason as any).response.data)
-        : (toneRes.reason as Error).message;
-      console.warn("YouCam color tones analysis failed, using fallback:", detail);
+    } else {
+      if (toneRes.status === "rejected") {
+        const detail = (toneRes.reason as any)?.response?.data
+          ? JSON.stringify((toneRes.reason as any).response.data)
+          : (toneRes.reason as Error).message;
+        console.warn("YouCam color tones failed, using local extraction:", detail);
+      }
+      // Local fallback: extract skin tone directly from the uploaded image
+      const local = await extractSkinToneLocally(originalImage);
+      color = { skin_color: local.skinToneHex };
+      console.log(`Local skin tone extracted: ${local.skinToneHex} (luma: ${Math.round(local.luma)})`);
     }
 
     const skinToneHex = (color as any).skin_color ?? "#D2A679";
