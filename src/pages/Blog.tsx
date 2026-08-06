@@ -170,7 +170,7 @@ export default function Blog() {
                 viewport={{ once: true, amount: 0.15 }}
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.2 }}
-                className="group scroll-mt-[4.375rem] overflow-hidden border border-gold-hairline transition-colors duration-300 hover:border-gold-border"
+                className="group scroll-mt-16 overflow-hidden border border-gold-hairline transition-colors duration-300 hover:border-gold-border"
               >
                 <div className="overflow-hidden">
                   <EditorialImage

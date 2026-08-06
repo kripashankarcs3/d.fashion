@@ -51,7 +51,7 @@ export default function CampaignSpread({
     <section
       id={id}
       className={cn(
-        'scroll-mt-[4.375rem] relative isolate flex flex-col overflow-hidden md:block',
+        'scroll-mt-16 relative isolate flex flex-col overflow-hidden md:block',
         mirrored ? 'campaign-ground-mirror' : 'campaign-ground',
         heightClassName,
         className,

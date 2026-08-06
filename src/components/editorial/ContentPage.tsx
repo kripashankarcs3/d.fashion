@@ -35,7 +35,7 @@ export function ProseSection({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      className="scroll-mt-[4.375rem] border-t border-gold-hairline py-8"
+      className="scroll-mt-16 border-t border-gold-hairline py-8"
     >
       <EyebrowLabel tone="gold">{label}</EyebrowLabel>
       {title && (
