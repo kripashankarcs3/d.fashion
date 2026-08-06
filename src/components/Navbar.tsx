@@ -151,7 +151,7 @@ export default function Navbar() {
     >
       <div className="mx-auto w-full max-w-container-editorial px-[var(--gutter)]">
         <nav
-          className="flex h-[4.375rem] items-center justify-between gap-8"
+          className="flex h-16 items-center justify-between gap-8"
           aria-label="Primary"
         >
           <Link
@@ -318,7 +318,7 @@ export default function Navbar() {
             exit="closed"
             className="fixed inset-0 z-[var(--z-navbar)] flex flex-col bg-surface-0 text-gold-primary will-change-transform lg:hidden"
           >
-            <div className="flex h-[4.375rem] shrink-0 items-center justify-between px-[var(--gutter)]">
+            <div className="flex h-16 shrink-0 items-center justify-between px-[var(--gutter)]">
               <span className="font-display text-[1.625rem] leading-none">
                 D&rsquo;Fashion
               </span>

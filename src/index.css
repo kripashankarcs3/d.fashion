@@ -293,11 +293,13 @@
        rem-based layout scales uniformly with window width and is
        unaffected by browser zoom level. The px floor/ceiling still
        respect the user's font-size preference via the zoom mechanism.
-         16px  @ ≤ 772px   (mobile floor)
-         18.9px @ 1280px
-         19.9px @ 1440px
-         21px  @ ≥ 1800px  (4K ceiling) */
-    font-size: clamp(16px, 11.52px + 0.58vw, 21px);
+       Reduced ~10% from the original slope so the 100% view sits like a
+       90% browser zoom without forcing the user to zoom out.
+         16px  @ ≤ 772px   (mobile floor — unchanged, keeps type legible)
+         17px  @ 1280px
+         17.8px @ 1440px
+         18.9px @ ≥ 1900px  (4K ceiling) */
+    font-size: clamp(16px, 10.6px + 0.5vw, 18.9px);
 
     color-scheme: dark;
     scroll-behavior: smooth;

@@ -69,7 +69,7 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="scroll-mt-[4.375rem] relative overflow-hidden bg-surface-2 py-section-xl"
+      className="scroll-mt-16 relative overflow-hidden bg-surface-2 py-section-xl"
     >
       {/* Ambient glow */}
       <div

@@ -126,7 +126,7 @@ export default function ScienceSection() {
   return (
     <section
       id="the-science"
-      className="scroll-mt-[4.375rem] relative overflow-hidden bg-surface-2 py-section-xl"
+      className="scroll-mt-16 relative overflow-hidden bg-surface-2 py-section-xl"
     >
       {/* Ambient glow */}
       <div
