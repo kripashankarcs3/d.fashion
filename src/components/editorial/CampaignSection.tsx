@@ -56,7 +56,7 @@ export default function CampaignSection({
   return (
     <section
       className={cn(
-        'relative isolate overflow-hidden bg-[#070707]',
+        'relative isolate overflow-hidden bg-[#0B0B0E]',
         heightClasses[height],
         className,
       )}

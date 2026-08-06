@@ -90,13 +90,13 @@ export default function AnalysisProcessing({
       >
         {uploading ? (
           <motion.div
-            className="h-full w-full origin-left will-change-transform bg-[linear-gradient(90deg,#C9A84C_25%,#D4A853_50%,#C9A84C_75%)] bg-[length:200%_100%]"
+            className="h-full w-full origin-left will-change-transform bg-[linear-gradient(90deg,#F3E2B3_25%,#F6E9C6_50%,#F3E2B3_75%)] bg-[length:200%_100%]"
             initial={false}
             animate={{ scaleX: progress / 100 }}
             transition={{ type: 'spring', stiffness: 80, damping: 20 }}
           />
         ) : (
-          <div className="gpu h-full w-full animate-[shimmer_1.5s_infinite] bg-[linear-gradient(90deg,#C9A84C_25%,#D4A853_50%,#C9A84C_75%)] bg-[length:200%_100%]" />
+          <div className="gpu h-full w-full animate-[shimmer_1.5s_infinite] bg-[linear-gradient(90deg,#F3E2B3_25%,#F6E9C6_50%,#F3E2B3_75%)] bg-[length:200%_100%]" />
         )}
       </div>
     </div>
