@@ -140,6 +140,7 @@ export default function Navbar() {
   }, [menuOpen]);
 
   return (
+    <>
     <header
       className={cn(
         'fixed inset-x-0 top-0 z-[var(--z-navbar)] border-b transition-[background-color,border-color,color] duration-500 ease-[var(--ease-editorial)]',
@@ -150,7 +151,7 @@ export default function Navbar() {
     >
       <div className="mx-auto w-full max-w-container-editorial px-[var(--gutter)]">
         <nav
-          className="flex h-[4.375rem] items-center justify-between gap-8"
+          className="flex h-16 items-center justify-between gap-8"
           aria-label="Primary"
         >
           <Link
@@ -159,9 +160,9 @@ export default function Navbar() {
             aria-label="D'Fashion — home"
           >
             <motion.span
-              className="inline-block"
-              whileHover={{ letterSpacing: '0.01em', opacity: 0.8 }}
-              transition={{ duration: 0.3 }}
+              className="inline-block will-change-[opacity]"
+              whileHover={{ opacity: 0.65 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
             >
               D&rsquo;Fashion
             </motion.span>
@@ -295,7 +296,14 @@ export default function Navbar() {
           </div>
         </nav>
       </div>
+    </header>
 
+      {/* Outside <header> on purpose. The header carries `backdrop-blur`, and a
+          non-`none` backdrop-filter makes an element the containing block for
+          its fixed-position descendants — nested in there, this drawer's
+          `fixed inset-0` resolved against the 70px-tall header instead of the
+          viewport, collapsing the panel and pushing the first nav links off
+          screen where they could not be tapped. */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -310,7 +318,7 @@ export default function Navbar() {
             exit="closed"
             className="fixed inset-0 z-[var(--z-navbar)] flex flex-col bg-surface-0 text-gold-primary will-change-transform lg:hidden"
           >
-            <div className="flex h-[4.375rem] shrink-0 items-center justify-between px-[var(--gutter)]">
+            <div className="flex h-16 shrink-0 items-center justify-between px-[var(--gutter)]">
               <span className="font-display text-[1.625rem] leading-none">
                 D&rsquo;Fashion
               </span>
@@ -324,10 +332,15 @@ export default function Navbar() {
               </button>
             </div>
 
+            {/* `min-h-0` lets this flex child actually shrink so it can scroll;
+                the links are centred with `my-auto` rather than
+                `justify-center`, which would push the first ones out of reach
+                above the scroll origin once the list is taller than the panel. */}
             <nav
-              className="flex flex-1 flex-col justify-center overflow-y-auto px-[var(--gutter)]"
+              className="flex min-h-0 flex-1 flex-col overflow-y-auto px-[var(--gutter)]"
               aria-label="Mobile"
             >
+              <div className="my-auto w-full">
               {navLinks.map((link, index) => {
                 const active = !link.hash && location === link.href;
                 const className = cn(
@@ -366,6 +379,7 @@ export default function Navbar() {
                   </Link>
                 );
               })}
+              </div>
             </nav>
 
             <div className="shrink-0 px-[var(--gutter)] pb-10 pt-6">
@@ -413,6 +427,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }

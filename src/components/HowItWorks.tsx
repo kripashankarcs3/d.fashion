@@ -69,7 +69,7 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="scroll-mt-[4.375rem] relative overflow-hidden bg-surface-2 py-section-xl"
+      className="scroll-mt-16 relative overflow-hidden bg-surface-2 py-section-xl"
     >
       {/* Ambient glow */}
       <div
@@ -77,7 +77,7 @@ export default function HowItWorks() {
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           backgroundImage:
-            'radial-gradient(ellipse 70% 55% at 50% 0%, rgba(184,151,74,0.06) 0%, transparent 70%)',
+            'radial-gradient(ellipse 70% 55% at 50% 0%, rgba(243,226,179,0.06) 0%, transparent 70%)',
         }}
       />
 
@@ -141,7 +141,7 @@ export default function HowItWorks() {
           >
             <motion.path
               d="M0 20 H1200"
-              stroke="rgba(201,168,76,0.4)"
+              stroke="rgba(243,226,179,0.4)"
               strokeWidth="1"
               strokeLinecap="round"
               initial={{ pathLength: 0 }}
@@ -162,7 +162,7 @@ export default function HowItWorks() {
           >
             <motion.path
               d="M0.5 0 V100"
-              stroke="rgba(201,168,76,0.4)"
+              stroke="rgba(243,226,179,0.4)"
               strokeWidth="1"
               strokeLinecap="round"
               initial={{ pathLength: 0 }}

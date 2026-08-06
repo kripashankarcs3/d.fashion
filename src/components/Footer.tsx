@@ -96,7 +96,7 @@ export default function Footer() {
               className="inline-flex items-center gap-3"
               aria-label="D'Fashion — home"
             >
-              <span className="whitespace-nowrap font-editorial text-wordmark leading-none font-medium text-gold-primary">
+              <span className="whitespace-nowrap font-editorial text-wordmark leading-none font-medium text-cream-primary">
                 D&rsquo;Fashion
               </span>
             </Link>

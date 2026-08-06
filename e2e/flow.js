@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { AUTHENTICATED_HOME } from '../src/config/navigation.ts';
 
 const TARGET_URL = process.env.TARGET_URL || 'http://localhost:5173';
 const EMAIL = `e2e_${Date.now()}@test.local`;
@@ -70,16 +71,17 @@ const analysis = {
   console.log('CHAT-REPLY received:', hasReply);
 
   // 3. GuestOnly bounce — an authenticated visitor never sees /login; they land
-  //    on AUTHENTICATED_HOME (/dashboard) when no ?redirect= is carried.
+  //    on AUTHENTICATED_HOME when no ?redirect= is carried. Read from the app's
+  //    own config so moving that constant can never silently fail this check.
   let guestOnlyBounced = false;
   try {
     await page.goto(TARGET_URL + '/login', { waitUntil: 'networkidle' });
     await page.waitForURL((url) => url.pathname !== '/login', { timeout: 15000 });
-    guestOnlyBounced = new URL(page.url()).pathname === '/dashboard';
+    guestOnlyBounced = new URL(page.url()).pathname === AUTHENTICATED_HOME;
   } catch {
     guestOnlyBounced = false;
   }
-  console.log('GUESTONLY-BOUNCE: /login -> /dashboard:', guestOnlyBounced);
+  console.log(`GUESTONLY-BOUNCE: /login -> ${AUTHENTICATED_HOME}:`, guestOnlyBounced);
 
   // 4. Legacy /tryon alias resolves to /try-on when authenticated.
   let tryonAliased = false;

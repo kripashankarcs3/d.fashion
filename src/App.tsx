@@ -1,8 +1,8 @@
-import { Suspense, lazy, useEffect, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, useRef, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
+import { motion, MotionConfig } from 'framer-motion';
 import { Redirect, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import AppShell from '@/components/AppShell';
 import { GuestOnly, Protected } from '@/components/RouteGuards';
@@ -76,6 +76,14 @@ function EntryRedirect() {
 function Router() {
   const [location] = useLocation();
 
+  /* The very first page of a session is already on screen when React hydrates,
+     so it appears without a transition; every later route fades in. */
+  const firstRender = useRef(true);
+  const entrance = firstRender.current ? false : { opacity: 0, y: 12 };
+  useEffect(() => {
+    firstRender.current = false;
+  }, []);
+
   useEffect(() => {
     const meta =
       PAGE_META[ROUTE_ALIASES[location] ?? location] ?? FALLBACK_PAGE_META;
@@ -84,129 +92,135 @@ function Router() {
 
   return (
     <AppShell>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={location}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8, transition: { duration: 0.18, ease: 'easeIn' } }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="will-change-transform"
-        >
-          <ScrollManager path={location} />
-          <Suspense fallback={<PageFallback />}>
-            <Switch>
-              {/* Entry point — auth-switched. Signed-out visitors land on login;
-                  signed-in members on the dashboard. */}
-              <Route path={ROUTES.root}>
-                <EntryRedirect />
-              </Route>
+      {/* Deliberately *not* wrapped in <AnimatePresence>. An exit animation
+          gates mounting the incoming route on the outgoing one finishing, and
+          anything that stalls that exit — a `layoutId` in the leaving page, an
+          interrupted transition, a suspended chunk — leaves the whole app
+          frozen at the exit values. The route then renders into a container
+          stuck at `opacity: 0`: the URL changes, the nav updates, the content
+          is in the DOM, and the user sees a blank page. A cosmetic transition
+          must never be able to gate rendering, so we key on location and play
+          the entrance only. */}
+      <motion.div
+        key={location}
+        initial={entrance}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="will-change-transform"
+      >
+        <ScrollManager path={location} />
+        <Suspense fallback={<PageFallback />}>
+          <Switch>
+            {/* Entry point — auth-switched. Signed-out visitors land on login;
+                signed-in members on the dashboard. */}
+            <Route path={ROUTES.root}>
+              <EntryRedirect />
+            </Route>
 
-              {/* Public — the campaign landing page. Per-route skeleton. */}
-              <Route path={ROUTES.home}>
-                <Suspense fallback={<HomeSkeleton />}>
-                  <ErrorBoundary pageName="Home">
-                    <Home />
-                  </ErrorBoundary>
-                </Suspense>
-              </Route>
-              <Route path={ROUTES.pricing}>
-                <ErrorBoundary pageName="Pricing">
-                  <Pricing />
+            {/* Public — the campaign landing page. Per-route skeleton. */}
+            <Route path={ROUTES.home}>
+              <Suspense fallback={<HomeSkeleton />}>
+                <ErrorBoundary pageName="Home">
+                  <Home />
                 </ErrorBoundary>
-              </Route>
+              </Suspense>
+            </Route>
+            <Route path={ROUTES.pricing}>
+              <ErrorBoundary pageName="Pricing">
+                <Pricing />
+              </ErrorBoundary>
+            </Route>
 
-              {/* Public marketing / trust pages */}
-              <Route path={ROUTES.privacy}>
-                <ErrorBoundary pageName="Privacy">
-                  <Privacy />
-                </ErrorBoundary>
-              </Route>
-              <Route path={ROUTES.terms}>
-                <ErrorBoundary pageName="Terms">
-                  <Terms />
-                </ErrorBoundary>
-              </Route>
-              <Route path={ROUTES.about}>
-                <ErrorBoundary pageName="About">
-                  <About />
-                </ErrorBoundary>
-              </Route>
-              <Route path={ROUTES.contact}>
-                <ErrorBoundary pageName="Contact">
-                  <Contact />
-                </ErrorBoundary>
-              </Route>
-              <Route path={ROUTES.faq}>
-                <ErrorBoundary pageName="FAQ">
-                  <Faq />
-                </ErrorBoundary>
-              </Route>
-              <Route path={ROUTES.blog}>
-                <ErrorBoundary pageName="Journal">
-                  <Blog />
-                </ErrorBoundary>
-              </Route>
+            {/* Public marketing / trust pages */}
+            <Route path={ROUTES.privacy}>
+              <ErrorBoundary pageName="Privacy">
+                <Privacy />
+              </ErrorBoundary>
+            </Route>
+            <Route path={ROUTES.terms}>
+              <ErrorBoundary pageName="Terms">
+                <Terms />
+              </ErrorBoundary>
+            </Route>
+            <Route path={ROUTES.about}>
+              <ErrorBoundary pageName="About">
+                <About />
+              </ErrorBoundary>
+            </Route>
+            <Route path={ROUTES.contact}>
+              <ErrorBoundary pageName="Contact">
+                <Contact />
+              </ErrorBoundary>
+            </Route>
+            <Route path={ROUTES.faq}>
+              <ErrorBoundary pageName="FAQ">
+                <Faq />
+              </ErrorBoundary>
+            </Route>
+            <Route path={ROUTES.blog}>
+              <ErrorBoundary pageName="Journal">
+                <Blog />
+              </ErrorBoundary>
+            </Route>
 
-              {/* Guest only */}
-              <Route path={ROUTES.login}>
-                <GuestOnly fallback={<PageFallback />}>
-                  <ErrorBoundary pageName="Sign in">
-                    <Login />
-                  </ErrorBoundary>
-                </GuestOnly>
-              </Route>
-              <Route path={ROUTES.signup}>
-                <GuestOnly fallback={<PageFallback />}>
-                  <ErrorBoundary pageName="Sign up">
-                    <Signup />
-                  </ErrorBoundary>
-                </GuestOnly>
-              </Route>
+            {/* Guest only */}
+            <Route path={ROUTES.login}>
+              <GuestOnly fallback={<PageFallback />}>
+                <ErrorBoundary pageName="Sign in">
+                  <Login />
+                </ErrorBoundary>
+              </GuestOnly>
+            </Route>
+            <Route path={ROUTES.signup}>
+              <GuestOnly fallback={<PageFallback />}>
+                <ErrorBoundary pageName="Sign up">
+                  <Signup />
+                </ErrorBoundary>
+              </GuestOnly>
+            </Route>
 
-              {/* Requires a session — Dashboard and Report get per-route skeletons. */}
-              <Route path={ROUTES.dashboard}>
-                <Suspense fallback={<DashboardSkeleton />}>
-                  <AppRoute name="Dashboard">
-                    <Dashboard />
-                  </AppRoute>
-                </Suspense>
-              </Route>
-              <Route path={ROUTES.upload}>
-                <AppRoute name="Upload">
-                  <Upload />
+            {/* Requires a session — Dashboard and Report get per-route skeletons. */}
+            <Route path={ROUTES.dashboard}>
+              <Suspense fallback={<DashboardSkeleton />}>
+                <AppRoute name="Dashboard">
+                  <Dashboard />
                 </AppRoute>
-              </Route>
-              <Route path={ROUTES.report}>
-                <Suspense fallback={<ReportSkeleton />}>
-                  <AppRoute name="Report">
-                    <Report />
-                  </AppRoute>
-                </Suspense>
-              </Route>
-              <Route path={ROUTES.tryOn}>
-                <AppRoute name="Try-On">
-                  <TryOn />
+              </Suspense>
+            </Route>
+            <Route path={ROUTES.upload}>
+              <AppRoute name="Upload">
+                <Upload />
+              </AppRoute>
+            </Route>
+            <Route path={ROUTES.report}>
+              <Suspense fallback={<ReportSkeleton />}>
+                <AppRoute name="Report">
+                  <Report />
                 </AppRoute>
-              </Route>
-              <Route path={ROUTES.chat}>
-                <AppRoute name="D'Style">
-                  <Chat />
-                </AppRoute>
-              </Route>
+              </Suspense>
+            </Route>
+            <Route path={ROUTES.tryOn}>
+              <AppRoute name="Try-On">
+                <TryOn />
+              </AppRoute>
+            </Route>
+            <Route path={ROUTES.chat}>
+              <AppRoute name="D'Style">
+                <Chat />
+              </AppRoute>
+            </Route>
 
-              {/* Legacy paths */}
-              {Object.entries(ROUTE_ALIASES).map(([from, to]) => (
-                <Route key={from} path={from}>
-                  <Redirect to={to} replace />
-                </Route>
-              ))}
+            {/* Legacy paths */}
+            {Object.entries(ROUTE_ALIASES).map(([from, to]) => (
+              <Route key={from} path={from}>
+                <Redirect to={to} replace />
+              </Route>
+            ))}
 
-              <Route component={NotFound} />
-            </Switch>
-          </Suspense>
-        </motion.div>
-      </AnimatePresence>
+            <Route component={NotFound} />
+          </Switch>
+        </Suspense>
+      </motion.div>
     </AppShell>
   );
 }
