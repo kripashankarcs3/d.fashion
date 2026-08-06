@@ -3,12 +3,16 @@ import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { success } from '@/lib/toast';
-import { Bookmark, LoaderCircle, RotateCw, Scissors, Shirt, Sparkles } from 'lucide-react';
+import { Bookmark, Download, LoaderCircle, RotateCw, Scissors, Shirt, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/navigation';
 import { Badge } from '@/components/ui/badge';
-import PageMasthead from '@/components/editorial/PageMasthead';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
+import EyebrowLabel from '@/components/editorial/EyebrowLabel';
+import Reveal from '@/components/editorial/Reveal';
+import CampaignSection from '@/components/editorial/CampaignSection';
+import BeforeAfterSlider from '@/components/BeforeAfterSlider';
+import { CAMPAIGN } from '@/lib/editorial-images';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import { useStyleStore } from '@/store/useStyleStore';
 import { useTryOn } from '@/hooks/useTryOn';
@@ -235,6 +239,25 @@ export default function TryOn() {
     success('Saved to your dashboard');
   };
 
+  const handleDownload = async () => {
+    if (!resultUrl) return;
+    const name = (selected?.name ?? 'tryon-result').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    try {
+      const res = await fetch(resultUrl, { mode: 'cors' });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tryon-${name}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      window.open(resultUrl, '_blank');
+    }
+  };
+
   const ctaLabel = isPending
     ? selected?.kind === 'look' ? 'Applying…' : 'Trying On…'
     : resultUrl ? 'Try Again'
@@ -243,13 +266,88 @@ export default function TryOn() {
     : 'Try On This Outfit';
 
   return (
-    <div className="w-full pt-28 pb-24">
-      <EditorialContainer width="content">
-        <PageMasthead
-          label="Virtual Try-On"
-          title={<>See Your Colours, <Emphasis>On You.</Emphasis></>}
-          lede="Select a category, pick an outfit, and see it on your photo."
-        />
+    <div className="w-full pb-24">
+      {/* ── Hero — full-bleed campaign background like Home page ── */}
+      <CampaignSection
+        src={CAMPAIGN.archetype.base}
+        alt={CAMPAIGN.archetype.alt}
+        position={CAMPAIGN.archetype.position}
+        anchor="bottom-left"
+        height="tall"
+        scrim="left"
+        priority
+        cinematicIntensity={0.95}
+        fadeEdges
+        className="min-h-[min(88svh,52rem)]"
+        contentPadding="pb-24 md:pb-32 lg:pb-40"
+      >
+        <div className="grid w-full grid-cols-1 gap-10 lg:grid-cols-[1fr_auto] lg:items-center">
+          {/* Left: copy */}
+          <div className="max-w-[38rem]">
+            <Reveal variant="fade">
+              <EyebrowLabel tone="gold" rule>Virtual Try-On</EyebrowLabel>
+            </Reveal>
+            <motion.div
+              initial={{ clipPath: 'inset(0 0 100% 0)', y: 8 }}
+              animate={{ clipPath: 'inset(0 0 0% 0)', y: 0 }}
+              transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+              className="mt-5 will-change-[clip-path]"
+            >
+              <EditorialHeading as="h1" size="xl" className="text-cream-primary drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                See Your Colours, <Emphasis>On You.</Emphasis>
+              </EditorialHeading>
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.55 }}
+              className="mt-5 max-w-[44ch] text-lede font-light text-cream-primary/80 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]"
+            >
+              Select a category, pick any outfit, and watch it appear on your photo — powered by AI.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.75 }}
+              className="mt-8 flex flex-wrap gap-3"
+            >
+              {['Dresses', 'Tops', 'Ethnic Wear', 'Outerwear', 'Bottoms'].map((cat) => (
+                <span key={cat} className="rounded-sm border border-gold-hairline bg-surface-0/75 px-3 py-1 eyebrow-micro text-gold-primary backdrop-blur-sm">
+                  {cat}
+                </span>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Right: before/after slider — same model, dress changed */}
+          <motion.div
+            initial={{ opacity: 0, x: 32 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
+            className="hidden lg:block"
+          >
+            <div className="relative">
+              <BeforeAfterSlider
+                beforeSrc="https://images.pexels.com/photos/2220316/pexels-photo-2220316.jpeg?auto=compress&cs=tinysrgb&w=500"
+                afterColour="#1E3A5F"
+                beforeLabel="Original"
+                afterLabel="With Outfit"
+                className="h-[26rem] w-72 shadow-2xl"
+              />
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2, duration: 0.5 }}
+                className="absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-gold-hairline bg-surface-0/90 px-4 py-1.5 text-[0.6rem] uppercase tracking-widest text-gold-primary backdrop-blur-sm"
+              >
+                ← drag to compare →
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </CampaignSection>
+
+      <EditorialContainer width="content" className="pt-12">
 
         {!referenceImageUrl ? (
           <div className="mx-auto mt-14 w-full max-w-xl border border-gold-hairline bg-surface-3 p-8 text-center">
@@ -380,7 +478,23 @@ export default function TryOn() {
                         <Badge variant="gold">{selected.colourName ?? (selected.kind === 'look' ? 'Makeup' : selected.kind === 'hair' ? 'Hair' : 'Look')}</Badge>
                       </div>
 
-                      <div className="mt-6 grid grid-cols-2 gap-4">
+                      {/* Result: Before/After slider when try-on result available, else side-by-side */}
+                      {resultUrl && !isFallback ? (
+                        <div className="mt-6">
+                          <p className="text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-cream-primary/55 mb-2">
+                            Drag to compare
+                          </p>
+                          <BeforeAfterSlider
+                            beforeSrc={assetUrl(referenceImageUrl)}
+                            afterSrc={resultUrl}
+                            afterColour={selected.colourHex}
+                            beforeLabel="You"
+                            afterLabel="Try-On"
+                            className="aspect-[3/4] w-full"
+                          />
+                        </div>
+                      ) : (
+                        <div className="mt-6 grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-cream-primary/55">You</p>
                           <div className="mt-2 aspect-[3/4] w-full overflow-hidden border border-gold-hairline">
@@ -420,12 +534,18 @@ export default function TryOn() {
                           )}
                         </div>
                       </div>
+                      )}
 
                       <div className="mt-8 flex flex-col gap-3">
                         <Button size="lg" onClick={handleTryOn} disabled={isPending}>
                           {isPending ? <LoaderCircle className="animate-spin" aria-hidden /> : <RotateCw aria-hidden />}
                           {ctaLabel}
                         </Button>
+                        {resultUrl && (
+                          <Button variant="secondary" size="lg" onClick={handleDownload}>
+                            <Download aria-hidden /> Download Result
+                          </Button>
+                        )}
                         {resultUrl && selected.kind === 'outfit' && (
                           <>
                             <Button variant="secondary" size="lg" onClick={handleAddToWardrobe}>
