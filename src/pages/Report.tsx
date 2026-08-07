@@ -880,7 +880,7 @@ export default function Report() {
                     width={640}
                     height={640}
                     loading="eager"
-                    className="aspect-square w-full object-cover"
+                    className="aspect-square w-full object-cover object-[50%_18%]"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                     }}

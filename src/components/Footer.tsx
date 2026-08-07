@@ -96,9 +96,11 @@ export default function Footer() {
               className="inline-flex items-center gap-3"
               aria-label="D'Fashion — home"
             >
-              <span className="whitespace-nowrap font-editorial text-wordmark leading-none font-medium text-cream-primary">
-                D&rsquo;Fashion
-              </span>
+              <img
+                src="/images/campaign/final-logo.png"
+                alt="D'Fashion"
+                className="h-[4.5rem] w-auto object-contain"
+              />
             </Link>
             <p className="mt-6 text-body-sm leading-[1.6] text-gold-soft">
               Colour Intelligence, Personalised.
