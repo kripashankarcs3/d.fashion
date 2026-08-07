@@ -97,9 +97,9 @@ export default function Footer() {
               aria-label="D'Fashion — home"
             >
               <img
-                src="/images/campaign/final-logo.png"
+                src="/images/campaign/logo3.png"
                 alt="D'Fashion"
-                className="h-[4.5rem] w-auto object-contain"
+                className="h-28 w-auto object-contain"
               />
             </Link>
             <p className="mt-6 text-body-sm leading-[1.6] text-gold-soft">

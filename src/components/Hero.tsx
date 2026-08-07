@@ -33,8 +33,17 @@ export default function Hero() {
       {/* ── LAYER 1: Full-bleed image — absolute fill ── */}
       <motion.div
         aria-hidden
-        style={{ y: imageY, scale: imageScale }}
-        className="absolute inset-0 -z-10 will-change-transform"
+        style={{
+          y: imageY,
+          scale: imageScale,
+          maskImage:
+            'linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%), linear-gradient(180deg, black 80%, transparent 100%)',
+          WebkitMaskImage:
+            'linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%), linear-gradient(180deg, black 80%, transparent 100%)',
+          maskComposite: 'intersect',
+          WebkitMaskComposite: 'source-in',
+        }}
+        className="absolute inset-y-0 left-0 right-0 mx-auto w-[85%] -z-10 will-change-transform"
       >
         <EditorialImage
           src={CAMPAIGN.opening.base}
@@ -45,14 +54,13 @@ export default function Hero() {
           sizes="100vw"
           className="h-full w-full"
           cinematic={false}
-          imgClassName="campaign-photo-grade"
+          imgClassName="campaign-photo-grade blur-[2px]"
         />
 
         {/* Layered cinematic scrims — vignette first, then the directional
             fade for the copy side, then the edge fade that carries the
             navbar scrim and resolves the bottom edge into the page ground. */}
         <div aria-hidden="true" className="absolute inset-0 campaign-vignette" />
-        <div aria-hidden="true" className="absolute inset-0 campaign-fade-left" />
         <div aria-hidden="true" className="absolute inset-0 campaign-fade-edges" />
       </motion.div>
 
