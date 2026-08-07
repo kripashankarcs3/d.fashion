@@ -83,24 +83,55 @@ export default function Login() {
   };
 
   return (
-    <div className="grid min-h-[100svh] grid-cols-1 bg-[#0B0B0E] lg:grid-cols-2 overflow-hidden">
-      {/* LEFT: editorial campaign image — runs under the form's left edge so
-          the dissolve resolves there instead of at the grid line */}
-      <div className="relative hidden lg:block overflow-visible min-h-[600px] h-full">
-        <EditorialImage
-          src={CAMPAIGN.opening.base}
-          alt={CAMPAIGN.opening.alt}
-          ratio="fill"
-          scrim="right"
-          position="40% 30%"
-          priority
-          cinematicIntensity={1.2}
-          className="absolute inset-y-0 left-0 w-[calc(100%+8rem)] h-full"
-        />
-        {/* Darkening overlay mask to keep model slightly in the background */}
-        <div className="absolute inset-0 bg-[#0B0B0E]/40 z-10" />
+    <div className="relative grid h-[100svh] grid-cols-1 bg-[#0B0B0E] lg:grid-cols-2 overflow-hidden">
+      {/* One model photo stretched across the whole page background */}
+        {/* Centered band so the model reads smaller; edges dissolve into the
+            page background with a mask so there is no hard cut. */}
+        <div
+          className="absolute inset-y-0 left-1/2 w-[66.7%] -translate-x-1/2 -translate-y-[26px] opacity-95"
+          aria-hidden="true"
+          style={{
+            maskImage:
+              'linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%), linear-gradient(180deg, black 72%, transparent 100%)',
+            WebkitMaskImage:
+              'linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%), linear-gradient(180deg, black 72%, transparent 100%)',
+            maskComposite: 'intersect',
+            WebkitMaskComposite: 'source-in',
+          }}
+        >
+          <EditorialImage
+            src={CAMPAIGN.opening.base}
+            alt={CAMPAIGN.opening.alt}
+            ratio="fill"
+            scrim="right"
+            position="center 20%"
+            priority
+            cinematicIntensity={0.3}
+            imgClassName="brightness-[1.15] contrast-[1.12] saturate-[1.0]"
+            className="absolute inset-0 w-full h-full"
+          />
+        </div>
 
-        <div className="absolute inset-0 flex flex-col justify-center p-12 lg:p-16 z-20 bg-gradient-to-tr from-[#0B0B0E] via-[#0B0B0E]/60 to-[#0B0B0E]/30">
+      {/* Dark overlay to keep text & form legible */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[5]"
+        style={{
+          background: 'rgba(11,11,14,0.25)',
+        }}
+      />
+
+      {/* LEFT: text over the photo */}
+      <div className="relative z-10 hidden lg:block overflow-hidden h-full">
+        {/* Logo pinned to the panel's top-left corner */}
+        <img
+          src="/images/campaign/logo3.png"
+          alt="D'Fashion"
+          className="absolute left-12 top-0 z-20 h-32 w-auto object-contain lg:left-16"
+        />
+
+        {/* Text centered in the middle */}
+        <div className="absolute inset-0 flex flex-col justify-center p-12 lg:p-16 z-20 opacity-80">
           <EyebrowLabel tone="inverse">D&rsquo;Fashion</EyebrowLabel>
           <EditorialHeading size="lg" tone="inverse" className="mt-4 max-w-[16ch] leading-tight font-light text-shadow-sm">
             Colour Intelligence, <Emphasis>Personalised.</Emphasis>
@@ -129,8 +160,10 @@ export default function Login() {
         </div>
       </div>
 
-      {/* RIGHT: form — clean, minimal. Same ground as the dissolve endpoint. */}
-      <div className="relative z-10 flex flex-col items-center p-6 sm:p-12 lg:py-24 justify-center">
+      {/* RIGHT: form over the same photo */}
+      <div className="relative z-10 overflow-hidden">
+        {/* Form — scrollable internally if content overflows */}
+        <div className="relative z-10 flex h-full flex-col items-center overflow-y-auto p-6 sm:px-12 py-8 justify-center">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -146,7 +179,7 @@ export default function Login() {
               },
             },
           }}
-          className="relative w-full max-w-[23.5rem] my-auto py-10"
+          className="relative w-full max-w-[23.5rem] py-0"
         >
           <div className="relative z-10">
             <motion.div variants={itemVariants}>
@@ -240,6 +273,7 @@ export default function Login() {
             </motion.div>
           </div>
         </motion.div>
+        </div>
       </div>
     </div>
   );

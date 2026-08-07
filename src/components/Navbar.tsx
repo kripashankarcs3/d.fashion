@@ -156,13 +156,13 @@ export default function Navbar() {
           >
             <Link
               href={ROUTES.home}
-              className="shrink-0 transition-opacity duration-300 hover:opacity-70"
+              className="shrink-0 translate-y-1.5 transition-opacity duration-300 hover:opacity-70"
               aria-label="D'Fashion — home"
             >
               <img
-                src="/images/campaign/final-logo.png"
+                src="/images/campaign/logo3.png"
                 alt="D'Fashion"
-                className="h-[4rem] w-auto object-contain"
+                className="h-28 w-auto object-contain"
               />
             </Link>
 
@@ -318,9 +318,9 @@ export default function Navbar() {
           >
             <div className="flex h-16 shrink-0 items-center justify-between px-[var(--gutter)]">
               <img
-                src="/images/campaign/final-logo.png"
+                src="/images/campaign/logo3.png"
                 alt="D'Fashion"
-                className="h-16 w-auto object-contain"
+                className="h-28 w-auto object-contain"
               />
               <button
                 type="button"
