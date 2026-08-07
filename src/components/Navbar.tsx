@@ -141,162 +141,160 @@ export default function Navbar() {
 
   return (
     <>
-    <header
-      className={cn(
-        'fixed inset-x-0 top-0 z-[var(--z-navbar)] border-b transition-[background-color,border-color,color] duration-500 ease-[var(--ease-editorial)]',
-        overlay
-          ? 'border-gold-hairline/0 bg-transparent text-cream-primary'
-          : 'border-gold-hairline bg-surface-1/95 text-cream-primary backdrop-blur-[16px]',
-      )}
-    >
-      <div className="mx-auto w-full max-w-container-editorial px-[var(--gutter)]">
-        <nav
-          className="flex h-16 items-center justify-between gap-8"
-          aria-label="Primary"
-        >
-          <Link
-            href={ROUTES.home}
-            className="shrink-0 font-display text-[1.625rem] leading-none tracking-[-0.01em] transition-opacity duration-300 hover:opacity-70"
-            aria-label="D'Fashion — home"
+      <header
+        className={cn(
+          'fixed inset-x-0 top-0 z-[var(--z-navbar)] border-b transition-[background-color,border-color,color] duration-500 ease-[var(--ease-editorial)]',
+          overlay
+            ? 'border-gold-hairline/0 bg-transparent text-cream-primary'
+            : 'border-gold-hairline bg-surface-1/95 text-cream-primary backdrop-blur-[16px]',
+        )}
+      >
+        <div className="mx-auto w-full max-w-container-editorial px-[var(--gutter)]">
+          <nav
+            className="flex h-16 items-center justify-between gap-8"
+            aria-label="Primary"
           >
-            <motion.span
-              className="inline-block will-change-[opacity]"
-              whileHover={{ opacity: 0.65 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
+            <Link
+              href={ROUTES.home}
+              className="shrink-0 transition-opacity duration-300 hover:opacity-70"
+              aria-label="D'Fashion — home"
             >
-              D&rsquo;Fashion
-            </motion.span>
-          </Link>
+              <img
+                src="/images/campaign/final-logo.png"
+                alt="D'Fashion"
+                className="h-[4rem] w-auto object-contain"
+              />
+            </Link>
 
-          <div className="hidden items-center gap-9 lg:flex">
-            {navLinks.map((link) => {
-              const active = !link.hash && location === link.href;
-              const className = cn(
-                'group relative inline-flex min-h-11 items-center eyebrow-micro transition-opacity duration-300 ease-out',
-                active ? 'opacity-100' : 'opacity-65 hover:opacity-100',
-              );
-              const underline = (
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    'absolute inset-x-0 bottom-[1.125rem] h-px origin-left bg-gold-primary transition-transform duration-500 ease-[var(--ease-editorial)]',
-                    active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
-                  )}
-                />
-              );
-              return (
-                <motion.div
-                  key={link.label}
-                  whileHover={{ y: -1 }}
-                  transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  {link.hash ? (
-                    <HashLink href={link.href} hash={link.hash} className={className}>
-                      {link.label}
-                      {underline}
-                    </HashLink>
-                  ) : (
-                    <Link
-                      href={link.href}
-                      aria-current={active ? 'page' : undefined}
-                      className={className}
-                    >
-                      {link.label}
-                      {underline}
-                    </Link>
-                  )}
-                </motion.div>
-              );
-            })}
-          </div>
-
-          <div className="flex shrink-0 items-center gap-5">
-            {!isAuthenticated ? (
-              <Link
-                href={ROUTES.login}
-                className="hidden min-h-11 items-center eyebrow-micro opacity-65 transition-opacity duration-300 hover:opacity-100 lg:inline-flex"
-              >
-                Sign In
-              </Link>
-            ) : (
-              <div ref={accountRef} className="relative hidden lg:block">
-                <button
-                  type="button"
-                  onClick={() => setAccountOpen((open) => !open)}
-                  aria-expanded={accountOpen}
-                  aria-haspopup="menu"
-                  aria-label="Account menu"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gold-border font-display text-[0.9375rem] transition-colors duration-300 hover:border-gold-light"
-                >
-                  {initials || '·'}
-                </button>
-                <AnimatePresence>
-                  {accountOpen && (
-                    <motion.div
-                      role="menu"
-                      aria-label="Account"
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute right-0 top-[calc(100%+0.875rem)] z-[var(--z-navbar)] w-60 border border-gold-hairline bg-surface-4 py-3 text-gold-primary shadow-md"
-                    >
-                      <p className="border-b border-gold-hairline px-5 pb-3 text-body-sm text-gold-primary">
-                        {user?.name}
-                        <span className="mt-0.5 block text-caption text-gold-muted">
-                          {user?.email}
-                        </span>
-                      </p>
-                      {ACCOUNT_MENU.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          role="menuitem"
-                          className="flex min-h-11 items-center px-5 eyebrow-micro text-gold-soft transition-colors duration-200 hover:bg-surface-5 hover:text-gold-primary"
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={handleSignOut}
-                        className="mt-1 flex min-h-11 w-full items-center border-t border-gold-hairline px-5 text-left eyebrow-micro text-error transition-colors duration-200 hover:bg-surface-5"
+            <div className="hidden items-center gap-9 lg:flex">
+              {navLinks.map((link) => {
+                const active = !link.hash && location === link.href;
+                const className = cn(
+                  'group relative inline-flex min-h-11 items-center eyebrow-micro transition-opacity duration-300 ease-out',
+                  active ? 'opacity-100' : 'opacity-65 hover:opacity-100',
+                );
+                const underline = (
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'absolute inset-x-0 bottom-[1.125rem] h-px origin-left bg-gold-primary transition-transform duration-500 ease-[var(--ease-editorial)]',
+                      active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
+                    )}
+                  />
+                );
+                return (
+                  <motion.div
+                    key={link.label}
+                    whileHover={{ y: -1 }}
+                    transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    {link.hash ? (
+                      <HashLink href={link.href} hash={link.hash} className={className}>
+                        {link.label}
+                        {underline}
+                      </HashLink>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        aria-current={active ? 'page' : undefined}
+                        className={className}
                       >
-                        Sign Out
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
-
-            <div className="hidden lg:block">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ duration: 0.15 }}
-              >
-                <Link href={ROUTES.upload} className="btn-campaign">
-                  {ctaLabel}
-                </Link>
-              </motion.div>
+                        {link.label}
+                        {underline}
+                      </Link>
+                    )}
+                  </motion.div>
+                );
+              })}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setMenuOpen((open) => !open)}
-              aria-expanded={menuOpen}
-              aria-controls="mobile-menu"
-              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              className="flex h-11 w-11 items-center justify-center lg:hidden"
-            >
-              <Hamburger open={menuOpen} />
-            </button>
-          </div>
-        </nav>
-      </div>
-    </header>
+            <div className="flex shrink-0 items-center gap-5">
+              {!isAuthenticated ? (
+                <Link
+                  href={ROUTES.login}
+                  className="hidden min-h-11 items-center eyebrow-micro opacity-65 transition-opacity duration-300 hover:opacity-100 lg:inline-flex"
+                >
+                  Sign In
+                </Link>
+              ) : (
+                <div ref={accountRef} className="relative hidden lg:block">
+                  <button
+                    type="button"
+                    onClick={() => setAccountOpen((open) => !open)}
+                    aria-expanded={accountOpen}
+                    aria-haspopup="menu"
+                    aria-label="Account menu"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gold-border font-display text-[0.9375rem] transition-colors duration-300 hover:border-gold-light"
+                  >
+                    {initials || '·'}
+                  </button>
+                  <AnimatePresence>
+                    {accountOpen && (
+                      <motion.div
+                        role="menu"
+                        aria-label="Account"
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                        className="absolute right-0 top-[calc(100%+0.875rem)] z-[var(--z-navbar)] w-60 border border-gold-hairline bg-surface-4 py-3 text-gold-primary shadow-md"
+                      >
+                        <p className="border-b border-gold-hairline px-5 pb-3 text-body-sm text-gold-primary">
+                          {user?.name}
+                          <span className="mt-0.5 block text-caption text-gold-muted">
+                            {user?.email}
+                          </span>
+                        </p>
+                        {ACCOUNT_MENU.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            role="menuitem"
+                            className="flex min-h-11 items-center px-5 eyebrow-micro text-gold-soft transition-colors duration-200 hover:bg-surface-5 hover:text-gold-primary"
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={handleSignOut}
+                          className="mt-1 flex min-h-11 w-full items-center border-t border-gold-hairline px-5 text-left eyebrow-micro text-error transition-colors duration-200 hover:bg-surface-5"
+                        >
+                          Sign Out
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              <div className="hidden lg:block">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <Link href={ROUTES.upload} className="btn-campaign">
+                    {ctaLabel}
+                  </Link>
+                </motion.div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-expanded={menuOpen}
+                aria-controls="mobile-menu"
+                aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                className="flex h-11 w-11 items-center justify-center lg:hidden"
+              >
+                <Hamburger open={menuOpen} />
+              </button>
+            </div>
+          </nav>
+        </div>
+      </header>
 
       {/* Outside <header> on purpose. The header carries `backdrop-blur`, and a
           non-`none` backdrop-filter makes an element the containing block for
@@ -319,9 +317,11 @@ export default function Navbar() {
             className="fixed inset-0 z-[var(--z-navbar)] flex flex-col bg-surface-0 text-gold-primary will-change-transform lg:hidden"
           >
             <div className="flex h-16 shrink-0 items-center justify-between px-[var(--gutter)]">
-              <span className="font-display text-[1.625rem] leading-none">
-                D&rsquo;Fashion
-              </span>
+              <img
+                src="/images/campaign/final-logo.png"
+                alt="D'Fashion"
+                className="h-16 w-auto object-contain"
+              />
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
@@ -341,44 +341,44 @@ export default function Navbar() {
               aria-label="Mobile"
             >
               <div className="my-auto w-full">
-              {navLinks.map((link, index) => {
-                const active = !link.hash && location === link.href;
-                const className = cn(
-                  'group flex min-h-11 items-baseline gap-4 border-b border-gold-hairline py-5 transition-colors duration-300',
-                  active ? 'text-gold-primary' : 'text-gold-soft',
-                );
-                const body = (
-                  <>
-                    <span className="eyebrow-micro text-gold-muted tabular-nums">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span className="font-display text-[2rem] leading-tight">
-                      {link.label}
-                    </span>
-                  </>
-                );
-                return link.hash ? (
-                  <HashLink
-                    key={link.label}
-                    href={link.href}
-                    hash={link.hash}
-                    className={className}
-                    onNavigate={() => setMenuOpen(false)}
-                  >
-                    {body}
-                  </HashLink>
-                ) : (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    aria-current={active ? 'page' : undefined}
-                    className={className}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {body}
-                  </Link>
-                );
-              })}
+                {navLinks.map((link, index) => {
+                  const active = !link.hash && location === link.href;
+                  const className = cn(
+                    'group flex min-h-11 items-baseline gap-4 border-b border-gold-hairline py-5 transition-colors duration-300',
+                    active ? 'text-gold-primary' : 'text-gold-soft',
+                  );
+                  const body = (
+                    <>
+                      <span className="eyebrow-micro text-gold-muted tabular-nums">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span className="font-display text-[2rem] leading-tight">
+                        {link.label}
+                      </span>
+                    </>
+                  );
+                  return link.hash ? (
+                    <HashLink
+                      key={link.label}
+                      href={link.href}
+                      hash={link.hash}
+                      className={className}
+                      onNavigate={() => setMenuOpen(false)}
+                    >
+                      {body}
+                    </HashLink>
+                  ) : (
+                    <Link
+                      key={link.label}
+                      href={link.href}
+                      aria-current={active ? 'page' : undefined}
+                      className={className}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {body}
+                    </Link>
+                  );
+                })}
               </div>
             </nav>
 

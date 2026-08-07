@@ -40,7 +40,7 @@ export default function Upload() {
             alt="Woman in warm natural light — colour analysis"
             className="h-full w-full object-contain"
             style={{
-              filter: 'brightness(0.6) contrast(1.1) saturate(0.9)',
+              filter: 'brightness(1) contrast(1.1) saturate(0.9)',
               transform: 'translate(6%, 10%)',
             }}
           />
@@ -49,7 +49,7 @@ export default function Upload() {
             aria-hidden
             className="absolute inset-0"
             style={{
-              background: 'linear-gradient(to right, rgba(7,7,7,0.92) 0%, rgba(7,7,7,0.72) 30%, rgba(7,7,7,0.3) 60%, transparent 85%)',
+              background: 'linear-gradient(to right, rgba(7,7,7,0.5) 0%, rgba(7,7,7,0.35) 30%, rgba(7,7,7,0.15) 60%, transparent 85%)',
             }}
           />
           {/* Bottom fade into page */}

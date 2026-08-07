@@ -99,19 +99,19 @@ export default function Login() {
         />
         {/* Darkening overlay mask to keep model slightly in the background */}
         <div className="absolute inset-0 bg-[#0B0B0E]/40 z-10" />
-        
+
         <div className="absolute inset-0 flex flex-col justify-center p-12 lg:p-16 z-20 bg-gradient-to-tr from-[#0B0B0E] via-[#0B0B0E]/60 to-[#0B0B0E]/30">
           <EyebrowLabel tone="inverse">D&rsquo;Fashion</EyebrowLabel>
           <EditorialHeading size="lg" tone="inverse" className="mt-4 max-w-[16ch] leading-tight font-light text-shadow-sm">
             Colour Intelligence, <Emphasis>Personalised.</Emphasis>
           </EditorialHeading>
-          
+
           <p className="mt-6 max-w-[28rem] text-[length:var(--text-body-sm)] leading-[1.7] text-cream-primary/70 font-sans tracking-wide">
-            D&rsquo;Fashion bridges the gap between advanced spectral analysis and haute couture. 
-            Our proprietary AI algorithms scan your skin tone, undertone, and contrast ratios 
+            D&rsquo;Fashion bridges the gap between advanced spectral analysis and haute couture.
+            Our proprietary AI algorithms scan your skin tone, undertone, and contrast ratios
             to curate a bespoke wardrobe aligned with your natural harmony.
           </p>
-          
+
           <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2 border-t border-cream-primary/10 pt-6">
             <div>
               <span className="block text-[0.625rem] uppercase tracking-wider text-gold-primary">AI Technology</span>
@@ -154,13 +154,13 @@ export default function Login() {
                 Account Access
               </EyebrowLabel>
             </motion.div>
-            
+
             <motion.div variants={itemVariants}>
               <EditorialHeading as="h1" size="md">
                 Welcome back.
               </EditorialHeading>
             </motion.div>
-            
+
             <motion.p variants={itemVariants} className="mt-2 text-body text-cream-primary/80">
               Sign in to keep your palette, reports, and wardrobe in sync.
             </motion.p>
@@ -210,7 +210,7 @@ export default function Login() {
                 />
                 {fieldErrors.email && <FieldError id="email-error">{fieldErrors.email}</FieldError>}
               </motion.div>
-              
+
               <motion.div variants={itemVariants}>
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -225,7 +225,7 @@ export default function Login() {
                 />
                 {fieldErrors.password && <FieldError id="password-error">{fieldErrors.password}</FieldError>}
               </motion.div>
-              
+
               <motion.div variants={itemVariants}>
                 <Button type="submit" className="w-full" loading={mutation.isPending}>
                   Sign in
