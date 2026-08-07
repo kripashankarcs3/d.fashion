@@ -88,7 +88,7 @@ export default function Login() {
         {/* Centered band so the model reads smaller; edges dissolve into the
             page background with a mask so there is no hard cut. */}
         <div
-          className="absolute inset-y-0 left-1/2 w-[66.7%] -translate-x-1/2 -translate-y-[26px] opacity-80"
+          className="absolute inset-y-0 left-1/2 w-[66.7%] -translate-x-1/2 -translate-y-[26px] opacity-95"
           aria-hidden="true"
           style={{
             maskImage:
@@ -107,7 +107,7 @@ export default function Login() {
             position="center 20%"
             priority
             cinematicIntensity={0.3}
-            imgClassName="brightness-[1.1] contrast-[1.05] saturate-[1.0]"
+            imgClassName="brightness-[1.15] contrast-[1.12] saturate-[1.0]"
             className="absolute inset-0 w-full h-full"
           />
         </div>
@@ -117,12 +117,19 @@ export default function Login() {
         aria-hidden
         className="pointer-events-none absolute inset-0 z-[5]"
         style={{
-          background: 'rgba(11,11,14,0.35)',
+          background: 'rgba(11,11,14,0.25)',
         }}
       />
 
       {/* LEFT: text over the photo */}
       <div className="relative z-10 hidden lg:block overflow-hidden h-full">
+        {/* Logo pinned to the panel's top-left corner */}
+        <img
+          src="/images/campaign/logo3.png"
+          alt="D'Fashion"
+          className="absolute left-12 top-0 z-20 h-32 w-auto object-contain lg:left-16"
+        />
+
         {/* Text centered in the middle */}
         <div className="absolute inset-0 flex flex-col justify-center p-12 lg:p-16 z-20 opacity-80">
           <EyebrowLabel tone="inverse">D&rsquo;Fashion</EyebrowLabel>
