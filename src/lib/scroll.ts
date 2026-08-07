@@ -38,17 +38,39 @@ export function clearPendingScrollTarget() {
 const prefersReducedMotion = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/**
+ * Force an immediate (non-animated) scroll, temporarily overriding the
+ * `html { scroll-behavior: smooth }` rule so a plain route change never
+ * smooth-scrolls on its own.
+ */
+function instantScroll(options: { top: number } | { id: string }) {
+  const root = document.documentElement;
+  const prev = root.style.scrollBehavior;
+  root.style.scrollBehavior = 'auto';
+
+  try {
+    if ('id' in options && options.id) {
+      document.getElementById(options.id)?.scrollIntoView({ block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  } finally {
+    root.style.scrollBehavior = prev;
+  }
+}
+
 /** Scrolls a section into view. Returns false when it has not mounted yet. */
 export function scrollToSection(id: string, smooth = false) {
   const target = document.getElementById(id);
   if (!target) return false;
-  target.scrollIntoView({
-    behavior: smooth && !prefersReducedMotion() ? 'smooth' : 'instant',
-    block: 'start',
-  });
+  if (smooth && !prefersReducedMotion()) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    instantScroll({ id });
+  }
   return true;
 }
 
 export function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  instantScroll({ top: 0 });
 }
