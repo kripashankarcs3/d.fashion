@@ -4,6 +4,23 @@ import { AUTHENTICATED_HOME } from '../src/config/navigation.ts';
 const TARGET_URL = process.env.TARGET_URL || 'http://localhost:5173';
 const EMAIL = `e2e_${Date.now()}@test.local`;
 
+// Signup is fully client-side Firebase — without a configured project the
+// flow cannot start. Skip cleanly so CI stays green; local dev (with
+// VITE_FIREBASE_* set) still exercises the full path.
+const FIREBASE_CONFIGURED = Boolean(
+  process.env.VITE_FIREBASE_API_KEY &&
+    process.env.VITE_FIREBASE_AUTH_DOMAIN &&
+    process.env.VITE_FIREBASE_PROJECT_ID &&
+    process.env.VITE_FIREBASE_APP_ID,
+);
+
+if (!FIREBASE_CONFIGURED) {
+  console.log(
+    'FLOW-SKIPPED: VITE_FIREBASE_* not configured — signup/chat flow needs a Firebase project.',
+  );
+  process.exit(0);
+}
+
 const analysis = {
   enhancedImageUrl: '',
   skinConcerns: {
