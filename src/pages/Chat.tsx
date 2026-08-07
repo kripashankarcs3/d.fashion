@@ -79,6 +79,26 @@ export default function Chat() {
           className="pb-0"
         />
 
+        {/* Floating animated accents */}
+        <div aria-hidden className="pointer-events-none absolute right-10 top-32 -z-0 hidden lg:block">
+          {[
+            { top: '2%', left: '0%', delay: 0 },
+            { top: '55%', left: '28%', delay: 1.4 },
+            { top: '20%', left: '70%', delay: 0.8 },
+            { top: '85%', left: '8%', delay: 2.1 },
+          ].map((p, i) => (
+            <motion.span
+              key={i}
+              animate={{ y: [0, -14, 0], opacity: [0.15, 0.5, 0.15] }}
+              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: p.delay }}
+              className="absolute text-gold-primary"
+              style={{ top: p.top, left: p.left }}
+            >
+              <Sparkles className="h-4 w-4" />
+            </motion.span>
+          ))}
+        </div>
+
         <motion.div
           initial="hidden"
           animate="visible"
@@ -89,9 +109,23 @@ export default function Chat() {
           <motion.div variants={itemVariants} className="relative">
             {/* Elegant AI Avatar header card */}
             <div className="mb-4 flex items-center gap-3 border border-gold-hairline/40 bg-surface-3 px-4 py-3 rounded-sm">
-              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-primary/10 text-gold-primary overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-tr from-gold-primary/20 to-transparent animate-pulse" />
-                <Sparkles className="h-5 w-5 animate-spin" style={{ animationDuration: '6s' }} />
+              <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full overflow-hidden border border-gold-hairline/60">
+                <motion.img
+                  src="/images/campaign/model ok.png"
+                  alt=""
+                  aria-hidden
+                  className="h-full w-full object-cover object-top"
+                  animate={{ scale: [1, 1.06, 1] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                <span
+                  aria-hidden
+                  className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-surface-3 bg-gold-primary"
+                />
+                <span
+                  aria-hidden
+                  className="absolute -inset-0.5 rounded-full ring-1 ring-gold-primary/20 animate-pulse"
+                />
               </div>
               <div>
                 <h3 className="font-editorial text-body font-light text-cream-primary leading-tight">D&rsquo;Style Stylist</h3>
@@ -112,13 +146,15 @@ export default function Chat() {
               <ul className="space-y-2">
                 {samplePrompts.map((prompt) => (
                   <li key={prompt}>
-                    <button
+                    <motion.button
                       type="button"
                       onClick={() => setActivePrompt(prompt)}
+                      whileHover={{ x: 6 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                       className="w-full border-b border-gold-hairline py-3 text-left text-body-sm text-cream-primary/70 transition-colors duration-200 ease-out hover:border-gold-border-hover hover:text-cream-primary"
                     >
                       &ldquo;{prompt}&rdquo;
-                    </button>
+                    </motion.button>
                   </li>
                 ))}
               </ul>
