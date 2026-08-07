@@ -88,13 +88,15 @@ export default function Login() {
         {/* Centered band so the model reads smaller; edges dissolve into the
             page background with a mask so there is no hard cut. */}
         <div
-          className="absolute inset-y-0 left-1/2 w-[66.7%] -translate-x-1/2 opacity-80"
+          className="absolute inset-y-0 left-1/2 w-[66.7%] -translate-x-1/2 -translate-y-[26px] opacity-80"
           aria-hidden="true"
           style={{
             maskImage:
-              'linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%)',
+              'linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%), linear-gradient(180deg, black 72%, transparent 100%)',
             WebkitMaskImage:
-              'linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%)',
+              'linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%), linear-gradient(180deg, black 72%, transparent 100%)',
+            maskComposite: 'intersect',
+            WebkitMaskComposite: 'source-in',
           }}
         >
           <EditorialImage
