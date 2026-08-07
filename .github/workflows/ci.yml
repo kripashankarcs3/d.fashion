@@ -47,6 +47,20 @@ jobs:
       - run: npm test
         working-directory: server
 
+  docker:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
@@ -63,6 +77,11 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps chromium
       - name: Start backend
         env:
