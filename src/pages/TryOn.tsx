@@ -543,22 +543,26 @@ function TemplateGrid({ mode, items, isLoading, selectedId, onSelect }: {
 }) {
   // Indian hairstyle fallbacks when YouCam templates unavailable
   const indianHairStyles: TemplateItem[] = [
-    { id: 'hair-local-1', title: 'Classic Bun',           thumb: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=80' },
-    { id: 'hair-local-2', title: 'Loose Waves',           thumb: 'https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?w=400&q=80' },
-    { id: 'hair-local-3', title: 'Sleek Straight',        thumb: 'https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?w=400&q=80' },
-    { id: 'hair-local-4', title: 'Braided Plait',         thumb: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&q=80' },
-    { id: 'hair-local-5', title: 'Half-Up Half-Down',     thumb: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80' },
-    { id: 'hair-local-6', title: 'Curly Natural',         thumb: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&q=80' },
+    { id: 'hair-local-1', title: 'Classic Bun',           thumb: 'https://images.unsplash.com/photo-DqdrdjYK0Lg?w=400&q=80' },
+    { id: 'hair-local-2', title: 'Loose Waves',           thumb: 'https://images.unsplash.com/photo-TBOQVZTaO0I?w=400&q=80' },
+    { id: 'hair-local-3', title: 'Sleek Low Bun',         thumb: 'https://images.unsplash.com/photo-AchMr9RGTsA?w=400&q=80' },
+    { id: 'hair-local-4', title: 'Long Braid',            thumb: 'https://images.unsplash.com/photo-EruaqbLKhE?w=400&q=80' },
+    { id: 'hair-local-5', title: 'Bridal Updo',           thumb: 'https://images.unsplash.com/photo-FsMH6MLUjl0?w=400&q=80' },
+    { id: 'hair-local-6', title: 'Floral Bun',            thumb: 'https://images.unsplash.com/photo-GZYKEjWucKs?w=400&q=80' },
+    { id: 'hair-local-7', title: 'Traditional Braid',     thumb: 'https://images.unsplash.com/photo-2bVL8geilAc?w=400&q=80' },
+    { id: 'hair-local-8', title: 'Soft Waves',            thumb: 'https://images.unsplash.com/photo-Hf_k8QvPOGo?w=400&q=80' },
   ];
 
   // Indian makeup look fallbacks
   const indianMakeupLooks: TemplateItem[] = [
-    { id: 'makeup-local-1', title: 'Bridal Glam',         thumb: 'https://images.unsplash.com/photo-1552693673-1bf958298935?w=400&q=80' },
-    { id: 'makeup-local-2', title: 'Festive Smokey Eye',  thumb: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80' },
-    { id: 'makeup-local-3', title: 'Dewy Natural Look',   thumb: 'https://images.unsplash.com/photo-1509695507497-903c140c43b0?w=400&q=80' },
-    { id: 'makeup-local-4', title: 'Bold Red Lip',        thumb: 'https://images.unsplash.com/photo-1512551980832-13df02babc9e?w=400&q=80' },
-    { id: 'makeup-local-5', title: 'Nude Glam',           thumb: 'https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=400&q=80' },
-    { id: 'makeup-local-6', title: 'Kajal & Kohl Look',   thumb: 'https://images.unsplash.com/photo-1519699047748-de8e44489c0e?w=400&q=80' },
+    { id: 'makeup-local-1', title: 'Bridal Glam',         thumb: 'https://images.unsplash.com/photo-iFpqcSJGaCo?w=400&q=80' },
+    { id: 'makeup-local-2', title: 'Festive Smokey Eye',  thumb: 'https://images.unsplash.com/photo-5IOIy4tTN4w?w=400&q=80' },
+    { id: 'makeup-local-3', title: 'Natural Look',        thumb: 'https://images.unsplash.com/photo-DqdrdjYK0Lg?w=400&q=80' },
+    { id: 'makeup-local-4', title: 'Bold Red Lip',        thumb: 'https://images.unsplash.com/photo-fO2myfwWhU0?w=400&q=80' },
+    { id: 'makeup-local-5', title: 'Traditional Kajal',   thumb: 'https://images.unsplash.com/photo-Ekr9-YgD9dY?w=400&q=80' },
+    { id: 'makeup-local-6', title: 'Gold Crown Glam',     thumb: 'https://images.unsplash.com/photo-hpklBuuel_k?w=400&q=80' },
+    { id: 'makeup-local-7', title: 'Minimal Natural',     thumb: 'https://images.unsplash.com/photo-epqDo9CYE1k?w=400&q=80' },
+    { id: 'makeup-local-8', title: 'Classic Bridal',      thumb: 'https://images.unsplash.com/photo-VPwSJhu5uhs?w=400&q=80' },
   ];
 
   if (isLoading) {
