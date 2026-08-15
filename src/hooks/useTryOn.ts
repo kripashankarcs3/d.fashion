@@ -10,12 +10,14 @@ export function useTryOn() {
       garmentUrl,
       garmentName,
       colourHex,
+      personImageUrl,
     }: {
       garmentUrl: string;
       garmentName: string;
       colourHex?: string;
+      personImageUrl?: string;
     }) => {
-      const url = useStyleStore.getState().referenceImageUrl;
+      const url = personImageUrl || useStyleStore.getState().referenceImageUrl;
       if (!url) throw new Error('No reference image. Upload a selfie first.');
       return tryOnClothes(url, garmentUrl, colourHex);
     },
