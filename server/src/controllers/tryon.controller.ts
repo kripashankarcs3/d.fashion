@@ -8,6 +8,26 @@ const PRIVATE_IPS = /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.|169\.
 
 const UPLOADS_DIR = path.resolve(__dirname, "../../tmp");
 
+// Static asset roots holding the bundled garment images: the built frontend in
+// production, the source `public/` folder in development.
+const STATIC_ASSET_DIRS = [
+  path.resolve(__dirname, "../../../dist"),
+  path.resolve(__dirname, "../../../public"),
+];
+
+// Resolves a bundled asset path such as `/images/garments/foo.png` to a file on
+// disk, or null when it escapes the asset roots or does not exist.
+const staticAssetFilePath = (urlString: string): string | null => {
+  if (!urlString.startsWith("/images/")) return null;
+  const segments = urlString.split("/").filter((segment) => segment && segment !== ".");
+  if (segments.some((segment) => segment === ".." || segment.includes("\\"))) return null;
+  for (const dir of STATIC_ASSET_DIRS) {
+    const candidate = path.join(dir, ...segments);
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
+};
+
 const isServerUpload = (urlString: string): boolean => {
   return urlString.startsWith("/uploads/");
 };
@@ -28,8 +48,17 @@ const resolvePersonUrl = (req: Request, urlString: string): string => {
 };
 
 const isValidImageUrl = (urlString: string): boolean => {
+  if (!urlString || typeof urlString !== "string") return false;
+  // Bundled assets and server uploads are same-origin paths we control, so they
+  // never reach the URL parser below.
+  if (urlString.startsWith("/images/") || urlString.startsWith("/uploads/")) {
+    return true;
+  }
   try {
     const url = new URL(urlString);
+    // Only real http(s) origins. `data:`/`blob:`/`file:` are rejected: the URL
+    // is handed to YouCam as `src_file_url`, and anything else is either
+    // unfetchable or a way to point the fetch somewhere it should not go.
     if (url.protocol !== "https:" && url.protocol !== "http:") return false;
     const hostname = url.hostname.toLowerCase();
     if (hostname === "localhost" || hostname.endsWith(".local")) return false;
@@ -91,9 +120,16 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
 
     try {
       const selfieFilePath = serverUploadFilePath(req.body.personImageUrl);
-      const youcamResult = selfieFilePath
-        ? await YouCamService.tryOnClothesWithFile(selfieFilePath, garmentImageUrl)
-        : await YouCamService.tryOnClothes(personImageUrl, garmentImageUrl);
+      const garmentFilePath = staticAssetFilePath(garmentImageUrl);
+
+      const youcamResult = garmentFilePath
+        ? await YouCamService.tryOnClothesWithGarmentFile(
+            { filePath: selfieFilePath, url: personImageUrl },
+            garmentFilePath
+          )
+        : selfieFilePath
+          ? await YouCamService.tryOnClothesWithFile(selfieFilePath, garmentImageUrl)
+          : await YouCamService.tryOnClothes(personImageUrl, garmentImageUrl);
 
       if (youcamResult) {
         const resultUrl = extractResultUrl(youcamResult, "");
@@ -124,29 +160,31 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
 export const tryOnMakeup = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const personImageUrl = resolveAndValidatePersonUrl(req, req.body.personImageUrl);
-    const productId = req.body.productId;
+    const productId = req.body.productId as string | undefined;
 
     if (!personImageUrl) {
       return res.status(400).json({ success: false, message: "personImageUrl is required" });
     }
 
-    try {
-      const selfieFilePath = serverUploadFilePath(req.body.personImageUrl);
-      const youcamResult = selfieFilePath
-        ? await YouCamService.tryOnMakeupWithFile(selfieFilePath, productId)
-        : await YouCamService.tryOnMakeup(personImageUrl, productId);
+    if (productId) {
+      try {
+        const selfieFilePath = serverUploadFilePath(req.body.personImageUrl);
+        const youcamResult = selfieFilePath
+          ? await YouCamService.tryOnMakeupWithFile(selfieFilePath, productId)
+          : await YouCamService.tryOnMakeup(personImageUrl, productId);
 
-      if (youcamResult) {
-        const resultUrl = extractResultUrl(youcamResult, "");
-        if (resultUrl) {
-          return res.status(200).json({ success: true, resultUrl, source: "youcam" });
+        if (youcamResult) {
+          const resultUrl = extractResultUrl(youcamResult, "");
+          if (resultUrl) {
+            return res.status(200).json({ success: true, resultUrl, source: "youcam" });
+          }
         }
+      } catch (err) {
+        const detail = (err as any)?.response?.data
+          ? JSON.stringify((err as any).response.data)
+          : (err as Error).message;
+        console.warn("YouCam makeup try-on failed:", detail);
       }
-    } catch (err) {
-      const detail = (err as any)?.response?.data
-        ? JSON.stringify((err as any).response.data)
-        : (err as Error).message;
-      console.warn("YouCam makeup try-on failed:", detail);
     }
 
     // Fallback: return the person image unchanged
@@ -163,7 +201,7 @@ export const tryOnMakeup = async (req: Request, res: Response, next: NextFunctio
 export const tryOnHair = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const personImageUrl = resolveAndValidatePersonUrl(req, req.body.personImageUrl);
-    const styleId = req.body.styleId;
+    const styleId = req.body.styleId as string | undefined;
 
     if (!personImageUrl || !styleId) {
       return res.status(400).json({

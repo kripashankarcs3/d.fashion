@@ -243,6 +243,32 @@ class YouCamService {
     return this.pollTaskResult("cloth", taskId);
   }
 
+  // Garment images bundled with the app live on disk, not on a public URL, so
+  // YouCam cannot fetch them by URL (localhost is unreachable from their side).
+  // Upload the garment bytes and reference it by file id instead.
+  async tryOnClothesWithGarmentFile(
+    person: { filePath?: string | null; url?: string | null },
+    garmentImageFilePath: string
+  ) {
+    const payload: Record<string, unknown> = {
+      ref_file_id: await this.uploadAndGetFileId("cloth", garmentImageFilePath),
+      garment_category: "full_body",
+      change_shoes: false,
+    };
+
+    if (person.filePath) {
+      payload.src_file_id = await this.uploadAndGetFileId("cloth", person.filePath);
+    } else {
+      payload.src_file_url = person.url;
+    }
+
+    const task = await this.startTask("cloth", payload);
+    const taskId = task?.data?.task_id;
+    if (!taskId) throw new Error("Failed to start clothes try-on task");
+
+    return this.pollTaskResult("cloth", taskId);
+  }
+
   async tryOnMakeupWithFile(personImageFilePath: string, lookId?: string) {
     const fileId = await this.uploadAndGetFileId("look-vto", personImageFilePath);
 
