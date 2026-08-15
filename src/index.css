@@ -370,6 +370,15 @@
 }
 
 @layer utilities {
+  /* Hide horizontal scrollbars while keeping scroll enabled */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
   /* ── Editorial display type ──
      Serif display with optical tracking. `.display-italic` marks the words
      carried in italic for emphasis — used deliberately, never wholesale. */

@@ -13,7 +13,8 @@ interface AuthState {
   setAuthReady: (ready: boolean) => void;
 }
 
-/** Session comes from Firebase only — never cache auth in localStorage. */
+/** Session comes from Firebase only — never cache auth in localStorage, and
+ *  never expose the store (and with it the ID token) on `window`. */
 export const useAuthStore = create<AuthState>()((set) => ({
   token: null,
   user: null,
