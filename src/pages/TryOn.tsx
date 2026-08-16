@@ -1,6 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { success } from '@/lib/toast';
 import { Bookmark, ChevronLeft, ChevronRight, Download, LoaderCircle, MoreVertical, RotateCw, Scissors, Shirt, Sparkles } from 'lucide-react';
@@ -17,7 +16,8 @@ import EditorialContainer from '@/components/editorial/EditorialContainer';
 import { useStyleStore } from '@/store/useStyleStore';
 import { useTryOn } from '@/hooks/useTryOn';
 import { getSeasonInfo } from '@/lib/colour-data';
-import { listTryOnTemplates, assetUrl } from '@/services/api';
+import { assetUrl } from '@/services/api';
+import { INDIAN_HAIR_STYLES, INDIAN_MAKEUP_LOOKS } from '@/lib/tryon-styles';
 import { cn, srcsetFromUrl } from '@/lib/utils';
 
 type Mode = 'outfits' | 'makeup' | 'hair';
@@ -708,14 +708,13 @@ export default function TryOn() {
     return garments.find((g) => String(g.id) === selected.id) ?? null;
   }, [selected]);
 
-  const looksQuery = useQuery({
-    queryKey: ['tryon-looks'],
-    queryFn: () => listTryOnTemplates('look-vto').then((r) => r.data.items),
-  });
-  const hairQuery = useQuery({
-    queryKey: ['tryon-hairs'],
-    queryFn: () => listTryOnTemplates('hair-style').then((r) => r.data.items),
-  });
+  // Hair and makeup come from the curated list in lib/tryon-styles, not from
+  // YouCam's template endpoint: the provider's own catalogue is mostly novelty
+  // looks (face paint, flags, rainbow dye) that have no place here.
+  const styleItems = useMemo(() => {
+    const source = mode === 'hair' ? INDIAN_HAIR_STYLES : INDIAN_MAKEUP_LOOKS;
+    return genderFilter === 'All' ? source : source.filter((s) => s.gender === genderFilter);
+  }, [mode, genderFilter]);
 
   const palette = useMemo(() => {
     if (!analysisResult) return [];
@@ -947,30 +946,30 @@ export default function TryOn() {
             >
               {/* Left â€” options (Exactly 3 columns per row) */}
               <section className="w-full">
+                {/* Gender Filter sub-tabs: ALL | WOMEN | MEN — applies to every mode */}
+                <div className="mb-2 flex items-center gap-1.5 justify-start">
+                  <span className="text-[0.58rem] font-medium uppercase tracking-wider text-cream-primary/50 shrink-0">
+                    Gender:
+                  </span>
+                  {(['All', 'Women', 'Men'] as const).map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => { setGenderFilter(g); setSelected(null); setResultUrl(null); }}
+                      className={cn(
+                        'inline-flex h-6 items-center rounded-sm border px-2.5 text-[0.58rem] font-semibold uppercase tracking-wider transition-all duration-200 shrink-0',
+                        genderFilter === g
+                          ? 'border-gold-primary bg-gold-primary text-surface-0 shadow-sm'
+                          : 'border-gold-hairline/60 bg-surface-3/60 text-cream-primary/70 hover:border-gold-primary/60 hover:text-cream-primary'
+                      )}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+
                 {mode === 'outfits' && (
                   <>
-                    {/* Gender Filter sub-tabs: ALL | WOMEN | MEN */}
-                    <div className="mb-2 flex items-center gap-1.5 justify-start">
-                      <span className="text-[0.58rem] font-medium uppercase tracking-wider text-cream-primary/50 shrink-0">
-                        Gender:
-                      </span>
-                      {(['All', 'Women', 'Men'] as const).map((g) => (
-                        <button
-                          key={g}
-                          type="button"
-                          onClick={() => { setGenderFilter(g); setSelected(null); setResultUrl(null); }}
-                          className={cn(
-                            'inline-flex h-6 items-center rounded-sm border px-2.5 text-[0.58rem] font-semibold uppercase tracking-wider transition-all duration-200 shrink-0',
-                            genderFilter === g
-                              ? 'border-gold-primary bg-gold-primary text-surface-0 shadow-sm'
-                              : 'border-gold-hairline/60 bg-surface-3/60 text-cream-primary/70 hover:border-gold-primary/60 hover:text-cream-primary'
-                          )}
-                        >
-                          {g}
-                        </button>
-                      ))}
-                    </div>
-
                     {/* Category sub-tabs */}
                     <div className="mb-3 flex items-center gap-1 justify-start">
                       <button type="button" onClick={() => scrollCategories(-1)} aria-label="Scroll categories left"
@@ -1041,9 +1040,8 @@ export default function TryOn() {
                 )}
 
                 {mode !== 'outfits' && (
-                  <TemplateGrid mode={mode}
-                    items={mode === 'makeup' ? looksQuery.data : hairQuery.data}
-                    isLoading={mode === 'makeup' ? looksQuery.isLoading : hairQuery.isLoading}
+                  <TemplateGrid
+                    items={styleItems}
                     selectedId={selected?.id ?? null}
                     onSelect={(item) => handleSelect({ kind: mode === 'makeup' ? 'look' : 'hair', id: item.id, name: item.title, img: item.thumb })}
                   />
@@ -1221,91 +1219,15 @@ export default function TryOn() {
   );
 }
 
-function TemplateGrid({ mode, items, isLoading, selectedId, onSelect }: {
-  mode: Mode;
-  items?: TemplateItem[];
-  isLoading: boolean;
+function TemplateGrid({ items, selectedId, onSelect }: {
+  items: TemplateItem[];
   selectedId: string | null;
   onSelect: (item: TemplateItem) => void;
 }) {
-  // Indian hairstyle fallbacks (10 YouCam + 10 Indian curated)
-  const indianHairStyles: TemplateItem[] = [
-    // YouCam real templates (AI)
-    { id: 'male_long_wavy_blond', title: 'Long Wavy Blond', thumb: 'https://cdn.perfectcorp.com/cms/5cc942e8-6dd9-4ec5-8eb8-32cbf79959ce/1712889501680/d163a2a1-44de-4f68-9279-76827bcfb1b8.jpg' },
-    { id: 'male_crewcut_purple', title: 'Crewcut Purple', thumb: 'https://cdn.perfectcorp.com/cms/b6584306-974a-4844-9057-4881efdc6824/1712889499775/a8d2df0f-3df5-4c73-be24-389950e0a194.jpg' },
-    { id: 'male_short_curly_indigo', title: 'Short Curly Indigo', thumb: 'https://cdn.perfectcorp.com/cms/43b4537a-c012-412a-9cc3-8e4f4ce1b4c7/1712889497835/dafbaabf-e3b9-4f0e-a6a4-c54fd70bb70e.jpg' },
-    { id: 'male_dark_cornrows', title: 'Dark Cornrows', thumb: 'https://cdn.perfectcorp.com/cms/ee82c965-ffdb-4c72-aac0-4dc2ff97281a/1774603222524/file.jpg' },
-    { id: 'male_pink_textured_crop', title: 'Pink Textured Crop', thumb: 'https://cdn.perfectcorp.com/cms/94c7dab9-7282-4cd9-83fb-39dc671ab515/1736323959670/thumbnail_fe_hair_.jpg' },
-    { id: 'male_blended_blonde_fade', title: 'Blended Blonde Fade', thumb: 'https://cdn.perfectcorp.com/cms/942c9501-9b29-4f09-b353-ba6670c17477/1736324269521/blonde.jpg' },
-    { id: 'male_long_straight_black', title: 'Long Straight Black', thumb: 'https://cdn.perfectcorp.com/cms/928fa9cf-e8fd-4d7b-afb4-5a69b7271320/1736324093547/long%20(4).jpg' },
-    { id: 'male_blonde_buzz_cut', title: 'Blonde Buzz Cut', thumb: 'https://cdn.perfectcorp.com/cms/f14c2204-feb4-4e6c-b9fb-67d3c87efb72/1736328646833/hair_M_Blonde%20Buzz%20Cut.jpg' },
-    { id: 'male_pride_curls', title: 'Pride Curls', thumb: 'https://cdn.perfectcorp.com/cms/d985cd3b-9fdf-4343-b621-c54ee1ee6daf/1746612161050/file.jpg' },
-    { id: 'male_rainbow_bob', title: 'Rainbow Bob', thumb: 'https://cdn.perfectcorp.com/cms/e602efea-e356-4bcb-85f2-a48e3b736531/1746612120183/file.jpg' },
-    // Indian curated (YouCam AI + fallback)
-    { id: 'indian_bun_trad', title: 'Bridal Bun', thumb: 'https://images.unsplash.com/photo-1750404658709-0311898f7254?w=400&q=80' },
-    { id: 'indian_loose_waves', title: 'Loose Waves', thumb: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&q=80' },
-    { id: 'indian_sleek_low_bun', title: 'Sleek Low Bun', thumb: 'https://images.unsplash.com/photo-1589882265634-84f7eb9a3414?w=400&q=80' },
-    { id: 'indian_long_braid', title: 'Long Braid', thumb: 'https://images.unsplash.com/photo-1472747624745-ce92d32d3c24?w=400&q=80' },
-    { id: 'indian_bridal_updo', title: 'Bridal Updo', thumb: 'https://images.unsplash.com/photo-1748096089012-e601d766815f?w=400&q=80' },
-    { id: 'indian_floral_bun', title: 'Floral Bun', thumb: 'https://images.unsplash.com/photo-1660573041206-55261010c242?w=400&q=80' },
-    { id: 'indian_traditional_braid', title: 'Traditional Braid', thumb: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80' },
-    { id: 'indian_soft_waves', title: 'Soft Waves', thumb: 'https://images.unsplash.com/photo-1526045478516-99145907023c?w=400&q=80' },
-    { id: 'indian_half_up_do', title: 'Half Up Do', thumb: 'https://images.unsplash.com/photo-1517202033946-7ac141d26973?w=400&q=80' },
-    { id: 'indian_styled_braid', title: 'Styled Braid', thumb: 'https://images.unsplash.com/photo-1584766187221-e41937725025?w=400&q=80' },
-  ];
-
-  // Indian makeup look fallbacks (10 YouCam + 10 Indian curated)
-  const indianMakeupLooks: TemplateItem[] = [
-    // YouCam real templates (AI)
-    { id: 'all_feline', title: 'Feline', thumb: 'https://cdn.perfectcorp.com/makeupstore/MSR/PFA150608-0017/139/Art_thumb_1.jpg' },
-    { id: 'all_snow_paws', title: 'Snow Paws', thumb: 'https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA230508-0004/6/Store_thumb_160421_funlook_animal_02.jpg' },
-    { id: 'all_hello_deer', title: 'Hello Deer', thumb: 'https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA230508-0004/5/Store_thumb_160421_funlook_animal_05.jpg' },
-    { id: 'all_wild_thing', title: 'Wild Thing', thumb: 'https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA230508-0004/4/Store_thumb_160421_funlook_animal_04.jpg' },
-    { id: 'all_peekaboo', title: 'Peekaboo', thumb: 'https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA230508-0004/3/Store_thumb_160421_funlook_animal_03.jpg' },
-    { id: 'all_catty', title: 'Catty', thumb: 'https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA230508-0004/1/Store_thumb_16041215_funlook_04.jpg' },
-    { id: 'all_albion', title: 'Albion', thumb: 'https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA180403-0090/1/180411_flag_uk_03_store_thumb.jpg' },
-    { id: 'all_trio', title: 'Trio', thumb: 'https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA180605-0008/1/180612_flag_Russia_01_store_thumb.jpg' },
-    { id: 'all_patriotic', title: 'Patriotic', thumb: 'https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA190910-0018/11/190909_flag_china_02_store_thumb.jpg' },
-    { id: 'all_love_china', title: 'Love China', thumb: 'https://cdn.perfectcorp.com/store/makeupstore/MSR/PFA190910-0018/10/190909_flag_china_01_store_thumb.jpg' },
-    // Indian curated (YouCam AI + fallback)
-    { id: 'indian_bridal_gold', title: 'Bridal Gold', thumb: 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=400&q=80' },
-    { id: 'indian_festive_red', title: 'Festive Red', thumb: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=400&q=80' },
-    { id: 'indian_smokey_night', title: 'Smokey Night', thumb: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80' },
-    { id: 'indian_bold_lip', title: 'Bold Red Lip', thumb: 'https://images.unsplash.com/photo-1704236041747-615d800a8b0a?w=400&q=80' },
-    { id: 'indian_kajal_trad', title: 'Traditional Kajal', thumb: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=400&q=80' },
-    { id: 'indian_gold_crown', title: 'Gold Crown', thumb: 'https://images.unsplash.com/photo-1600685890506-593fdf55949b?w=400&q=80' },
-    { id: 'indian_natural_dewy', title: 'Natural Dewy', thumb: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&q=80' },
-    { id: 'indian_bridal_red', title: 'Classic Bridal', thumb: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&q=80' },
-    { id: 'indian_green_mehndi', title: 'Mehndi Green', thumb: 'https://images.unsplash.com/photo-1595950029941-55b9b2809765?w=400&q=80' },
-    { id: 'indian_pastel_sunset', title: 'Pastel Sunset', thumb: 'https://images.unsplash.com/photo-1515264143567-788f0c0f2339?w=400&q=80' },
-  ];
-
-  if (isLoading) {
-    return (
-      <div className="mt-8 grid grid-cols-2 gap-5 sm:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="aspect-[4/5] animate-pulse border border-gold-hairline bg-surface-3/40" />
-        ))}
-      </div>
-    );
-  }
-
-  // Use local Indian fallbacks when YouCam returns empty
-  const displayItems = (items && items.length > 0)
-    ? items
-    : mode === 'hair' ? indianHairStyles : indianMakeupLooks;
-
-  const isLocalFallback = !items || items.length === 0;
-
   return (
     <div>
-      {isLocalFallback && (
-        <p className="mb-4 text-body-sm text-gold-primary/70 border border-gold-hairline/30 bg-gold-primary/5 px-4 py-2 rounded-sm">
-          Showing curated Indian {mode === 'hair' ? 'hairstyle' : 'makeup'} styles â€” AI try-on preview will apply closest match.
-        </p>
-      )}
       <div className="mt-4 grid grid-cols-2 gap-5 sm:grid-cols-3">
-        {displayItems.map((item) => {
+        {items.map((item) => {
           const isSelected = selectedId === item.id;
           return (
             <button key={item.id} type="button" onClick={() => onSelect(item)} aria-pressed={isSelected}
