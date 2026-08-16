@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { AnimatePresence, motion } from 'framer-motion';
 import { success } from '@/lib/toast';
 import { Bookmark, ChevronLeft, ChevronRight, Download, LoaderCircle, MoreVertical, RotateCw, Scissors, Shirt, Sparkles } from 'lucide-react';
@@ -672,6 +672,12 @@ export default function TryOn() {
   const analysisResult = useStyleStore((s) => s.analysisResult);
   const addWardrobeItem = useStyleStore((s) => s.addWardrobeItem);
   const { clothes, makeup, hair } = useTryOn();
+  const [, setLocation] = useLocation();
+
+  // Try-on renders onto the analysed photo, so it is only meaningful once the
+  // colour analysis has run. Both halves are persisted, and a reference photo
+  // can be set without an analysis, so the page checks for both.
+  const hasAnalysis = Boolean(referenceImageUrl && analysisResult);
 
   const [mode, setMode] = useState<Mode>('outfits');
   const [activeCategory, setActiveCategory] = useState<GarmentCategory>('Everyday');
@@ -735,9 +741,16 @@ export default function TryOn() {
 
   const handleTryOn = () => {
     if (!selected) return;
+    // Reached without an analysis (a stale reference photo, or a direct link
+    // into the page) — send them to run one rather than rendering the garment
+    // onto a stand-in photo that is not theirs.
+    if (!hasAnalysis || !referenceImageUrl) {
+      setLocation(ROUTES.upload);
+      return;
+    }
     setResultUrl(null);
     setIsFallback(false);
-    const refUrl = referenceImageUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&q=80';
+    const refUrl = referenceImageUrl;
     if (selected.kind === 'outfit') {
       // Bundled garments are sent as their app-relative path so the server can
       // read them off disk â€” prefixing the origin would hand the try-on provider
@@ -904,17 +917,18 @@ export default function TryOn() {
 
       <EditorialContainer width="content" className="pt-2 max-w-[1440px] px-2 sm:px-4 lg:px-6 mx-auto">
 
-        {!referenceImageUrl ? (
+        {!hasAnalysis ? (
           <div className="mx-auto mt-14 w-full max-w-xl border border-gold-hairline bg-surface-3 p-8 text-center">
             <span aria-hidden className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm bg-surface-4 text-gold-primary">
               <Sparkles className="h-5 w-5" />
             </span>
-            <h2 className="mt-6 font-serif text-[length:var(--text-h5)] text-cream-primary">Upload your selfie first</h2>
+            <h2 className="mt-6 font-serif text-[length:var(--text-h5)] text-cream-primary">Run your colour analysis first</h2>
             <p className="mx-auto mt-2 max-w-sm text-[length:var(--text-body-sm)] text-cream-primary/80">
-              Virtual try-on needs a reference photo of you. Analyse one to unlock your palette.
+              Virtual try-on renders onto your analysed photo. Upload a selfie and
+              analyse it once — then every garment, look and hairstyle here is yours to try.
             </p>
             <Link href={ROUTES.upload} className="mt-8 inline-block">
-              <Button size="lg">Upload a Selfie</Button>
+              <Button size="lg">Analyse My Colours</Button>
             </Link>
           </div>
         ) : (
