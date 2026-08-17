@@ -6,9 +6,20 @@ class HistoryService {
     return History.create(data);
   }
 
-  async getUserHistory(userId: string, page = 1, limit = 20) {
+  async getUserHistory(
+    userId: string,
+    page = 1,
+    limit = 20,
+    type?: "analysis" | "tryon",
+  ) {
     const skip = (page - 1) * limit;
-    const filter = { userId };
+    const filter: Record<string, unknown> = { userId };
+    if (type === "tryon") {
+      filter.type = "tryon";
+    } else if (type === "analysis") {
+      // Entries written before `type` existed are analyses with no field set.
+      filter.type = { $in: ["analysis", null] };
+    }
     const [history, total] = await Promise.all([
       History.find(filter).populate("recommendedProducts").skip(skip).limit(limit).sort({ createdAt: -1 }),
       History.countDocuments(filter),

@@ -756,7 +756,7 @@ export default function TryOn() {
       // read them off disk â€” prefixing the origin would hand the try-on provider
       // a URL it cannot reach.
       clothes.mutate(
-        { garmentUrl: selected.img, garmentName: selected.name, colourHex: selected.colourHex, personImageUrl: refUrl },
+        { garmentUrl: selected.img, garmentName: selected.name, garmentImg: selected.img, colourHex: selected.colourHex, personImageUrl: refUrl },
         {
           onSuccess: (r) => {
             setResultUrl(r.data.resultUrl);
@@ -769,7 +769,7 @@ export default function TryOn() {
         },
       );
     } else if (selected.kind === 'look') {
-      makeup.mutate(selected.id, {
+      makeup.mutate({ productId: selected.id, productName: selected.name, productThumb: selected.img }, {
         onSuccess: (r) => {
           setResultUrl(r.data.resultUrl);
           setIsFallback(r.data.source === 'fallback');
@@ -780,7 +780,7 @@ export default function TryOn() {
         },
       });
     } else {
-      hair.mutate(selected.id, {
+      hair.mutate({ styleId: selected.id, styleName: selected.name, styleThumb: selected.img }, {
         onSuccess: (r) => {
           setResultUrl(r.data.resultUrl);
           setIsFallback(r.data.source === 'fallback');

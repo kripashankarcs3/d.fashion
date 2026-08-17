@@ -20,7 +20,13 @@ export interface AddFavoriteDto {
 
 export interface SaveHistoryDto {
   userId: string;
+  type?: "analysis" | "tryon";
   image?: string;
+  resultImage?: string;
+  label?: string;
+  tryonKind?: "clothes" | "makeup" | "hair";
+  colourHex?: string;
+  source?: string;
   skinType?: string;
   skinTone?: string;
   concerns?: string[];

@@ -2,8 +2,15 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
+import { fetchPublicImage } from "../utils/safeImageFetch";
 
 const TMP_DIR = path.resolve(__dirname, "../../tmp");
+
+/** Durable store for images shown on the dashboard — never auto-swept. */
+export const GALLERY_DIR = path.resolve(__dirname, "../../gallery");
+const MAX_GALLERY_IMAGE_BYTES = 12 * 1024 * 1024;
+
+fs.mkdirSync(GALLERY_DIR, { recursive: true });
 
 /** Convert linear sRGB channel (0-255) to perceptually weighted luminance. */
 function toLuma(r: number, g: number, b: number): number {
@@ -147,6 +154,51 @@ export class ImageService {
     const outputPath = path.join(TMP_DIR, `${prefix}-${crypto.randomUUID()}.jpg`);
     await sharp(buf).jpeg({ quality: 92 }).toFile(outputPath);
     return outputPath;
+  }
+
+  /**
+   * Copies an image into the durable gallery folder and returns its public
+   * `/gallery/...` path. Unlike `/uploads`, this folder is never swept by
+   * `cleanupStaleUploads`, so a saved dashboard entry keeps its picture.
+   *
+   * `source` is either a public http(s) URL (a try-on provider result) or an
+   * app-relative `/uploads/<file>` path this server wrote itself.
+   */
+  static async saveGalleryImage(source: string, prefix: string): Promise<string> {
+    let buf: Buffer;
+
+    if (source.startsWith("/uploads/")) {
+      const filePath = path.join(TMP_DIR, path.basename(source));
+      buf = await fs.promises.readFile(filePath);
+    } else {
+      // Validates the host — and every redirect hop — against the addresses it
+      // resolves to, so a client-supplied URL cannot reach the private network.
+      const res = await fetchPublicImage(source);
+      if (!res.ok) {
+        throw new Error(`Failed to download image: HTTP ${res.status}`);
+      }
+      const arrayBuffer = await res.arrayBuffer();
+      if (arrayBuffer.byteLength > MAX_GALLERY_IMAGE_BYTES) {
+        throw new Error("Image too large to archive");
+      }
+      buf = Buffer.from(arrayBuffer);
+    }
+
+    const fileName = `${prefix}-${crypto.randomUUID()}.jpg`;
+    // Re-encoding through sharp also strips anything that is not an image.
+    await sharp(buf)
+      .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 88 })
+      .toFile(path.join(GALLERY_DIR, fileName));
+
+    return `/gallery/${fileName}`;
+  }
+
+  /** Removes a gallery file given its public `/gallery/...` path. */
+  static async deleteGalleryImage(publicPath?: string | null) {
+    if (!publicPath || !publicPath.startsWith("/gallery/")) return;
+    const fileName = path.basename(publicPath);
+    await ImageService.deleteImage(path.join(GALLERY_DIR, fileName));
   }
 
   static async cleanupStaleUploads(maxAgeMs: number) {

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { analyzeImage } from '@/services/api';
+import { analyzeImage, saveReportToCloud } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { ROUTES } from '@/config/navigation';
 
 export function useAnalysis() {
@@ -26,6 +27,12 @@ export function useAnalysis() {
         label: 'Selfie analysed',
         timestamp: new Date().toISOString(),
       });
+      // Archive it against the account so the photo and its report show up on
+      // the dashboard from any device. Best-effort: the local store already
+      // has the result either way.
+      if (useAuthStore.getState().token) {
+        void saveReportToCloud(result, result.enhancedImageUrl).catch(() => {});
+      }
       navigate(ROUTES.report);
     },
   });
