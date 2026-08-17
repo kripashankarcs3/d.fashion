@@ -72,6 +72,16 @@ export interface WardrobeItem {
   addedAt: string;
 }
 
+export interface TryOnHistoryEntry {
+  id: string;
+  resultUrl: string;
+  garmentName: string;
+  garmentImg: string;
+  kind: 'outfit' | 'look' | 'hair' | 'analysis';
+  colourHex?: string;
+  timestamp: string;
+}
+
 export interface ActivityEvent {
   id: string;
   action: 'upload' | 'tryon' | 'chat' | 'report';
@@ -90,6 +100,7 @@ interface StyleStore {
   analysisHistory: AnalysisResult[];
   savedReports: AnalysisResult[];
   wardrobeItems: WardrobeItem[];
+  tryOnHistory: TryOnHistoryEntry[];
   activityLog: ActivityEvent[];
   userPreferences: UserPreferences;
   referenceImageUrl: string | null;
@@ -100,9 +111,12 @@ interface StyleStore {
   addWardrobeItem: (item: WardrobeItem) => void;
   renameWardrobeItem: (id: string, name: string) => void;
   removeWardrobeItem: (id: string) => void;
+  addTryOnHistory: (entry: Omit<TryOnHistoryEntry, 'id'>) => void;
+  removeTryOnHistory: (id: string) => void;
   addActivityEvent: (event: Omit<ActivityEvent, 'id'>) => void;
   setUserPreferences: (prefs: Partial<UserPreferences>) => void;
   setReferenceImageUrl: (url: string | null) => void;
+  resetLocalData: () => void;
 }
 
 function readCachedAnalysis(): AnalysisResult | null {
@@ -124,6 +138,7 @@ export const useStyleStore = create<StyleStore>()(
       analysisHistory: [],
       savedReports: [],
       wardrobeItems: [],
+      tryOnHistory: [],
       activityLog: [],
       userPreferences: { displayName: '', theme: 'system' },
       referenceImageUrl: cachedAnalysis?.enhancedImageUrl ?? null,
@@ -171,6 +186,17 @@ export const useStyleStore = create<StyleStore>()(
         set((state) => ({
           wardrobeItems: state.wardrobeItems.filter((item) => item.id !== id),
         })),
+      addTryOnHistory: (entry) =>
+        set((state) => ({
+          tryOnHistory: [
+            { ...entry, id: crypto.randomUUID() },
+            ...state.tryOnHistory,
+          ].slice(0, 50),
+        })),
+      removeTryOnHistory: (id) =>
+        set((state) => ({
+          tryOnHistory: state.tryOnHistory.filter((e) => e.id !== id),
+        })),
       addActivityEvent: (event) =>
         set((state) => ({
           activityLog: [
@@ -183,6 +209,16 @@ export const useStyleStore = create<StyleStore>()(
           userPreferences: { ...state.userPreferences, ...prefs },
         })),
       setReferenceImageUrl: (url) => set({ referenceImageUrl: url }),
+      resetLocalData: () =>
+        set({
+          analysisResult: null,
+          analysisHistory: [],
+          savedReports: [],
+          wardrobeItems: [],
+          tryOnHistory: [],
+          activityLog: [],
+          referenceImageUrl: null,
+        }),
     }),
     {
       name: 'dfashion_analysis_result',
@@ -191,9 +227,42 @@ export const useStyleStore = create<StyleStore>()(
         analysisHistory: state.analysisHistory,
         savedReports: state.savedReports,
         wardrobeItems: state.wardrobeItems,
+        tryOnHistory: state.tryOnHistory,
         activityLog: state.activityLog,
         referenceImageUrl: state.referenceImageUrl,
       }),
     },
   ),
 );
+
+const USER_SCOPE_KEY = 'dfashion_last_user';
+
+/**
+ * Keeps the on-device store tied to one account. Signing in as somebody else,
+ * or signing out, wipes the previous member's photos, looks and activity so a
+ * shared device never shows one person's analysis to the next.
+ *
+ * A first-ever sign-in keeps whatever was analysed as a guest — that work
+ * belongs to the person who just claimed the account.
+ */
+export function scopeStoreToUser(uid: string | null) {
+  let previous: string | null = null;
+  try {
+    previous = localStorage.getItem(USER_SCOPE_KEY);
+  } catch {
+    return;
+  }
+
+  if (previous === uid) return;
+
+  try {
+    if (uid) localStorage.setItem(USER_SCOPE_KEY, uid);
+    else localStorage.removeItem(USER_SCOPE_KEY);
+  } catch {
+    // Storage unavailable — scoping is best-effort.
+  }
+
+  if (previous !== null && previous !== uid) {
+    useStyleStore.getState().resetLocalData();
+  }
+}
