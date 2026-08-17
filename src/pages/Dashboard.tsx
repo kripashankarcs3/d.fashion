@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { motion } from 'framer-motion';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { success, error } from '@/lib/toast';
-import { ArrowRight, Check, ChevronDown, ChevronUp, MessageSquare, Pencil, RefreshCw, Shirt, Sparkles, Trash2, Upload, X } from 'lucide-react';
+import { ArrowRight, Camera, Check, ChevronDown, ChevronUp, Download, Eye, MessageSquare, Pencil, RefreshCw, Shirt, Sparkles, Trash2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ColorSwatch } from '@/components/ui/color-swatch';
 import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
@@ -11,10 +12,11 @@ import { ROUTES } from '@/config/navigation';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EditorialHeading from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
-import { useStyleStore, type AnalysisResult, type SkinConcerns } from '@/store/useStyleStore';
+import { useStyleStore, type AnalysisResult, type SkinConcerns, type TryOnHistoryEntry } from '@/store/useStyleStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import { fetchReports } from '@/services/api';
+import { assetUrl, deleteHistoryEntry, fetchHistory, type HistoryEntry } from '@/services/api';
 import { getSeasonInfo } from '@/lib/colour-data';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   PieChart,
   Pie,
@@ -581,6 +583,236 @@ function InsightsSection({
   );
 }
 
+// ---------------------------------------------------------------------------
+// Try-On Gallery Section
+// ---------------------------------------------------------------------------
+const KIND_META: Record<string, { label: string; icon: typeof Shirt }> = {
+  outfit: { label: 'Outfit', icon: Shirt },
+  look: { label: 'Makeup', icon: Sparkles },
+  hair: { label: 'Hair', icon: Sparkles },
+  analysis: { label: 'Analysis', icon: Camera },
+};
+
+function TryOnStatsBar({ history }: { history: TryOnHistoryEntry[] }) {
+  const total = history.length;
+  const outfits = history.filter((e) => e.kind === 'outfit').length;
+  const makeup = history.filter((e) => e.kind === 'look').length;
+  const hair = history.filter((e) => e.kind === 'hair').length;
+
+  const analyses = history.filter((e) => e.kind === 'analysis').length;
+
+  const stats = [
+    { label: 'Saved Images', value: total, icon: Eye },
+    { label: 'Outfits', value: outfits, icon: Shirt },
+    { label: 'Makeup & Hair', value: makeup + hair, icon: Sparkles },
+    { label: 'Analyses', value: analyses, icon: Camera },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {stats.map((stat) => (
+        <motion.div
+          key={stat.label}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="border border-gold-hairline bg-surface-3 p-4 text-center"
+        >
+          <stat.icon className="mx-auto h-5 w-5 text-gold-primary" aria-hidden="true" />
+          <p className="mt-2 font-serif text-2xl tabular-nums text-cream-primary">{stat.value}</p>
+          <p className="mt-0.5 text-[length:var(--text-caption)] text-cream-primary/55">{stat.label}</p>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function TryOnHistoryCard({
+  entry,
+  onDelete,
+  onView,
+}: {
+  entry: TryOnHistoryEntry;
+  onDelete: (id: string) => void;
+  onView: (entry: TryOnHistoryEntry) => void;
+}) {
+  const kindInfo = KIND_META[entry.kind] ?? KIND_META.outfit;
+
+  function handleDownload() {
+    const name = entry.garmentName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    fetch(entry.resultUrl, { mode: 'cors' })
+      .then((res) => res.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dfashion-${name}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => {
+        window.open(entry.resultUrl, '_blank');
+      });
+  }
+
+  function handleDelete() {
+    onDelete(entry.id);
+    success('Removed from your gallery');
+  }
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="group overflow-hidden border border-gold-hairline bg-surface-3"
+    >
+      {/* Image */}
+      <button
+        type="button"
+        onClick={() => onView(entry)}
+        className="relative block aspect-[3/4] w-full cursor-zoom-in overflow-hidden border-b border-gold-hairline"
+        aria-label={`View ${entry.garmentName} full size`}
+      >
+        <img
+          src={entry.resultUrl}
+          alt={entry.garmentName}
+          width={480}
+          height={640}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-editorial)] group-hover:scale-[1.03]"
+          onError={(e) => {
+            e.currentTarget.src = entry.garmentImg;
+          }}
+        />
+        {/* Hover overlay */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover:bg-black/30">
+          <Eye className="h-8 w-8 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100" aria-hidden="true" />
+        </div>
+        {/* Kind badge */}
+        <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-sm bg-surface-0/80 px-2 py-0.5 text-[0.5rem] font-semibold uppercase tracking-wider text-gold-primary backdrop-blur-sm">
+          <kindInfo.icon className="h-3 w-3" aria-hidden="true" />
+          {kindInfo.label}
+        </span>
+      </button>
+
+      {/* Info + Actions */}
+      <div className="p-4">
+        <p className="truncate font-serif text-[length:var(--text-h5)] text-cream-primary">
+          {entry.garmentName}
+        </p>
+        <p className="mt-1 text-[length:var(--text-caption)] text-cream-primary/55">
+          {format(new Date(entry.timestamp), 'MMM d, yyyy · h:mm a')}
+        </p>
+
+        {/* Action buttons */}
+        <div className="mt-3 pt-3 border-t border-gold-hairline flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleDownload}
+            aria-label={`Download ${entry.garmentName}`}
+            title="Download"
+            className="h-8 w-8 flex items-center justify-center rounded-sm text-cream-primary/40 transition-colors duration-150 hover:text-gold-primary hover:bg-surface-4"
+          >
+            <Download className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDelete}
+            aria-label={`Delete ${entry.garmentName}`}
+            title="Delete"
+            className="ml-auto flex h-8 w-8 items-center justify-center rounded-sm text-cream-primary/40 transition-colors duration-150 hover:bg-surface-4 hover:text-red-400"
+          >
+            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function TryOnGallerySection({ history, onDelete }: { history: TryOnHistoryEntry[]; onDelete: (id: string) => void }) {
+  const [viewerEntry, setViewerEntry] = useState<TryOnHistoryEntry | null>(null);
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.05 }}
+      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+      className="mt-16"
+    >
+      <div className="flex items-end justify-between gap-4">
+        <SectionHeading label="Gallery" title="Your Saved Images" />
+        <Link
+          href={ROUTES.tryOn}
+          className="inline-flex min-h-11 items-center gap-2 text-nav text-cream-primary/80 transition-colors duration-200 ease-out hover:text-cream-primary hover:underline"
+        >
+          Try on more
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      </div>
+
+      {/* Stats */}
+      <div className="mt-6">
+        <TryOnStatsBar history={history} />
+      </div>
+
+      {/* Gallery Grid */}
+      <motion.div
+        className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.06 } },
+        }}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.05 }}
+      >
+        <AnimatePresence>
+          {history.map((entry) => (
+            <TryOnHistoryCard
+              key={entry.id}
+              entry={entry}
+              onDelete={onDelete}
+              onView={setViewerEntry}
+            />
+          ))}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Full-screen viewer dialog */}
+      <Dialog open={Boolean(viewerEntry)} onOpenChange={(open) => { if (!open) setViewerEntry(null); }}>
+        <DialogContent className="max-w-3xl border-gold-hairline bg-surface-0 p-0 overflow-hidden rounded-sm" aria-label="Try-on full view">
+          {viewerEntry && (
+            <div className="relative">
+              <img
+                src={viewerEntry.resultUrl}
+                alt={viewerEntry.garmentName}
+                className="w-full max-h-[80vh] object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = viewerEntry.garmentImg;
+                }}
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                <p className="font-serif text-lg text-cream-primary">{viewerEntry.garmentName}</p>
+                <p className="mt-1 text-sm text-cream-primary/70">
+                  {format(new Date(viewerEntry.timestamp), 'MMMM d, yyyy · h:mm a')}
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </motion.section>
+  );
+}
+
 async function copyHex(hex: string) {
   try {
     await navigator.clipboard.writeText(hex);
@@ -805,28 +1037,88 @@ export default function Dashboard() {
   const removeWardrobeItem = useStyleStore((s) => s.removeWardrobeItem);
   const savedReports = useStyleStore((s) => s.savedReports);
   const wardrobeItems = useStyleStore((s) => s.wardrobeItems);
+  const tryOnHistory = useStyleStore((s) => s.tryOnHistory);
+  const removeTryOnHistory = useStyleStore((s) => s.removeTryOnHistory);
   const activityLog = useStyleStore((s) => s.activityLog);
   const isAuthed = Boolean(useAuthStore((s) => s.token));
-  const [cloudReports, setCloudReports] = useState<AnalysisResult[]>([]);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!isAuthed) return;
-    let cancelled = false;
-    fetchReports()
-      .then((res) => {
-        if (cancelled) return;
-        const reports = res.data.history
-          .map((item) => item.report)
-          .filter((report): report is AnalysisResult => Boolean(report));
-        setCloudReports(reports);
-      })
-      .catch(() => {
-        // Cloud history is best-effort; local reports still render.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [isAuthed]);
+  // Everything this account has analysed or tried on, on any device.
+  const historyQuery = useQuery({
+    queryKey: ['account-history'],
+    queryFn: () => fetchHistory().then((res) => res.data.history),
+    enabled: isAuthed,
+    staleTime: 60_000,
+  });
+  const accountEntries = useMemo(() => historyQuery.data ?? [], [historyQuery.data]);
+
+  const cloudReports = useMemo(
+    () =>
+      accountEntries
+        .map((entry) => entry.report)
+        .filter((report): report is AnalysisResult => Boolean(report)),
+    [accountEntries],
+  );
+
+  // Server entries wear the same shape as the local ones, prefixed so a delete
+  // knows to go to the account rather than the device.
+  const accountTryOns: TryOnHistoryEntry[] = useMemo(
+    () =>
+      accountEntries
+        .filter((e) => e.resultImage || e.image)
+        .map((e) => {
+          const picture = assetUrl(e.resultImage || e.image);
+          const isAnalysis = e.type !== 'tryon';
+          return {
+            id: `cloud:${e._id}`,
+            resultUrl: picture,
+            garmentName:
+              e.label ||
+              (isAnalysis ? e.season ?? 'Colour analysis' : 'Try-on'),
+            garmentImg: picture,
+            kind: isAnalysis
+              ? ('analysis' as const)
+              : e.tryonKind === 'hair'
+                ? ('hair' as const)
+                : e.tryonKind === 'makeup'
+                  ? ('look' as const)
+                  : ('outfit' as const),
+            colourHex: e.colourHex,
+            timestamp: e.createdAt,
+          };
+        }),
+    [accountEntries],
+  );
+
+  // The account copy wins; anything only on this device is appended.
+  const mergedTryOns = useMemo(() => {
+    const seen = new Set(accountTryOns.map((e) => e.resultUrl));
+    const localOnly = tryOnHistory.filter((e) => !seen.has(e.resultUrl));
+    return [...accountTryOns, ...localOnly].sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
+  }, [accountTryOns, tryOnHistory]);
+
+  const removeTryOn = useMutation({
+    mutationFn: async (id: string) => {
+      if (!id.startsWith('cloud:')) return removeTryOnHistory(id);
+      await deleteHistoryEntry(id.slice('cloud:'.length));
+    },
+    onMutate: async (id: string) => {
+      if (!id.startsWith('cloud:')) return { previous: undefined };
+      await queryClient.cancelQueries({ queryKey: ['account-history'] });
+      const previous = queryClient.getQueryData<HistoryEntry[]>(['account-history']);
+      queryClient.setQueryData<HistoryEntry[]>(['account-history'], (old) =>
+        (old ?? []).filter((e) => `cloud:${e._id}` !== id),
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['account-history'], context.previous);
+      error('Could not remove that look');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['account-history'] }),
+  });
 
   const allSavedReports = [
     ...cloudReports,
@@ -905,6 +1197,14 @@ export default function Dashboard() {
                 ))}
               </motion.div>
             </div>
+
+            {/* Gallery — everything this account has analysed or tried on */}
+            {mergedTryOns.length > 0 && (
+              <TryOnGallerySection
+                history={mergedTryOns}
+                onDelete={(id) => removeTryOn.mutate(id)}
+              />
+            )}
 
             {/* Full colour palette */}
             <motion.section

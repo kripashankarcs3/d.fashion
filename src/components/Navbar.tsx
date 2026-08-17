@@ -13,6 +13,7 @@ import {
 } from '@/config/navigation';
 import { signOut as firebaseSignOut } from '@/services/auth';
 import { useAuthStore } from '@/store/useAuthStore';
+import { scopeStoreToUser, useStyleStore } from '@/store/useStyleStore';
 
 const drawerVariants = {
   open: { y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
@@ -98,6 +99,9 @@ export default function Navbar() {
       // ignore and still clear local session
     }
     clearSession();
+    // Leave nothing of this member's analysis behind on a shared device.
+    scopeStoreToUser(null);
+    useStyleStore.getState().resetLocalData();
   };
 
   const initials = (user?.name ?? '')
