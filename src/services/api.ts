@@ -58,13 +58,43 @@ export const sendChatMessage = (
   context: { analysisResult: AnalysisResult | null; wardrobeItems: WardrobeItem[] }
 ) => api.post<{ reply: string }>('/chat', { message, context });
 
-export const fetchReports = () =>
-  api.get<{
-    history: { _id: string; report: AnalysisResult | null; season?: string; createdAt: string }[];
-  }>('/history');
+/** One saved entry in a member's account history — an analysis or a try-on. */
+export interface HistoryEntry {
+  _id: string;
+  type?: 'analysis' | 'tryon';
+  /** Durable `/gallery/...` path of the picture to show. */
+  resultImage?: string;
+  image?: string;
+  label?: string;
+  tryonKind?: 'clothes' | 'makeup' | 'hair';
+  colourHex?: string;
+  source?: string;
+  report: AnalysisResult | null;
+  season?: string;
+  createdAt: string;
+}
 
-export const saveReportToCloud = (report: AnalysisResult) =>
-  api.post('/history', { report });
+export const fetchReports = () =>
+  api.get<{ history: HistoryEntry[] }>('/history');
+
+/** Every saved entry for the signed-in member, newest first. */
+export const fetchHistory = (type?: 'analysis' | 'tryon', limit = 60) =>
+  api.get<{ history: HistoryEntry[]; total: number }>('/history', {
+    params: { limit, ...(type ? { type } : {}) },
+  });
+
+export const deleteHistoryEntry = (id: string) => api.delete(`/history/${id}`);
+
+export const saveReportToCloud = (report: AnalysisResult, image?: string) =>
+  api.post('/history', { type: 'analysis', report, resultImage: image, image });
+
+export const saveTryOnToCloud = (entry: {
+  resultImage: string;
+  label: string;
+  tryonKind: 'clothes' | 'makeup' | 'hair';
+  colourHex?: string;
+  source?: string;
+}) => api.post<{ history: HistoryEntry }>('/history', { type: 'tryon', ...entry });
 
 export const subscribeNewsletter = (email: string, source = 'footer') =>
   api.post('/newsletter', { email, source }, { timeout: 15000 });

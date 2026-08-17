@@ -88,6 +88,19 @@ app.use(
   express.static(path.join(__dirname, "../tmp"), { maxAge: "1h", index: false })
 );
 
+// Saved dashboard images. Same cross-origin allowance as /uploads, but this
+// folder is durable: entries a member saved must survive the /uploads sweep.
+app.use(
+  "/gallery",
+  (_req, res, next) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    res.setHeader("Cache-Control", "private, max-age=86400");
+    res.setHeader("X-Robots-Tag", "noindex");
+    next();
+  },
+  express.static(path.join(__dirname, "../gallery"), { maxAge: "1d", index: false })
+);
+
 // Compress responses
 app.use(compression());
 
