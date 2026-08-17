@@ -5,6 +5,7 @@ import App from './App';
 import './index.css';
 import { firebaseAuth } from '@/lib/firebase';
 import { useAuthStore } from '@/store/useAuthStore';
+import { scopeStoreToUser } from '@/store/useStyleStore';
 
 // Disable browser's native scroll restoration so that on refresh the page
 // always starts at the top. ScrollManager handles scroll position for us.
@@ -19,6 +20,9 @@ if (firebaseAuth) {
       useAuthStore.getState().setAuthReady(true);
       return;
     }
+
+    // Drop a previous member's on-device data before this session starts.
+    scopeStoreToUser(user.uid);
 
     const token = await user.getIdToken();
     useAuthStore.getState().hydrateFromFirebase(token, {
