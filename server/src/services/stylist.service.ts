@@ -1,5 +1,6 @@
 import os from "os";
 import path from "path";
+import { randomUUID } from "node:crypto";
 import { env } from "../config/env";
 import {
   deriveSeason,
@@ -263,13 +264,23 @@ export function openCodeModelRef(): { providerID: string; modelID: string } {
     : { providerID: "opencode", modelID: first };
 }
 
-/** Zen mode: OpenCode Zen's OpenAI-compatible chat completions API (paid models). */
-async function replyViaZen(message: string, ctx: StylistContext | undefined, history: ChatTurn[]) {
+/** Zen mode: OpenCode Zen's OpenAI-compatible chat completions API. Free-tier
+ *  models such as big-pickle are only served when the request carries an
+ *  `x-opencode-session` header (as the OpenCode product does); without it the
+ *  gateway rejects them with MissingSessionID. */
+async function replyViaZen(
+  message: string,
+  ctx: StylistContext | undefined,
+  history: ChatTurn[],
+  sessionId?: string,
+) {
   const res = await fetch(`${env.OPENCODE_BASE_URL.replace(/\/+$/, "")}/chat/completions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${env.OPENCODE_API_KEY}`,
       "Content-Type": "application/json",
+      "x-opencode-session": sessionId ?? randomUUID(),
+      "x-opencode-request": randomUUID(),
     },
     body: JSON.stringify({
       model: openCodeModelRef().modelID,
@@ -419,6 +430,7 @@ export async function generateStylistReplyAI(
   message: string,
   ctx?: StylistContext,
   history: ChatTurn[] = [],
+  opts?: { sessionId?: string },
 ): Promise<StylistReply> {
   const fromRules = (): StylistReply => ({
     reply: generateStylistReply(message, ctx),
@@ -432,7 +444,7 @@ export async function generateStylistReplyAI(
   try {
     const reply = await (viaServer
       ? replyViaOpenCodeServer(message, ctx, history)
-      : replyViaZen(message, ctx, history)).then(sanitiseReply);
+      : replyViaZen(message, ctx, history, opts?.sessionId)).then(sanitiseReply);
     return { reply, source: "opencode" };
   } catch (err) {
     console.warn("OpenCode stylist reply failed, using rules engine:", (err as Error).message);
