@@ -63,25 +63,32 @@ class YouCamService {
 
   // ── Task API ──
 
-  async startTask(feature: string, payload: Record<string, unknown>) {
+  // Most tasks live under v2.0; hair-transfer is only served under v2.1.
+  async startTask(feature: string, payload: Record<string, unknown>, apiVersion = "v2.0") {
     if (!this.isAvailable()) return null;
 
-    const { data } = await this.client.post(`/s2s/v2.0/task/${feature}`, payload);
+    const { data } = await this.client.post(`/s2s/${apiVersion}/task/${feature}`, payload);
     return data;
   }
 
-  async getTaskResult(feature: string, taskId: string) {
+  async getTaskResult(feature: string, taskId: string, apiVersion = "v2.0") {
     if (!this.isAvailable()) return null;
 
-    const { data } = await this.client.get(`/s2s/v2.0/task/${feature}/${taskId}`);
+    const { data } = await this.client.get(`/s2s/${apiVersion}/task/${feature}/${taskId}`);
     return data;
   }
 
-  async pollTaskResult(feature: string, taskId: string, maxRetries = env.YOUCAM_POLL_MAX_RETRIES, intervalMs = env.YOUCAM_POLL_INTERVAL_MS) {
+  async pollTaskResult(
+    feature: string,
+    taskId: string,
+    maxRetries = env.YOUCAM_POLL_MAX_RETRIES,
+    intervalMs = env.YOUCAM_POLL_INTERVAL_MS,
+    apiVersion = "v2.0",
+  ) {
     if (!this.isAvailable()) return null;
 
     for (let i = 0; i < maxRetries; i++) {
-      const result = await this.getTaskResult(feature, taskId);
+      const result = await this.getTaskResult(feature, taskId, apiVersion);
 
       if (result?.data?.task_status === "success") {
         return result;
@@ -295,6 +302,37 @@ class YouCamService {
     if (!taskId) throw new Error("Failed to start hair try-on task");
 
     return this.pollTaskResult("hair-style", taskId);
+  }
+
+  // ── Hair transfer (v2.1 preset catalogue, separate from hair-style) ──
+
+  async tryOnHairTransfer(
+    person: { filePath?: string | null; url?: string | null },
+    templateId: string,
+    keepUsersColour: boolean,
+  ) {
+    const payload: Record<string, unknown> = { template_id: templateId };
+    // Only some templates can keep the member's own colour; others apply the
+    // template's colour whatever this flag says.
+    if (keepUsersColour) payload.keep_users_color = true;
+
+    if (person.filePath) {
+      payload.src_file_id = await this.uploadAndGetFileId("hair-transfer", person.filePath);
+    } else {
+      payload.src_file_url = person.url;
+    }
+
+    const task = await this.startTask("hair-transfer", payload, "v2.1");
+    const taskId = task?.data?.task_id;
+    if (!taskId) throw new Error("Failed to start hair transfer task");
+
+    return this.pollTaskResult(
+      "hair-transfer",
+      taskId,
+      env.YOUCAM_POLL_MAX_RETRIES,
+      env.YOUCAM_POLL_INTERVAL_MS,
+      "v2.1",
+    );
   }
 }
 

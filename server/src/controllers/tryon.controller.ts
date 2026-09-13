@@ -191,9 +191,13 @@ export const tryOnMakeup = async (req: Request, res: Response, next: NextFunctio
 export const tryOnHair = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const personImageUrl = resolveAndValidatePersonUrl(req, req.body.personImageUrl);
-    const styleId = req.body.styleId as string | undefined;
+    const styleId = req.body.styleId as unknown;
+    // Which YouCam catalogue the style belongs to: the original hair-style set,
+    // or the larger hair-transfer set.
+    const engine = req.body.engine === "transfer" ? "transfer" : "style";
+    const keepUsersColour = req.body.keepUsersColour === true;
 
-    if (!personImageUrl || !styleId) {
+    if (!personImageUrl || typeof styleId !== "string" || !styleId) {
       return res.status(400).json({
         success: false,
         message: "personImageUrl and styleId are required",
@@ -202,9 +206,16 @@ export const tryOnHair = async (req: Request, res: Response, next: NextFunction)
 
     try {
       const selfieFilePath = serverUploadFilePath(req.body.personImageUrl);
-      const youcamResult = selfieFilePath
-        ? await YouCamService.tryOnHairWithFile(selfieFilePath, styleId)
-        : await YouCamService.tryOnHair(personImageUrl, styleId);
+      const youcamResult =
+        engine === "transfer"
+          ? await YouCamService.tryOnHairTransfer(
+              { filePath: selfieFilePath, url: personImageUrl },
+              styleId,
+              keepUsersColour
+            )
+          : selfieFilePath
+            ? await YouCamService.tryOnHairWithFile(selfieFilePath, styleId)
+            : await YouCamService.tryOnHair(personImageUrl, styleId);
 
       if (youcamResult) {
         const resultUrl = extractResultUrl(youcamResult, "");

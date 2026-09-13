@@ -58,8 +58,16 @@ export const tryOnClothes = (personImageUrl: string, garmentImageUrl: string, co
 export const tryOnMakeup = (personImageUrl: string, productId: string) =>
   api.post<{ resultUrl: string; source: 'youcam' | 'fallback' }>('/tryon/makeup', { personImageUrl, productId }, { timeout: 180_000 });
 
-export const tryOnHair = (personImageUrl: string, styleId: string) =>
-  api.post<{ resultUrl: string; source: 'youcam' | 'fallback' }>('/tryon/hair', { personImageUrl, styleId }, { timeout: 180_000 });
+export const tryOnHair = (
+  personImageUrl: string,
+  styleId: string,
+  options: { engine?: 'style' | 'transfer'; keepUsersColour?: boolean } = {},
+) =>
+  api.post<{ resultUrl: string; source: 'youcam' | 'fallback' }>(
+    '/tryon/hair',
+    { personImageUrl, styleId, ...options },
+    { timeout: 180_000 },
+  );
 
 export const listTryOnTemplates = (feature: 'look-vto' | 'hair-style') =>
   api.get<{ items: { id: string; title: string; thumb: string }[] }>(
