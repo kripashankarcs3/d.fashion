@@ -49,6 +49,112 @@ function initialMessage(hasAnalysis: boolean): Message {
   };
 }
 
+/** Renders a run of text, turning **double-asterisk** spans into gold-bold. */
+function InlineText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split('**').map((part, index) =>
+        index % 2 === 1 ? (
+          <strong key={index} className="font-semibold text-gold-primary">
+            {part}
+          </strong>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
+/** Colours each `**Word**` span, used by headings so the caps stay small. */
+function CaptionText({ text }: { text: string }) {
+  return <InlineText text={text} />;
+}
+
+/**
+ * Renders a GPT-style structured answer — `**HEADING**` all-caps section
+ * headers, `- ` bullets, `1.` numbered steps and plain paragraphs — without
+ * pulling in a full markdown dependency.
+ */
+function StructuredBody({ text }: { text: string }) {
+  const lines = text.split('\n');
+  const blocks: React.ReactNode[] = [];
+  let paragraph: string[] = [];
+  let list: { type: 'ul' | 'ol'; items: string[] } | null = null;
+
+  const flushParagraph = () => {
+    if (paragraph.length === 0) return;
+    blocks.push(
+      <p key={blocks.length} className="text-[length:var(--text-body-sm)] leading-[1.7]">
+        <InlineText text={paragraph.join('\n')} />
+      </p>,
+    );
+    paragraph = [];
+  };
+
+  const flushList = () => {
+    if (!list) return;
+    const ListTag = list.type === 'ul' ? 'ul' : 'ol';
+    const itemClass =
+      'text-[length:var(--text-body-sm)] leading-[1.7] ' +
+      (list.type === 'ul' ? 'list-disc pl-5' : 'list-decimal pl-5');
+    blocks.push(
+      <ListTag key={blocks.length} className={`space-y-1.5 ${itemClass}`}>
+        {list.items.map((item, i) => (
+          <li key={i}>
+            <InlineText text={item} />
+          </li>
+        ))}
+      </ListTag>,
+    );
+    list = null;
+  };
+
+  const pushLine = (raw: string) => {
+    const line = raw.trim();
+    if (!line) return;
+
+    const ulMatch = line.match(/^[-–*]\s+(.*)$/);
+    if (ulMatch) {
+      flushParagraph();
+      if (list && list.type !== 'ul') flushList();
+      list = list ?? { type: 'ul', items: [] };
+      list.items.push(ulMatch[1]);
+      return;
+    }
+
+    const olMatch = line.match(/^\d+[.)]\s+(.*)$/);
+    if (olMatch) {
+      flushParagraph();
+      if (list && list.type !== 'ol') flushList();
+      list = list ?? { type: 'ol', items: [] };
+      list.items.push(olMatch[1]);
+      return;
+    }
+
+    const headingMatch = raw.match(/^\s*#{1,6}\s+(.*)$/) || raw.match(/^\s*\*\*(.+?)\*\*\s*:?\s*$/);
+    if (headingMatch && headingMatch[1].length < 60) {
+      flushParagraph();
+      flushList();
+      blocks.push(
+        <p key={blocks.length} className="font-semibold uppercase tracking-wider text-gold-primary">
+          <CaptionText text={headingMatch[1]} />
+        </p>,
+      );
+      return;
+    }
+
+    flushList();
+    paragraph.push(line);
+  };
+
+  lines.forEach(pushLine);
+  flushParagraph();
+  flushList();
+
+  return <div className="space-y-2.5">{blocks}</div>;
+}
+
 function TypingIndicator() {
   return (
     <span className="inline-flex items-center gap-1.5" aria-label={`${BRAND.stylistName} is typing`}>
@@ -78,7 +184,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
     initialMessage(Boolean(analysisResult)),
   ]);
   const [input, setInput] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesListRef = useRef<HTMLDivElement>(null);
   const submittedPromptRef = useRef('');
 
   const mutation = useMutation({
@@ -114,7 +220,8 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
   }, [initialPrompt, analysisResult, mutation, messages]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const list = messagesListRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
   }, [messages, mutation.isPending]);
 
   const handleSend = (e?: React.FormEvent) => {
@@ -147,7 +254,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
       </div>
 
       {/* Messages */}
-      <div role="log" aria-live="polite" className="flex-1 space-y-6 overflow-y-auto p-6">
+      <div ref={messagesListRef} role="log" aria-live="polite" className="flex-1 space-y-6 overflow-y-auto p-6">
         {messages.map((msg, i) => (
           <motion.div
             key={i}
@@ -157,34 +264,29 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] p-4 ${
+              className={`max-w-[85%] p-4 ${
                 msg.role === 'user'
                   ? 'bg-surface-4 text-cream-primary'
                   : 'border border-gold-border bg-surface-3/60 text-cream-primary'
               }`}
             >
-              <p className="text-[length:var(--text-body-sm)] leading-[1.6]">
-                {msg.text.split('**').map((part, index) =>
-                  index % 2 === 1 ? (
-                    <strong
-                      key={index}
-                      className="font-semibold text-gold-primary"
+              {msg.role === 'user' ? (
+                <p className="whitespace-pre-wrap text-[length:var(--text-body-sm)] leading-[1.6]">
+                  {msg.text}
+                </p>
+              ) : (
+                <>
+                  <StructuredBody text={msg.text} />
+                  {msg.link && (
+                    <Link
+                      href={msg.link.href}
+                      className="mt-2 inline-block text-body-sm font-medium text-gold-primary underline underline-offset-2 transition-colors duration-200 ease-out hover:text-gold-light"
                     >
-                      {part}
-                    </strong>
-                  ) : (
-                    part
-                  ),
-                )}
-                {msg.link && (
-                  <Link
-                    href={msg.link.href}
-                    className="ml-0.5 font-medium text-gold-primary underline underline-offset-2 transition-colors duration-200 ease-out hover:text-gold-light"
-                  >
-                    {msg.link.label}
-                  </Link>
-                )}
-              </p>
+                      {msg.link.label}
+                    </Link>
+                  )}
+                </>
+              )}
             </div>
           </motion.div>
         ))}
@@ -200,8 +302,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
             </div>
           </motion.div>
         )}
-        <div ref={messagesEndRef} />
-      </div>
+        </div>
 
       {/* Input */}
       <div className="border-t border-border p-6">
