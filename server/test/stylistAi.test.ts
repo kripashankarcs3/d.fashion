@@ -110,6 +110,107 @@ describe("generateStylistReplyAI", () => {
   });
 });
 
+describe("generateStylistReplyAI via a local OpenCode server", () => {
+  const saved = {
+    mode: env.OPENCODE_MODE,
+    key: env.OPENCODE_API_KEY,
+    password: env.OPENCODE_SERVER_PASSWORD,
+    model: env.OPENCODE_MODEL,
+  };
+  let fetchMock: ReturnType<typeof vi.fn>;
+  let messageReply: { status: number; body: unknown };
+
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+
+  const callsTo = (method: string, pathname: string) =>
+    fetchMock.mock.calls.filter(([input, init]) => {
+      const url = new URL(String(input));
+      return (init?.method ?? "GET") === method && url.pathname === pathname;
+    });
+
+  beforeEach(() => {
+    messageReply = {
+      status: 200,
+      body: { info: {}, parts: [{ type: "reasoning" }, { type: "text", text: "Wear **rust**." }] },
+    };
+    fetchMock = vi.fn(async (input: unknown, init?: RequestInit) => {
+      const url = new URL(String(input));
+      const method = init?.method ?? "GET";
+      if (url.pathname === "/experimental/tool/ids") return json(["bash", "read", "edit"]);
+      if (method === "POST" && url.pathname === "/session") return json({ id: "ses_test" });
+      if (method === "POST" && url.pathname === "/session/ses_test/message") {
+        return json(messageReply.body, messageReply.status);
+      }
+      if (method === "DELETE") return json(true);
+      return json({}, 404);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    env.OPENCODE_MODE = "server";
+    env.OPENCODE_API_KEY = "";
+    env.OPENCODE_SERVER_PASSWORD = "pw";
+    env.OPENCODE_MODEL = "big-pickle";
+  });
+
+  afterEach(() => {
+    env.OPENCODE_MODE = saved.mode;
+    env.OPENCODE_API_KEY = saved.key;
+    env.OPENCODE_SERVER_PASSWORD = saved.password;
+    env.OPENCODE_MODEL = saved.model;
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("does not contact the server without a password", async () => {
+    env.OPENCODE_SERVER_PASSWORD = "";
+    const r = await generateStylistReplyAI("hi", ctx);
+    expect(r.source).toBe("rules");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("sends the message with every tool disabled, then deletes the session", async () => {
+    const history: ChatTurn[] = [{ role: "user", content: "Earlier question" }];
+    const r = await generateStylistReplyAI("Wedding outfit?", ctx, history);
+
+    expect(r).toEqual({ reply: "Wear **rust**.", source: "opencode" });
+
+    const [[input, init]] = callsTo("POST", "/session/ses_test/message");
+    const url = new URL(String(input));
+    expect(url.searchParams.get("directory")).toBeTruthy();
+    expect(init.headers.Authorization).toBe(`Basic ${Buffer.from("opencode:pw").toString("base64")}`);
+
+    const body = JSON.parse(init.body);
+    expect(body.tools).toEqual({ bash: false, read: false, edit: false });
+    expect(body.model).toEqual({ providerID: "opencode", modelID: "big-pickle" });
+    expect(body.system).toContain("Warm Autumn");
+    expect(body.parts[0].text).toContain("Member: Earlier question");
+    expect(body.parts[0].text).toContain("Wedding outfit?");
+    expect(init.body).not.toContain("secret-selfie");
+
+    expect(callsTo("DELETE", "/session/ses_test")).toHaveLength(1);
+  });
+
+  it("sends nothing when the tool list cannot be read", async () => {
+    fetchMock.mockImplementation(async () => json({}, 500));
+    const r = await generateStylistReplyAI("hi", ctx);
+    expect(r.source).toBe("rules");
+    expect(callsTo("POST", "/session")).toHaveLength(0);
+  });
+
+  it("discards a reply that contains a tool call", async () => {
+    messageReply.body = { info: {}, parts: [{ type: "tool" }, { type: "text", text: "done" }] };
+    const r = await generateStylistReplyAI("hi", ctx);
+    expect(r.source).toBe("rules");
+    expect(callsTo("DELETE", "/session/ses_test")).toHaveLength(1);
+  });
+
+  it("falls back when the model run reports an error", async () => {
+    messageReply.body = { info: { error: { name: "ProviderError" } }, parts: [] };
+    expect((await generateStylistReplyAI("hi", ctx)).source).toBe("rules");
+  });
+});
+
 describe("summariseStylistContext", () => {
   it("names palette hexes and drops entries that are not strings", () => {
     const summary = summariseStylistContext({

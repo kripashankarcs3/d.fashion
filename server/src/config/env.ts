@@ -27,13 +27,22 @@ const envSchema = z.object({
 
   YOUCAM_API_KEY: z.string().default(""),
 
-  /* ---------------------------------------------- OpenCode Zen stylist */
-  /** Unset = the stylist chat answers from the built-in rules engine. */
+  /* --------------------------------------------------- OpenCode stylist */
+  /** "zen": call the Zen API directly (paid models; the workspace needs billing).
+   *  "server": go through a local `opencode serve`, where Zen's free models work. */
+  OPENCODE_MODE: z.enum(["zen", "server"]).default("zen"),
+  /** Zen mode. Unset = the stylist chat answers from the built-in rules engine. */
   OPENCODE_API_KEY: z.string().default(""),
   OPENCODE_BASE_URL: z.string().default("https://opencode.ai/zen/v1"),
-  /** Must be a model Zen serves on /chat/completions (DeepSeek, GLM, Kimi,
-   *  MiniMax, …) — GPT and Claude models live on other endpoints. */
+  /** Zen mode needs a model Zen serves on /chat/completions (DeepSeek, GLM,
+   *  Kimi, MiniMax, …). Server mode takes any id, e.g. `big-pickle`. */
   OPENCODE_MODEL: z.string().default("deepseek-v4-flash"),
+  /** Server mode. Unset password = rules engine; the server is never called
+   *  without credentials. */
+  OPENCODE_SERVER_URL: z.string().default("http://127.0.0.1:4096"),
+  OPENCODE_SERVER_USERNAME: z.string().default("opencode"),
+  OPENCODE_SERVER_PASSWORD: z.string().default(""),
+  OPENCODE_SERVER_DIRECTORY: z.string().default(""),
   OPENCODE_MAX_TOKENS: int("OPENCODE_MAX_TOKENS", 1024),
   OPENCODE_TIMEOUT_MS: int("OPENCODE_TIMEOUT_MS", 25000),
 
