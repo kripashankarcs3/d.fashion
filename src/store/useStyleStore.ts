@@ -36,6 +36,12 @@ export interface Recommendations {
     blush: string;
     lip: string;
   };
+  /** Human-readable names for the computed hexes (new reports only). */
+  makeupShadeNames?: {
+    foundation: string;
+    blush: string;
+    lip: string;
+  };
   hairColorOptions: string[];
   skincareRoutine: Array<{
     step: number;
@@ -50,9 +56,17 @@ export interface StyleArchetype {
   description: string;
 }
 
+/** Where each part of the analysis came from — lets the UI disclose
+ *  estimated values instead of presenting them as real AI analysis. */
+export interface AnalysisSources {
+  skinAnalysis: 'youcam' | 'estimated';
+  colorTones: 'youcam' | 'local-extraction';
+}
+
 export interface AnalysisResult {
   enhancedImageUrl: string;
   skinConcerns: SkinConcerns;
+  sources?: AnalysisSources;
   colorProfile: ColorProfile;
   recommendations: Recommendations;
   analyzedAt: string;
@@ -237,6 +251,11 @@ export const useStyleStore = create<StyleStore>()(
 
 const USER_SCOPE_KEY = 'dfashion_last_user';
 
+/** Cached downscaled copy of the last photo analysed, offered as "use your
+ *  previous photo". Lives outside the persisted store, so `scopeStoreToUser`
+ *  has to clear it explicitly — it is a picture of someone's face. */
+export const PREVIOUS_PHOTO_KEY = 'dfashion_previous_photo';
+
 /**
  * Keeps the on-device store tied to one account. Signing in as somebody else,
  * or signing out, wipes the previous member's photos, looks and activity so a
@@ -264,5 +283,10 @@ export function scopeStoreToUser(uid: string | null) {
 
   if (previous !== null && previous !== uid) {
     useStyleStore.getState().resetLocalData();
+    try {
+      localStorage.removeItem(PREVIOUS_PHOTO_KEY);
+    } catch {
+      // Storage unavailable — nothing cached to leak.
+    }
   }
 }

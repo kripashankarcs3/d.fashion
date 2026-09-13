@@ -31,6 +31,10 @@ const isArchivableImage = (value: unknown): value is string => {
  * a provider URL that has already expired must not cost the user the entry,
  * so the original value is kept as a (possibly short-lived) fallback.
  */
+/** A bounded string, or undefined — never an object a query could misread. */
+const shortString = (value: unknown, max: number): string | undefined =>
+  typeof value === "string" ? value.slice(0, max) : undefined;
+
 const archiveImage = async (source: unknown, prefix: string): Promise<string | undefined> => {
   if (!isArchivableImage(source)) return undefined;
   try {
@@ -60,6 +64,13 @@ export const saveHistory = asyncHandler(async (req: Request, res: Response) => {
   } = req.body;
 
   const entryType = type === "tryon" ? "tryon" : "analysis";
+
+  // `report` is stored as a Mixed document and replayed to the client, so it
+  // must be a plain object — not a string, array, or number smuggled in.
+  if (report !== undefined && (report === null || typeof report !== "object" || Array.isArray(report))) {
+    res.status(400).json({ success: false, message: "Invalid report" });
+    return;
+  }
 
   if (entryType === "tryon") {
     if (!resultImage) {
@@ -106,14 +117,20 @@ export const saveHistory = asyncHandler(async (req: Request, res: Response) => {
       archivedSource ??
       (typeof image === "string" && !image.startsWith("/gallery/") ? image : undefined),
     resultImage: archivedResult,
-    label: typeof label === "string" ? label.slice(0, 120) : undefined,
+    label: shortString(label, 120),
     tryonKind: ["clothes", "makeup", "hair"].includes(tryonKind) ? tryonKind : undefined,
-    colourHex: typeof colourHex === "string" ? colourHex.slice(0, 9) : undefined,
-    source: typeof source === "string" ? source.slice(0, 32) : undefined,
-    skinType,
-    skinTone,
-    concerns,
-    recommendedProducts,
+    colourHex: shortString(colourHex, 9),
+    source: shortString(source, 32),
+    skinType: shortString(skinType, 60),
+    skinTone: shortString(skinTone, 60),
+    concerns: Array.isArray(concerns)
+      ? concerns.filter((c): c is string => typeof c === "string").slice(0, 20).map((c) => c.slice(0, 40))
+      : undefined,
+    recommendedProducts: Array.isArray(recommendedProducts)
+      ? recommendedProducts
+          .filter((id): id is string => typeof id === "string" && mongoose.isValidObjectId(id))
+          .slice(0, 50)
+      : undefined,
     report,
     season,
   });

@@ -11,57 +11,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { ROUTES } from '@/config/navigation';
-
-const ANALYSIS_FAQS = [
-  {
-    question: 'How does the colour analysis work?',
-    answer:
-      'You upload a clear photo taken in natural light. Our model reads your skin undertone, depth, and contrast, then places you in one of the twelve colour seasons and builds a palette around it. The whole analysis takes under a minute.',
-  },
-  {
-    question: 'What kind of photo should I upload?',
-    answer:
-      'A front-facing photo in soft natural light, no filters, no heavy makeup, with your face clearly visible. Avoid harsh shadows and strong artificial light — the model needs to read your natural skin tone.',
-  },
-  {
-    question: 'What is a colour season?',
-    answer:
-      'A colour season is a classification of the palette that harmonises most with your natural colouring — your skin, hair, and eyes. D\u2019Fashion works with the full twelve-season system, from Light Spring to Bright Winter.',
-  },
-  {
-    question: 'What is my season confidence score?',
-    answer:
-      'It reflects how clearly your undertone could be read. A high score means the warm/cool signal was decisive; a lower score simply means you sit closer to neutral, so muted, blended colours tend to suit you best.',
-  },
-  {
-    question: 'Is colour analysis medically accurate?',
-    answer:
-      'No — it is a styling tool, not a medical or dermatological assessment. It reads colour relationships the way a personal stylist would, and it is very good at that. For skin health concerns, consult a professional.',
-  },
-];
-
-const ACCOUNT_FAQS = [
-  {
-    question: 'What happens to my photo?',
-    answer:
-      'Your original upload is used once and deleted immediately. The enhanced copy used to build your report is removed automatically within two hours. We never share your photos publicly. See the privacy policy for full details.',
-  },
-  {
-    question: 'Can I retake the analysis?',
-    answer:
-      'Yes. Run a new analysis any time — lighting, season, and even changes in your natural colouring can shift the result. Every run is stored in your dashboard so you can compare.',
-  },
-  {
-    question: 'How do refunds work?',
-    answer:
-      'If a one-time purchase fails to deliver an analysis we refund it in full. Subscriptions can be cancelled before the next billing cycle. See the terms of service for details.',
-  },
-  {
-    question: 'How can I delete my data?',
-    answer:
-      'Saved reports can be removed from your dashboard at any time. For anything else, contact us and we will delete or export your data on request.',
-  },
-];
+import { ACCOUNT_FAQS, ANALYSIS_FAQS, SUPPORT_QUOTE } from '@/config/content';
+import { CONTACT } from '@/config/site';
 
 const FAQ_JSON_LD = {
   '@context': 'https://schema.org',
@@ -169,11 +120,10 @@ export default function Faq() {
             className="mx-auto max-w-3xl text-center"
           >
             <p className="font-editorial text-h3 font-light italic leading-snug text-cream-primary/80">
-              &ldquo;The analysis reads what a trained stylist would read —
-              your undertone, your depth, your contrast.&rdquo;
+              &ldquo;{SUPPORT_QUOTE.text}&rdquo;
             </p>
             <footer className="mt-5">
-              <span className="eyebrow text-gold-primary/70">D&rsquo;Fashion — The Science</span>
+              <span className="eyebrow text-gold-primary/70">{SUPPORT_QUOTE.attribution}</span>
             </footer>
           </motion.blockquote>
         </EditorialContainer>
@@ -227,7 +177,7 @@ export default function Faq() {
                 We reply to <Emphasis>everything.</Emphasis>
               </EditorialHeading>
               <p className="mt-4 text-body-sm text-cream-primary/65 leading-relaxed">
-                Usually within two working days. Include the email you signed up with for account or payment questions.
+                {CONTACT.responseTimeDetail} Include the email you signed up with for account or payment questions.
               </p>
             </div>
             <div className="flex flex-col gap-4 sm:flex-row md:justify-end">

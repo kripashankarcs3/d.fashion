@@ -5,7 +5,7 @@ import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import { useStyleStore } from '@/store/useStyleStore';
-import { getSeasonInfo } from '@/lib/colour-data';
+import { useSeasonInfo } from '@/hooks/useSeasons';
 import { ROUTES } from '@/config/navigation';
 
 const FALLBACK_PALETTE = [
@@ -50,8 +50,12 @@ function GarmentDisplay({ color }: { color: string }) {
 
 export default function TryOnPreview() {
   const analysisResult = useStyleStore((s) => s.analysisResult);
-  const palette = analysisResult
-    ? getSeasonInfo(analysisResult.colourSeason, analysisResult.colorProfile.undertone).palette.map((c) => ({ hex: c.hex, name: c.name }))
+  const seasonInfo = useSeasonInfo(
+    analysisResult?.colourSeason,
+    analysisResult?.colorProfile.undertone,
+  );
+  const palette = seasonInfo
+    ? seasonInfo.palette.map((c) => ({ hex: c.hex, name: c.name }))
     : FALLBACK_PALETTE;
 
   const [activeHex, setActiveHex] = useState(palette[0].hex);

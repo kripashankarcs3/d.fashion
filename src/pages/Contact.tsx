@@ -9,9 +9,8 @@ import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import Reveal from '@/components/editorial/Reveal';
 import { CAMPAIGN } from '@/lib/editorial-images';
 import { ROUTES } from '@/config/navigation';
+import { CONTACT } from '@/config/site';
 import { cn } from '@/lib/utils';
-
-const SUPPORT_EMAIL = 'hello@deestyle.example.com';
 
 const inputClass = cn(
   'w-full border-0 border-b border-gold-border bg-transparent pb-2.5 pt-1 text-body text-cream-primary',
@@ -20,21 +19,21 @@ const inputClass = cn(
   'focus:border-gold-primary focus:outline-none',
 );
 
-const CONTACT_INFO = [
+const CONTACT_INFO: { icon: typeof Mail; label: string; value: string }[] = [
   {
     icon: Mail,
     label: 'Email',
-    value: 'hello@dfashion.app',
+    value: CONTACT.contactEmail,
   },
   {
     icon: Clock,
     label: 'Response time',
-    value: 'Within 2 working days',
+    value: CONTACT.responseTime,
   },
   {
     icon: Instagram,
     label: 'Instagram',
-    value: '@dfashion.app',
+    value: CONTACT.instagramHandle,
   },
 ];
 
@@ -48,7 +47,7 @@ export default function Contact() {
     event.preventDefault();
     const subject = encodeURIComponent(`Support request from ${name || 'a visitor'}`);
     const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\n${message}`);
-    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${CONTACT.supportEmail}?subject=${subject}&body=${body}`;
     setSent(true);
   };
 
@@ -215,7 +214,7 @@ export default function Contact() {
                 <div className="border-l-2 border-gold-primary bg-surface-3 p-6">
                   <p className="eyebrow text-gold-primary/70 mb-2">Response time</p>
                   <p className="font-editorial text-h5 font-light text-cream-primary">
-                    Usually within two working days.
+                    {CONTACT.responseTimeDetail}
                   </p>
                   <p className="mt-2 text-body-sm text-cream-primary/60 leading-relaxed">
                     For account or payment issues, include the email you signed up with.

@@ -22,7 +22,7 @@ services:
         sync: false
       - key: YOUCAM_API_KEY
         sync: false
-      - key: ANTHROPIC_API_KEY
+      - key: OPENCODE_API_KEY
         sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false

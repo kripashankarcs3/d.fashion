@@ -4,6 +4,7 @@ import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import { Check } from 'lucide-react';
+import { PLANS, formatPrice } from '@/config/pricing';
 
 const plans = [
   {
@@ -18,7 +19,7 @@ const plans = [
   },
   {
     name: 'Essentials',
-    price: '₹499',
+    price: formatPrice(PLANS.find((p) => p.name === 'Essentials')?.monthly ?? 499),
     period: '/month',
     note: 'Most popular',
     features: ['Full colour report', 'Palette download', 'Makeup shade guide', 'Hair colour options'],
@@ -28,7 +29,7 @@ const plans = [
   },
   {
     name: 'Atelier',
-    price: '₹999',
+    price: formatPrice(PLANS.find((p) => p.name === 'Atelier')?.monthly ?? 999),
     period: '/month',
     note: 'The complete experience',
     features: ['Everything in Essentials', 'Virtual Try-On', 'AI Stylist Chat', 'Priority support'],

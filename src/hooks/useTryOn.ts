@@ -25,8 +25,6 @@ export function useTryOn() {
   const clothes = useMutation({
     mutationFn: ({
       garmentUrl,
-      garmentName,
-      garmentImg,
       colourHex,
       personImageUrl,
     }: {
@@ -67,8 +65,6 @@ export function useTryOn() {
   const makeup = useMutation({
     mutationFn: ({
       productId,
-      productName,
-      productThumb,
     }: {
       productId: string;
       productName: string;
@@ -101,16 +97,18 @@ export function useTryOn() {
   const hair = useMutation({
     mutationFn: ({
       styleId,
-      styleName,
-      styleThumb,
+      engine,
+      keepUsersColour,
     }: {
       styleId: string;
       styleName: string;
       styleThumb: string;
+      engine?: 'style' | 'transfer';
+      keepUsersColour?: boolean;
     }) => {
       const url = useStyleStore.getState().referenceImageUrl;
       if (!url) throw new Error('No reference image.');
-      return tryOnHair(url, styleId);
+      return tryOnHair(url, styleId, { engine, keepUsersColour });
     },
     onSuccess: (data, vars) => {
       addTryOnHistory({

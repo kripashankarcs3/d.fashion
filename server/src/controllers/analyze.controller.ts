@@ -12,8 +12,7 @@ import {
   getSeasonProfile,
   lipColorName,
 } from "../utils/colourAnalysis";
-
-const clamp = (n: number, min = 0, max = 1) => Math.min(max, Math.max(min, n));
+import { healthScoresFromOutput, skinConcernsFromScores } from "../utils/skinScores";
 
 export const uploadImage = async (req: Request, res: Response, next: NextFunction) => {
   let originalImage = "";
@@ -59,9 +58,16 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     }
 
     let youcamResult: any = null;
+    // Provenance — surfaced to the client so estimated values are never
+    // presented as real AI analysis.
+    const sources = {
+      skinAnalysis: "youcam" as "youcam" | "estimated",
+      colorTones: "youcam" as "youcam" | "local-extraction",
+    };
     if (skinRes.status === "fulfilled") {
       youcamResult = skinRes.value;
     } else {
+      sources.skinAnalysis = "estimated";
       const detail = (skinRes.reason as any)?.response?.data
         ? JSON.stringify((skinRes.reason as any).response.data)
         : (skinRes.reason as Error).message;
@@ -76,49 +82,14 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     }
 
     const output = youcamResult?.data?.results?.output || [];
-    const scoreMap: Record<string, number> = {};
-    for (const item of output) {
-      scoreMap[item.type] = (item.ui_score ?? item.raw_score ?? 0) / 100;
-    }
 
-    // When YouCam scores are missing, derive plausible estimates from luma.
-    // Lighter skin tones tend to show more redness/sensitivity;
-    // darker tones tend to show more dark spots/uneven tone.
-    const lumaFactor = localSkinData ? (255 - localSkinData.luma) / 255 : 0.5;
-    const lumaLight = localSkinData ? localSkinData.luma / 255 : 0.5;
-
-    // ui_score is 0-1 "healthier is higher"; a concern is the inverse for
-    // positive metrics (moisture/firmness/radiance) and direct for negative ones.
-    const concernOf = (key: string, fallback: number) => {
-      const s = scoreMap[key];
-      return typeof s === "number" ? clamp(s) : fallback;
-    };
-    const inverseOf = (key: string, fallback: number) => {
-      const s = scoreMap[key];
-      return typeof s === "number" ? clamp(1 - s) : fallback;
-    };
-
-    const rednessScore = scoreMap.redness;
-    const radianceScore = scoreMap.radiance;
-
-    const skinConcerns: Record<string, number> = {
-      acne:        concernOf("acne",       0.10 + lumaLight * 0.15),
-      darkSpots:   concernOf("age_spot",   concernOf("dark_spot", 0.05 + lumaFactor * 0.20)),
-      wrinkles:    concernOf("wrinkle",    0.05 + lumaFactor * 0.12),
-      pores:       concernOf("pore",       0.20 + lumaFactor * 0.15),
-      oiliness:    concernOf("oiliness",   0.25 + lumaLight * 0.20),
-      dryness:     inverseOf("moisture",   0.15 + lumaFactor * 0.15),
-      redness:     concernOf("redness",    0.08 + lumaLight * 0.12),
-      eyeBags:     concernOf("eye_bag",    0.12 + lumaFactor * 0.12),
-      darkCircles: concernOf("dark_circle",0.15 + lumaFactor * 0.20),
-      uneven:      typeof radianceScore === "number" ? clamp(1 - radianceScore) : concernOf("dullness", 0.15 + lumaFactor * 0.15),
-      sensitivity: typeof rednessScore === "number"
-          ? clamp(rednessScore * 0.8)
-          : concernOf("sensitivity", 0.10 + lumaLight * 0.10),
-      texture:     concernOf("texture",    0.20 + lumaFactor * 0.15),
-      firmness:    inverseOf("firmness",   0.20 + lumaFactor * 0.15),
-      radiance:    typeof radianceScore === "number" ? clamp(1 - radianceScore) : (0.25 + lumaFactor * 0.20),
-    };
+    // YouCam scores are health (higher = healthier); the report shows concern
+    // severity, so every score is inverted. Metrics YouCam did not return fall
+    // back to estimates from the photo's luminance.
+    const skinConcerns = skinConcernsFromScores(
+      healthScoresFromOutput(output),
+      localSkinData?.luma ?? null,
+    );
 
     const skinTypeItem = output.find((i: any) => i.type === "skin_type");
     const skinType =
@@ -132,6 +103,7 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     if (toneRes.status === "fulfilled" && toneRes.value?.color) {
       color = toneRes.value.color;
     } else {
+      sources.colorTones = "local-extraction";
       if (toneRes.status === "rejected") {
         const detail = (toneRes.reason as any)?.response?.data
           ? JSON.stringify((toneRes.reason as any).response.data)
@@ -177,11 +149,17 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
         undertone,
         recommendedColors: seasonProfile.palette,
       },
+      features: {
+        skinHex: skinToneHex,
+        hairColor: (color as any).hair_color_name ?? undefined,
+        eyeColor: (color as any).eye_color_name ?? undefined,
+      },
     });
 
     return sendSuccess(res, "Analysis completed successfully", {
       enhancedImageUrl,
       skinConcerns,
+      sources,
       colorProfile,
       colourSeason: season,
       seasonConfidence,

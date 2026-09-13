@@ -10,10 +10,11 @@ import { Label } from '@/components/ui/label';
 import { AuthFooterLink } from '@/components/AuthCard';
 import GoogleSignInButton from '@/components/GoogleSignInButton';
 import EditorialImage from '@/components/editorial/EditorialImage';
-import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
+import EditorialHeading from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import { CAMPAIGN } from '@/lib/editorial-images';
 import { AUTHENTICATED_HOME, ROUTES } from '@/config/navigation';
+import { BRAND } from '@/config/site';
 import { login } from '@/services/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { isAxiosError } from '@/lib/utils';
@@ -125,20 +126,20 @@ export default function Login() {
       <div className="relative z-10 hidden lg:block overflow-hidden h-full">
         {/* Logo pinned to the panel's top-left corner */}
         <img
-          src="/images/campaign/logo3.png"
-          alt="D'Fashion"
+          src={BRAND.logoPath}
+          alt={BRAND.name}
           className="absolute left-12 top-0 z-20 h-32 w-auto object-contain lg:left-16"
         />
 
         {/* Text centered in the middle */}
         <div className="absolute inset-0 flex flex-col justify-center p-12 lg:p-16 z-20 opacity-80">
-          <EyebrowLabel tone="inverse">D&rsquo;Fashion</EyebrowLabel>
+          <EyebrowLabel tone="inverse">{BRAND.name}</EyebrowLabel>
           <EditorialHeading size="lg" tone="inverse" className="mt-4 max-w-[16ch] leading-tight font-light text-shadow-sm">
-            Colour Intelligence, <Emphasis>Personalised.</Emphasis>
+            {BRAND.tagline}
           </EditorialHeading>
 
           <p className="mt-6 max-w-[28rem] text-[length:var(--text-body-sm)] leading-[1.7] text-cream-primary/70 font-sans tracking-wide">
-            D&rsquo;Fashion bridges the gap between advanced spectral analysis and haute couture.
+            {BRAND.name} bridges the gap between advanced spectral analysis and haute couture.
             Our proprietary AI algorithms scan your skin tone, undertone, and contrast ratios
             to curate a bespoke wardrobe aligned with your natural harmony.
           </p>
@@ -268,7 +269,7 @@ export default function Login() {
 
             <motion.div variants={itemVariants} className="mt-6 border-t border-gold-hairline pt-5 text-center text-body-sm text-cream-primary/80">
               <AuthFooterLink href={ROUTES.signup} label="Create an account">
-                New to D'Fashion?
+                New to {BRAND.name}?
               </AuthFooterLink>
             </motion.div>
           </div>

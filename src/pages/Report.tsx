@@ -16,6 +16,7 @@ import {
   Check,
   Copy,
   Download,
+  Info,
   Printer,
   Share2,
   ShieldCheck,
@@ -33,10 +34,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  ColorSwatch,
-  type ColorSwatchItem,
-} from '@/components/ui/color-swatch';
+import { ColorSwatch } from '@/components/ui/color-swatch';
 import { EmptyAnalysisState } from '@/components/EmptyAnalysisState';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EditorialHeading from '@/components/editorial/EditorialHeading';
@@ -46,17 +44,20 @@ import EditorialImage from '@/components/editorial/EditorialImage';
 import { CAMPAIGN } from '@/lib/editorial-images';
 import { useStyleStore } from '@/store/useStyleStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import { assetUrl, recommendProducts } from '@/services/api';
+import { assetUrl, getGarmentRecommendations } from '@/services/api';
 import {
-  getSeasonInfo,
   mergeAnalysisPalette,
-  RUNNER_UP_SEASONS,
   sortByGradient,
+  useSeasonInfo,
+  useRunnerUpSeasons,
   type ColourItem,
-} from '@/lib/colour-data';
+} from '@/hooks/useSeasons';
 import type { SkinConcerns } from '@/store/useStyleStore';
 
 const MAKEUP_SHADE_HEXES: Record<string, string> = {
+  // Legacy saved reports stored shade names, not hex — this map (kept for
+  // those only) converts names to hex. New reports ship computed hexes
+  // straight from the server.
   Peach: '#F4C29A',
   'Warm Nude': '#D9A06F',
   Coral: '#E8845B',
@@ -158,29 +159,32 @@ const KNOWN_SEASONS = [
   'Light Spring', 'True Warm Spring', 'Bright Spring',
 ];
 
-function buildSampleResult(seasonSlug: string): import('@/store/useStyleStore').AnalysisResult | null {
+function buildSampleResult(
+  seasonSlug: string,
+  info: import('@/hooks/useSeasons').SeasonInfo | null,
+): import('@/store/useStyleStore').AnalysisResult | null {
   // Convert slug to season name: 'warm-autumn' → 'Warm Autumn'
   const seasonName = seasonSlug
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
 
-  if (!KNOWN_SEASONS.includes(seasonName)) return null;
+  if (!KNOWN_SEASONS.includes(seasonName) || !info) return null;
 
   // Determine undertone from season name
   const undertone: 'warm' | 'cool' | 'neutral' =
     /autumn|spring/i.test(seasonName) ? 'warm' : 'cool';
 
-  const info = getSeasonInfo(seasonName, undertone);
-  if (!info) return null;
-
   return {
     enhancedImageUrl: '',
+    // Sample mode has no photo — no skin data. All zeroes: the skin
+    // section is hidden in sample mode and no fabricated readings are
+    // ever presented as analysis.
     skinConcerns: {
-      acne: 0.15, darkSpots: 0.08, wrinkles: 0.05, pores: 0.25,
-      oiliness: 0.35, dryness: 0.20, redness: 0.10, eyeBags: 0.18,
-      darkCircles: 0.22, uneven: 0.12, sensitivity: 0.10,
-      texture: 0.28, firmness: 0.20, radiance: 0.30,
+      acne: 0, darkSpots: 0, wrinkles: 0, pores: 0,
+      oiliness: 0, dryness: 0, redness: 0, eyeBags: 0,
+      darkCircles: 0, uneven: 0, sensitivity: 0,
+      texture: 0, firmness: 0, radiance: 0,
     },
     colorProfile: {
       undertone,
@@ -194,11 +198,7 @@ function buildSampleResult(seasonSlug: string): import('@/store/useStyleStore').
       avoidColors: info.avoid.slice(0, 3).map((c) => c.hex),
       makeupShades: { foundation: 'Warm Nude', blush: 'Blush', lip: 'Rose' },
       hairColorOptions: ['Natural shade', 'Warm highlights'],
-      skincareRoutine: [
-        { step: 1, product: 'Gentle cleanser', reason: 'Removes impurities without stripping moisture.' },
-        { step: 2, product: 'Vitamin C serum', reason: 'Brightens and protects against free radicals.' },
-        { step: 3, product: 'SPF moisturiser', reason: 'Shields skin and keeps it hydrated all day.' },
-      ],
+      skincareRoutine: [],
       styleInsight: `As a ${seasonName}, you shine in ${undertone === 'warm' ? 'earthy, golden' : 'crisp, cool'} tones.`,
     },
     analyzedAt: new Date().toISOString(),
@@ -500,21 +500,22 @@ function RadarPanel({ concerns }: { concerns: SkinConcerns }) {
 }
 
 function ShopSection({
+  season,
   undertone,
-  skinType,
-  skinTone,
 }: {
+  season: string;
   undertone: string;
-  skinType: string;
-  skinTone: string;
 }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
+  // Colour-matched garments: the server computes perceptual (OKLab)
+  // distance between each garment's colour and the user's season palette.
   const query = useQuery({
-    queryKey: ['products', 'recommend', skinType, skinTone],
-    queryFn: async () => (await recommendProducts(skinType, skinTone)).data,
-    enabled: isAuthenticated,
+    queryKey: ['garments', 'recommend', season, undertone],
+    queryFn: () => getGarmentRecommendations({ season, undertone, limit: 12 }),
+    enabled: isAuthenticated && Boolean(season),
   });
+  const garments = query.data?.garments ?? [];
 
   // Auth guard — not signed in
   if (!isAuthenticated) {
@@ -573,69 +574,65 @@ function ShopSection({
         </p>
       )}
 
-      {query.data && query.data.products.length === 0 && (
+      {query.data && garments.length === 0 && (
         <div className="mt-6 flex flex-col items-start gap-3 border border-gold-hairline p-6">
           <p className="font-serif text-[length:var(--text-h5)] text-cream-primary">
             Your shop is being styled
           </p>
           <p className="max-w-md text-[length:var(--text-body-sm)] text-cream-primary/60">
-            Products curated for your season will appear here. In the meantime,
-            every hex in your palette is yours — copy one and start shopping
-            anywhere.
+            We couldn&rsquo;t find garments matching your palette right now. In the
+            meantime, every hex in your palette is yours — copy one and start
+            shopping anywhere.
           </p>
         </div>
       )}
 
-      {query.data && query.data.products.length > 0 && (
+      {garments.length > 0 && (
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {query.data.products.map((product) => (
+          {garments.map((garment) => (
             <div
-              key={product._id}
+              key={garment.externalId}
               className="group border border-gold-hairline bg-surface-3/40 transition-colors duration-200 ease-out hover:border-gold-border"
             >
-              {product.image ? (
-                <div className="aspect-square w-full overflow-hidden">
-                  <img
-                    src={assetUrl(product.image)}
-                    alt={product.name}
-                    width={480}
-                    height={480}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="flex aspect-square w-full items-center justify-center bg-gold-primary/5">
-                  <span className="font-serif text-[length:var(--text-h5)] text-gold-primary/60">
-                    {product.brand}
-                  </span>
-                </div>
-              )}
+              <div className="aspect-square w-full overflow-hidden">
+                <img
+                  src={garment.img}
+                  alt={garment.name}
+                  width={480}
+                  height={480}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
               <div className="flex flex-col gap-1 p-4">
                 <p className="text-[length:var(--text-caption)] uppercase tracking-[var(--tracking-label)] text-gold-primary">
-                  {product.category}
+                  {garment.category}
                 </p>
                 <p className="text-[length:var(--text-body)] font-medium leading-snug text-cream-primary">
-                  {product.name}
-                </p>
-                <p className="text-[length:var(--text-body-sm)] text-cream-primary/55">
-                  {product.brand}
+                  {garment.name}
                 </p>
                 <div className="mt-1 flex items-center justify-between gap-2">
-                  <p className="text-[length:var(--text-body)] font-semibold tabular-nums text-gold-primary">
-                    ₹{product.price.toLocaleString('en-IN')}
-                  </p>
-                  {product.description && (
+                  <span className="flex items-center gap-2">
+                    <span
+                      aria-hidden="true"
+                      className="h-4 w-4 shrink-0 rounded-sm border border-gold-hairline"
+                      style={{ backgroundColor: garment.colourHex }}
+                    />
+                    <span className="text-[length:var(--text-body-sm)] text-cream-primary/55">
+                      {garment.colourName}
+                    </span>
+                  </span>
+                  {garment.buyUrl && (
                     <a
-                      href={product.description}
+                      href={garment.buyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[length:var(--text-caption)] font-medium text-gold-primary underline underline-offset-2 transition-colors hover:text-gold-light"
                     >
-                      Shop →
+                      Buy →
                     </a>
                   )}
                 </div>
@@ -657,13 +654,22 @@ export default function Report() {
   const [saved, setSaved] = useState(false);
   const [sampleBannerDismissed, setSampleBannerDismissed] = useState(false);
 
-  // Sample mode — ?sample=warm-autumn renders a static demo report
+  // Sample mode — ?sample=warm-autumn renders a static demo report.
+  // Season content comes from the server-sourced seasons query.
   const search = useSearch();
   const sampleParam = new URLSearchParams(search).get('sample');
   const isSample = Boolean(sampleParam);
+  const sampleSeasonInfo = useSeasonInfo(
+    sampleParam
+      ? sampleParam
+          .split('-')
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ')
+      : undefined,
+  );
   const sampleResult = useMemo(
-    () => (sampleParam ? buildSampleResult(sampleParam) : null),
-    [sampleParam],
+    () => (sampleParam ? buildSampleResult(sampleParam, sampleSeasonInfo) : null),
+    [sampleParam, sampleSeasonInfo],
   );
 
   // Use sample result if no real result and sample param is present
@@ -675,16 +681,13 @@ export default function Report() {
     );
   }, [savedReports, effectiveResult]);
 
-  const seasonInfo = useMemo(
-    () =>
-      effectiveResult
-        ? getSeasonInfo(
-            effectiveResult.colourSeason,
-            effectiveResult.colorProfile.undertone,
-          )
-        : null,
-    [effectiveResult],
+  const seasonInfo = useSeasonInfo(
+    effectiveResult?.colourSeason,
+    effectiveResult?.colorProfile.undertone,
   );
+  const runnerUpMap = useRunnerUpSeasons();
+  const runnerUp =
+    seasonInfo && runnerUpMap ? runnerUpMap[seasonInfo.season] ?? null : null;
 
   if (!effectiveResult || !seasonInfo) {
     return (
@@ -727,11 +730,20 @@ export default function Report() {
     blush: seasonInfo.palette[5]?.hex ?? seasonInfo.palette[0].hex,
     lip: seasonInfo.palette[6]?.hex ?? seasonInfo.palette[0].hex,
   };
+  // New reports ship computed hexes; legacy saved reports stored names.
+  const looksLikeHex = (v: string) => /^#[0-9a-fA-F]{6}$/.test(v);
   const makeupHexes = {
-    foundation: MAKEUP_SHADE_HEXES[makeupShades.foundation] ?? seasonInfo.neutrals[0]?.hex ?? seasonInfo.palette[0].hex,
-    blush: MAKEUP_SHADE_HEXES[makeupShades.blush] ?? seasonInfo.palette[5]?.hex ?? seasonInfo.palette[0].hex,
-    lip: MAKEUP_SHADE_HEXES[makeupShades.lip] ?? seasonInfo.palette[6]?.hex ?? seasonInfo.palette[0].hex,
+    foundation: looksLikeHex(makeupShades.foundation)
+      ? makeupShades.foundation
+      : MAKEUP_SHADE_HEXES[makeupShades.foundation] ?? seasonInfo.neutrals[0]?.hex ?? seasonInfo.palette[0].hex,
+    blush: looksLikeHex(makeupShades.blush)
+      ? makeupShades.blush
+      : MAKEUP_SHADE_HEXES[makeupShades.blush] ?? seasonInfo.palette[5]?.hex ?? seasonInfo.palette[0].hex,
+    lip: looksLikeHex(makeupShades.lip)
+      ? makeupShades.lip
+      : MAKEUP_SHADE_HEXES[makeupShades.lip] ?? seasonInfo.palette[6]?.hex ?? seasonInfo.palette[0].hex,
   };
+  const makeupShadeNames = effectiveResult.recommendations.makeupShadeNames;
   const hairOptions = effectiveResult.recommendations.hairColorOptions ?? [];
   const routine = effectiveResult.recommendations.skincareRoutine ?? [];
   const isWarm = effectiveResult.colorProfile.undertone === 'warm';
@@ -782,7 +794,7 @@ export default function Report() {
   };
 
   const confidence = effectiveResult.seasonConfidence;
-  const runnerUp = RUNNER_UP_SEASONS[seasonInfo.season] ?? null;
+  // (runnerUp computed with seasonInfo above, from the server-sourced map)
 
   return (
     <div className="w-full pb-28">
@@ -794,12 +806,12 @@ export default function Report() {
           className="relative flex items-center justify-between gap-3 border-b border-gold-hairline bg-gold-primary/10 px-5 py-3 print:hidden"
         >
           <p className="text-[length:var(--text-body-sm)] text-cream-primary/90">
-            <span className="mr-1.5 font-medium text-gold-primary">Sample report</span>
+            <span className="mr-1.5 font-medium text-gold-primary">Sample palette preview</span>
             — This is a sample{' '}
             <span className="font-medium text-cream-primary">
               {sampleResult.colourSeason}
             </span>{' '}
-            report. Get your own by uploading a photo.
+            palette preview. Upload a selfie for your personal skin analysis.
           </p>
           <div className="flex shrink-0 items-center gap-3">
             <Link
@@ -866,6 +878,26 @@ export default function Report() {
           )}
         </EditorialContainer>
       </header>
+
+      {/* Try-on CTA — appears right as the analysis completes */}
+      <EditorialContainer className="mt-8">
+        <div className="flex flex-col items-center justify-between gap-4 rounded-md border border-gold-hairline bg-gold-primary/10 p-6 sm:flex-row">
+          <div>
+            <p className="font-serif text-[length:var(--text-h5)] font-light text-cream-primary">
+              Your analysis is ready — see it on you.
+            </p>
+            <p className="mt-1 text-[length:var(--text-body-sm)] text-cream-primary/60">
+              Try on dresses and outfits in your palette before you buy.
+            </p>
+          </div>
+          <Link href={isSample ? ROUTES.upload : ROUTES.tryOn}>
+            <Button size="lg" className="shrink-0">
+              <ShoppingBag className="mr-2 h-4 w-4" aria-hidden="true" />
+              {isSample ? 'Analyse My Colours →' : 'Try Dress →'}
+            </Button>
+          </Link>
+        </div>
+      </EditorialContainer>
 
       <EditorialContainer width="content" className="mt-10">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-12 print:grid-cols-1">
@@ -1010,15 +1042,26 @@ export default function Report() {
               )}
             </Section>
 
-            {/* 2. Skin analysis — the 14 scored concerns */}
-            <Section label="Your Skin" title="Skin Analysis">
-              <RadarPanel concerns={effectiveResult.skinConcerns} />
-              <p className="mt-4 flex items-center gap-2 text-[length:var(--text-caption)] text-cream-primary/40">
-                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                A styling read, not a medical diagnosis — for skin concerns,
-                consult a professional.
-              </p>
-            </Section>
+            {/* 2. Skin analysis — hidden in sample mode: no photo, no skin data.
+                Fabricated readings would be presented as real analysis. */}
+            {!isSample && (
+              <Section label="Your Skin" title="Skin Analysis">
+                {effectiveResult.sources?.skinAnalysis === 'estimated' && (
+                  <p className="mb-4 flex items-start gap-2 border border-gold-hairline bg-gold-primary/5 p-3 text-[length:var(--text-body-sm)] text-cream-primary/70">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-gold-primary" aria-hidden="true" />
+                    Our AI skin scan was unavailable for this photo, so these
+                    scores are estimates derived from your photo&rsquo;s tone —
+                    not a full scan. Re-analyse for measured results.
+                  </p>
+                )}
+                <RadarPanel concerns={effectiveResult.skinConcerns} />
+                <p className="mt-4 flex items-center gap-2 text-[length:var(--text-caption)] text-cream-primary/40">
+                  <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                  A styling read, not a medical diagnosis — for skin concerns,
+                  consult a professional.
+                </p>
+              </Section>
+            )}
 
             {/* 2. Your colour palette */}
             <Section label="Your Palette" title="Your Colour Palette">
@@ -1205,9 +1248,9 @@ export default function Report() {
                 </h3>
                 <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
                   {[
-                    { label: 'Foundation', hex: makeupHexes.foundation, shade: makeupShades.foundation },
-                    { label: 'Blush', hex: makeupHexes.blush, shade: makeupShades.blush },
-                    { label: 'Lip', hex: makeupHexes.lip, shade: makeupShades.lip },
+                    { label: 'Foundation', hex: makeupHexes.foundation, shade: makeupShadeNames?.foundation ?? makeupHexes.foundation },
+                    { label: 'Blush', hex: makeupHexes.blush, shade: makeupShadeNames?.blush ?? makeupHexes.blush },
+                    { label: 'Lip', hex: makeupHexes.lip, shade: makeupShadeNames?.lip ?? makeupHexes.lip },
                   ].map((item) => (
                     <div
                       key={item.label}
@@ -1291,9 +1334,8 @@ export default function Report() {
                 </div>
               ) : (
                 <ShopSection
+                  season={effectiveResult.colourSeason ?? ''}
                   undertone={effectiveResult.colorProfile.undertone}
-                  skinType={effectiveResult.colorProfile.undertone}
-                  skinTone={effectiveResult.colorProfile.skinToneHex}
                 />
               )}
             </Section>

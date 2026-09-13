@@ -1,22 +1,28 @@
 import multer, { MulterError } from "multer";
-import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import {
+  ALLOWED_IMAGE_TYPES,
+  IMAGE_TYPE_EXTENSIONS,
+  MAX_FILE_SIZE,
+  TMP_DIR,
+} from "../constants";
 
-const uploadDir = path.join(__dirname, "../../tmp");
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+if (!fs.existsSync(TMP_DIR)) {
+  fs.mkdirSync(TMP_DIR, { recursive: true });
 }
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
+    cb(null, TMP_DIR);
   },
 
   filename: (_req, file, cb) => {
-    const uniqueName = crypto.randomUUID();
-    cb(null, `${uniqueName}${path.extname(file.originalname)}`);
+    // Extension comes from the accepted mimetype, never from the client's
+    // filename — see IMAGE_TYPE_EXTENSIONS. fileFilter has already rejected
+    // anything not in the map, so the fallback is unreachable in practice.
+    const ext = IMAGE_TYPE_EXTENSIONS[file.mimetype] ?? ".jpg";
+    cb(null, `upload-${crypto.randomUUID()}${ext}`);
   },
 });
 
@@ -25,15 +31,7 @@ const fileFilter: multer.Options["fileFilter"] = (
   file,
   cb
 ) => {
-  const allowed = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/heic",
-    "image/heif",
-  ];
-
-  if (allowed.includes(file.mimetype)) {
+  if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(new MulterError("LIMIT_UNEXPECTED_FILE", `Invalid file type: ${file.mimetype}`));
@@ -44,6 +42,6 @@ export default multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024,
+    fileSize: MAX_FILE_SIZE,
   },
 });
