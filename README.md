@@ -79,11 +79,12 @@ Our virtual try-on experience lets users visualise real garments on their own ph
 | --- | -------------------------- | ---------------------------------------------------------------------------------------------- |
 | 📸  | **AI Colour Analysis**     | Analyse a user's photograph to determine undertone, depth and contrast.                        |
 | 🎨  | **Personal Colour Report** | Generate a personalised seasonal colour palette with recommended colours, neutrals and metals. |
-| 👗  | **Virtual Try-On**         | Visualise real garments on the user's own photograph before purchasing.                        |
-| 💬  | **D'Style AI Stylist**     | Get personalised fashion guidance based on the user's colour season and palette.               |
-| 🛍️ | **Smart Recommendations**  | Discover products that align with the user's personal colour profile.                          |
-| ❤️  | **Saved Looks**            | Save favourite looks and fashion inspiration for later.                                        |
-| 📊  | **Personal Dashboard**     | Access analysis history, saved looks and personalised fashion information from one place.      |
+| 👗  | **Virtual Try-On**         | Visualise real garments, curated Indian hairstyles and makeup on the user's own photograph.    |
+| 💬  | **D'Style AI Stylist**     | LLM-powered stylist that answers in clear, structured GPT-style sections based on the user's colour season and wardrobe. |
+| 🔗  | **Buy from Real Stores**   | Garments come from several retailers (Snitch, Myntra, Amazon and more) — the Buy button opens the source store's product. |
+| 🛍️ | **Smart Recommendations**  | Discover garments matched to the user's personal colour profile.                               |
+| ❤️  | **Saved Looks**            | Save favourite looks, analysis reports and fashion inspiration for later.                      |
+| 📊  | **Personal Dashboard**     | Access analysis history, saved images, favourites and personalised fashion information from one place. |
 
 ---
 
@@ -166,11 +167,16 @@ Users can select garments and visualise how they look on their own photograph us
 
 ### Step 6 — AI Styling
 
-D'Style provides season-aware fashion recommendations and answers questions such as:
+**D'Style** is an LLM-powered personal stylist. Chat replies are based on the
+member's colour season, palette and wardrobe, and are formatted as scannable
+sections with headings and short steps. The stylist stays fully on persona —
+it never reveals that it is an AI model — and redirects off-topic questions
+back to style, colour and wardrobe advice. It answers questions such as:
 
 > "Does this jacket work for me?"
 
-The response considers the user's personal colour profile rather than giving generic fashion advice.
+The report page also links the user straight into the try-on so they can see
+their palette on themselves in one click.
 
 ---
 
@@ -204,7 +210,7 @@ The response considers the user's personal colour profile rather than giving gen
       │   YouCam AI  │      │ Colour Engine  │    │ D'Style AI     │
       │              │      │                │    │ Stylist        │
       │ Skin AI      │      │ 12 Seasons     │    │ Rules + LLM    │
-      │ VTO          │      │ Palette Engine │    │                │
+      │ VTO          │      │ Palette Engine │    │ (server / Zen) │
       └──────────────┘      └────────────────┘    └────────────────┘
               │                      │                     │
               └──────────────────────┼─────────────────────┘
@@ -295,8 +301,9 @@ This keeps sensitive credentials inside the server environment.
 * YouCam AI
 * YouCam Virtual Try-On
 * Colour analysis engine
-* Rules-based styling
-* LLM-powered stylist
+* Rules-based styling (built-in fallback)
+* LLM-powered stylist — model served via OpenCode Zen API or a local `opencode serve`
+* Structured GPT-style reply rendering in the chat
 
 ## Infrastructure
 
@@ -339,18 +346,19 @@ All backend endpoints are mounted under:
 /api
 ```
 
-| Endpoint          | Purpose                       |
-| ----------------- | ----------------------------- |
-| `/api/auth`       | Authentication and sessions   |
-| `/api/analyze`    | Photo and colour analysis     |
-| `/api/garments/recommend` | Colour-matched garments |
-| `/api/tryon`      | Virtual try-on jobs           |
-| `/api/chat`       | D'Style AI stylist            |
-| `/api/products`   | Product catalogue             |
-| `/api/favorites`  | Saved products and looks      |
-| `/api/history`    | User analysis history         |
-| `/api/newsletter` | Newsletter subscriptions      |
-| `/api/health`     | Application health check      |
+| Endpoint                   | Purpose                             |
+| -------------------------- | ----------------------------------- |
+| `/api/auth`                | Authentication and sessions         |
+| `/api/analyze`             | Photo colour analysis               |
+| `/api/seasons`             | Season catalogue                    |
+| `/api/garments`            | Garment catalogue + colour-matched recommendations |
+| `/api/tryon`               | Virtual try-on jobs (clothes, makeup, hair) + templates |
+| `/api/chat`                | D'Style AI stylist                  |
+| `/api/products`            | Product catalogue                   |
+| `/api/favorites`           | Saved products and looks            |
+| `/api/history`             | User analysis history               |
+| `/api/newsletter`          | Newsletter subscriptions            |
+| `/api/health`              | Application health check            |
 
 ---
 
@@ -397,12 +405,17 @@ d.fashion/
 │       │   ├── recommendations
 │       │   └── images
 │       │
+│       ├── data/
+│       │   └── garments.json      (571-item multi-retailer catalogue)
 │       ├── models/
 │       ├── middleware/
 │       └── utils/
 │           ├── colourAnalysis
 │           ├── JWT
 │           └── responses
+│
+├── server/scripts/
+│   └── opencode-serve.mjs   (launches the local stylist model server)
 │
 ├── e2e/
 │   └── Playwright tests
@@ -473,18 +486,23 @@ cp server/.env.example server/.env
 
 Configure:
 
-| Variable              | Required | Purpose                      |
-| --------------------- | -------: | ---------------------------- |
-| `JWT_SECRET`          |        ✅ | Authentication security      |
-| `MONGODB_URI`         |        ✅ | MongoDB connection           |
-| `YOUCAM_API_KEY`      |        ✅ | AI analysis + virtual try-on |
-| `OPENCODE_API_KEY`    | Optional | Stylist chat replies (falls back to the rules engine) |
-| `FIREBASE_PROJECT_ID` |        ✅ | Firebase authentication      |
-| `CLIENT_EMAIL`        |        ✅ | Firebase service account     |
-| `PRIVATE_KEY`         |        ✅ | Firebase service account     |
-| `PORT`                | Optional | Backend port                 |
-| `NODE_ENV`            | Optional | Runtime environment          |
-| `CLIENT_ORIGIN`       | Optional | Frontend origin              |
+| Variable                  | Required | Purpose                                        |
+| ------------------------- | -------: | ---------------------------------------------- |
+| `JWT_SECRET`              |        ✅ | Authentication security                        |
+| `MONGODB_URI`             |        ✅ | MongoDB connection                             |
+| `YOUCAM_API_KEY`          |        ✅ | AI colour analysis + virtual try-on            |
+| `OPENCODE_MODE`           |   Optional | `zen` (paid model API) or `server` (local `opencode serve` uses free models) |
+| `OPENCODE_API_KEY`        |   Optional | Zen-mode API key for the stylist chat (falls back to the rules engine) |
+| `OPENCODE_MODEL`          |   Optional | Model id for the stylist chat (e.g. `ling-3.0-flash-fin-free`) |
+| `OPENCODE_SERVER_URL`     |   Optional | Local model server URL (default `http://127.0.0.1:4096`) |
+| `OPENCODE_SERVER_USERNAME` / `PASSWORD` | Optional | Credentials for the local model server |
+| `OPENCODE_TIMEOUT_MS`     |   Optional | Model reply timeout; on timeout the rules engine answers |
+| `FIREBASE_PROJECT_ID`     |        ✅ | Firebase authentication                       |
+| `FIREBASE_CLIENT_EMAIL`   |        ✅ | Firebase service account                       |
+| `FIREBASE_PRIVATE_KEY`    |        ✅ | Firebase service account                       |
+| `CLIENT_ORIGIN`           |   Optional | Frontend origin                                |
+| `PORT`                    |   Optional | Backend port                                   |
+| `NODE_ENV`                |   Optional | Runtime environment                            |
 
 > **Important:** Never commit `.env` files or API keys to GitHub.
 
