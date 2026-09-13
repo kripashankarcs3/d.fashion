@@ -512,8 +512,7 @@ function ShopSection({
   // distance between each garment's colour and the user's season palette.
   const query = useQuery({
     queryKey: ['garments', 'recommend', season, undertone],
-    queryFn: async () =>
-      (await getGarmentRecommendations({ season, undertone, limit: 12 })).data,
+    queryFn: () => getGarmentRecommendations({ season, undertone, limit: 12 }),
     enabled: isAuthenticated && Boolean(season),
   });
   const garments = query.data?.garments ?? [];
