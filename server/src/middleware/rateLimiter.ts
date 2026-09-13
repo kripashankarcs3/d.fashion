@@ -1,10 +1,13 @@
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+import { env } from "../config/env";
 
-const perUser = (req: any) => req.user?.id ?? ipKeyGenerator(req);
+// ipKeyGenerator takes the IP string (it normalises IPv6 to a subnet), not the
+// request object.
+const perUser = (req: any) => req.user?.id ?? ipKeyGenerator(req.ip ?? "");
 
 export const apiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 100,
+  windowMs: env.RATE_LIMIT_API_WINDOW_MS,
+  max: env.RATE_LIMIT_API_MAX,
 
   standardHeaders: true,
 
@@ -17,8 +20,8 @@ export const apiLimiter = rateLimit({
 });
 
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
+  windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS,
+  max: env.RATE_LIMIT_AUTH_MAX,
   message: {
     success: false,
     message: "Too many login attempts. Please try again later.",
@@ -27,8 +30,8 @@ export const authLimiter = rateLimit({
 
 /** Cost-aware ceiling for paid AI jobs (analysis = multiple YouCam units). */
 export const aiHeavyLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 8,
+  windowMs: env.RATE_LIMIT_AI_HEAVY_WINDOW_MS,
+  max: env.RATE_LIMIT_AI_HEAVY_MAX,
   keyGenerator: perUser,
   message: {
     success: false,
@@ -38,8 +41,8 @@ export const aiHeavyLimiter = rateLimit({
 
 /** Cost-aware ceiling for try-on endpoints (one YouCam unit each). */
 export const aiLightLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 40,
+  windowMs: env.RATE_LIMIT_AI_LIGHT_WINDOW_MS,
+  max: env.RATE_LIMIT_AI_LIGHT_MAX,
   keyGenerator: perUser,
   message: {
     success: false,
@@ -47,10 +50,23 @@ export const aiLightLimiter = rateLimit({
   },
 });
 
+/** Per-user ceiling for saving history. Each save may download a remote image
+ *  into the gallery folder, which is never swept — unbounded, that is a disk
+ *  exhaustion vector. */
+export const historyWriteLimiter = rateLimit({
+  windowMs: env.RATE_LIMIT_HISTORY_WINDOW_MS,
+  max: env.RATE_LIMIT_HISTORY_MAX,
+  keyGenerator: perUser,
+  message: {
+    success: false,
+    message: "Save limit reached. Please try again later.",
+  },
+});
+
 /** Per-user ceiling for the stylist chat (CPU cost, unbounded input). */
 export const chatLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 60,
+  windowMs: env.RATE_LIMIT_CHAT_WINDOW_MS,
+  max: env.RATE_LIMIT_CHAT_MAX,
   keyGenerator: perUser,
   message: {
     success: false,

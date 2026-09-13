@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Camera, CheckCircle2, Lock, UploadCloud } from 'lucide-react';
 import { useAnalysis } from '@/hooks/useAnalysis';
+import { PREVIOUS_PHOTO_KEY } from '@/store/useStyleStore';
 import { cn } from '@/lib/utils';
 import AnalysisProcessing from '@/components/AnalysisProcessing';
 import {
@@ -19,9 +20,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp'];
+// Mirrors the server's IMAGE_TYPE_EXTENSIONS. HEIC/HEIF are included because
+// an iPhone camera produces them and the server accepts them; Safari renders
+// the preview, and elsewhere the preview simply degrades.
+const ACCEPTED = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+];
 const MAX_SIZE = 10 * 1024 * 1024;
-const PREVIOUS_PHOTO_KEY = 'dfashion_previous_photo';
 
 const guidelines = [
   { title: 'Natural light, facing a window', detail: 'Soft daylight reads your undertone accurately.' },
@@ -221,13 +230,25 @@ export default function UploadFlow() {
     }
   }, []);
 
-  const previewUrl = selectedFile ? URL.createObjectURL(selectedFile) : null;
+  // One object URL per selected file, revoked when it is replaced or the
+  // component unmounts. Creating it inline during render leaked a new blob
+  // URL on every single re-render.
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(selectedFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [selectedFile]);
 
   const handleFile = useCallback(
     (file: File) => {
       reset();
       if (!ACCEPTED.includes(file.type)) {
-        setError('Please upload a JPG, PNG, or WebP image');
+        setError('Please upload a JPG, PNG, WebP or HEIC image');
         setSelectedFile(null);
         return;
       }
@@ -238,14 +259,18 @@ export default function UploadFlow() {
       }
       setError(null);
       setSelectedFile(file);
-      try {
-        void downscaleToDataUrl(file).then((dataUrl) => {
+      // Caching the photo for "use your previous photo" is best-effort. The
+      // rejection has to be handled on the promise: a full storage quota or a
+      // format the browser cannot decode throws inside the callback, where the
+      // old surrounding try/catch could never see it.
+      void downscaleToDataUrl(file)
+        .then((dataUrl) => {
           localStorage.setItem(PREVIOUS_PHOTO_KEY, dataUrl);
           setPreviousPhoto(dataUrl);
+        })
+        .catch(() => {
+          // Leave the previous photo as-is; the upload itself is unaffected.
         });
-      } catch {
-        // Storage of the previous photo is best-effort only.
-      }
     },
     [reset],
   );

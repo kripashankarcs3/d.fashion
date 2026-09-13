@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --watch src --ext ts --exec ts-node ./src/server.ts",
-    "build": "tsc",
+    "build": "tsc && npm run copy:assets",
+    "stylist:serve": "node scripts/opencode-serve.mjs",
+    "copy:assets":"node -e \"require('fs').cpSync('src/data','dist/data',{recursive:true,filter:p=>!p.endsWith('.ts')})\"",
     "typecheck": "tsc --noEmit",
     "start": "node dist/server.js",
     "test": "vitest run"
@@ -15,7 +17,6 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.115.0",
     "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",
     "compression": "^1.8.1",

@@ -3,19 +3,17 @@ import fs from "fs";
 import path from "path";
 import { env } from "../config/env";
 
-const YOUCAM_BASE = "https://yce-api-01.perfectcorp.com";
-
 class YouCamService {
   private client;
 
   constructor() {
     this.client = axios.create({
-      baseURL: YOUCAM_BASE,
+      baseURL: env.YOUCAM_BASE_URL,
       headers: {
         Authorization: `Bearer ${env.YOUCAM_API_KEY}`,
         "Content-Type": "application/json",
       },
-      timeout: 120000,
+      timeout: env.YOUCAM_TIMEOUT_MS,
     });
   }
 
@@ -41,7 +39,7 @@ class YouCamService {
         "Content-Type": contentType,
         "Content-Length": String(stats.size),
       },
-      timeout: 120000,
+      timeout: env.YOUCAM_TIMEOUT_MS,
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
     });
@@ -65,25 +63,32 @@ class YouCamService {
 
   // ── Task API ──
 
-  async startTask(feature: string, payload: Record<string, unknown>) {
+  // Most tasks live under v2.0; hair-transfer is only served under v2.1.
+  async startTask(feature: string, payload: Record<string, unknown>, apiVersion = "v2.0") {
     if (!this.isAvailable()) return null;
 
-    const { data } = await this.client.post(`/s2s/v2.0/task/${feature}`, payload);
+    const { data } = await this.client.post(`/s2s/${apiVersion}/task/${feature}`, payload);
     return data;
   }
 
-  async getTaskResult(feature: string, taskId: string) {
+  async getTaskResult(feature: string, taskId: string, apiVersion = "v2.0") {
     if (!this.isAvailable()) return null;
 
-    const { data } = await this.client.get(`/s2s/v2.0/task/${feature}/${taskId}`);
+    const { data } = await this.client.get(`/s2s/${apiVersion}/task/${feature}/${taskId}`);
     return data;
   }
 
-  async pollTaskResult(feature: string, taskId: string, maxRetries = 30, intervalMs = 2000) {
+  async pollTaskResult(
+    feature: string,
+    taskId: string,
+    maxRetries = env.YOUCAM_POLL_MAX_RETRIES,
+    intervalMs = env.YOUCAM_POLL_INTERVAL_MS,
+    apiVersion = "v2.0",
+  ) {
     if (!this.isAvailable()) return null;
 
     for (let i = 0; i < maxRetries; i++) {
-      const result = await this.getTaskResult(feature, taskId);
+      const result = await this.getTaskResult(feature, taskId, apiVersion);
 
       if (result?.data?.task_status === "success") {
         return result;
@@ -106,7 +111,7 @@ class YouCamService {
     if (!this.isAvailable()) return null;
 
     const { data } = await this.client.get(`/s2s/v2.0/task/template/${feature}`, {
-      params: { page_size: 20 },
+      params: { page_size: env.YOUCAM_TEMPLATE_PAGE_SIZE },
     });
     return data;
   }
@@ -118,10 +123,13 @@ class YouCamService {
     "redness", "eye_bag", "texture",
   ];
 
+  // Names must match YouCam's SD dst_actions exactly — one unknown name (this
+  // list used to send "dark_circle") rejects the whole request, and the call
+  // silently fell back to the six base metrics.
   private static readonly SKIN_EXTENDED_ACTIONS = [
     ...YouCamService.SKIN_BASE_ACTIONS,
     "oiliness", "moisture", "firmness", "radiance",
-    "age_spot", "dark_circle", "skin_type",
+    "age_spot", "dark_circle_v2", "skin_type",
   ];
 
   async analyzeSkin(filePath: string) {
@@ -137,7 +145,7 @@ class YouCamService {
       const taskId = task?.data?.task_id;
       if (!taskId) throw new Error("Failed to start skin-analysis task");
 
-      return this.pollTaskResult("skin-analysis", taskId, 20, 2500);
+      return this.pollTaskResult("skin-analysis", taskId, env.YOUCAM_TASK_MAX_RETRIES, env.YOUCAM_TASK_INTERVAL_MS);
     };
 
     try {
@@ -165,7 +173,7 @@ class YouCamService {
     const taskId = task?.data?.task_id;
     if (!taskId) throw new Error("Failed to start skin-tone-analysis task");
 
-    const result = await this.pollTaskResult("skin-tone-analysis", taskId, 20, 2500);
+    const result = await this.pollTaskResult("skin-tone-analysis", taskId, env.YOUCAM_TASK_MAX_RETRIES, env.YOUCAM_TASK_INTERVAL_MS);
     return result?.data?.results ?? null;
   }
 
@@ -182,7 +190,7 @@ class YouCamService {
     const taskId = task?.data?.task_id;
     if (!taskId) throw new Error("Failed to start enhance task");
 
-    const result = await this.pollTaskResult("enhance", taskId, 20, 2500);
+    const result = await this.pollTaskResult("enhance", taskId, env.YOUCAM_TASK_MAX_RETRIES, env.YOUCAM_TASK_INTERVAL_MS);
     return result?.data?.results?.url ?? null;
   }
 
@@ -294,6 +302,37 @@ class YouCamService {
     if (!taskId) throw new Error("Failed to start hair try-on task");
 
     return this.pollTaskResult("hair-style", taskId);
+  }
+
+  // ── Hair transfer (v2.1 preset catalogue, separate from hair-style) ──
+
+  async tryOnHairTransfer(
+    person: { filePath?: string | null; url?: string | null },
+    templateId: string,
+    keepUsersColour: boolean,
+  ) {
+    const payload: Record<string, unknown> = { template_id: templateId };
+    // Only some templates can keep the member's own colour; others apply the
+    // template's colour whatever this flag says.
+    if (keepUsersColour) payload.keep_users_color = true;
+
+    if (person.filePath) {
+      payload.src_file_id = await this.uploadAndGetFileId("hair-transfer", person.filePath);
+    } else {
+      payload.src_file_url = person.url;
+    }
+
+    const task = await this.startTask("hair-transfer", payload, "v2.1");
+    const taskId = task?.data?.task_id;
+    if (!taskId) throw new Error("Failed to start hair transfer task");
+
+    return this.pollTaskResult(
+      "hair-transfer",
+      taskId,
+      env.YOUCAM_POLL_MAX_RETRIES,
+      env.YOUCAM_POLL_INTERVAL_MS,
+      "v2.1",
+    );
   }
 }
 

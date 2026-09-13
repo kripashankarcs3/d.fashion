@@ -1,8 +1,11 @@
 import axios from 'axios';
 import type { AnalysisResult, WardrobeItem } from '@/store/useStyleStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { firebaseAuth } from '@/lib/firebase';
 
-const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001/api';
+/** Resolved API root. Defaults to the same-origin `/api` (the dev server proxies
+ *  it to the backend), and can be overridden per environment with VITE_API_BASE_URL. */
+const BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
 /** Turns a server-relative /uploads path into a browser-loadable URL. */
 export const assetUrl = (p?: string | null): string =>
@@ -10,10 +13,20 @@ export const assetUrl = (p?: string | null): string =>
 
 export const api = axios.create({ baseURL: BASE, timeout: 30000 });
 
-api.interceptors.request.use((config) => {
-  // Read token directly from Zustand in-memory store — it is never
-  // persisted to localStorage (Firebase manages the session).
-  const token = useAuthStore.getState().token;
+api.interceptors.request.use(async (config) => {
+  // Ask Firebase for the token rather than trusting the in-memory copy:
+  // getIdToken() hands back the cached value and silently refreshes it when it
+  // is close to its one-hour expiry, so the header is never a stale token.
+  // The store is the fallback (Firebase unconfigured, or a local JWT session).
+  let token = useAuthStore.getState().token;
+  if (firebaseAuth?.currentUser) {
+    try {
+      token = await firebaseAuth.currentUser.getIdToken();
+    } catch {
+      // Offline or refresh failed — send the cached token and let the
+      // server decide, rather than dropping the header entirely.
+    }
+  }
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -45,18 +58,40 @@ export const tryOnClothes = (personImageUrl: string, garmentImageUrl: string, co
 export const tryOnMakeup = (personImageUrl: string, productId: string) =>
   api.post<{ resultUrl: string; source: 'youcam' | 'fallback' }>('/tryon/makeup', { personImageUrl, productId }, { timeout: 180_000 });
 
-export const tryOnHair = (personImageUrl: string, styleId: string) =>
-  api.post<{ resultUrl: string; source: 'youcam' | 'fallback' }>('/tryon/hair', { personImageUrl, styleId }, { timeout: 180_000 });
+export const tryOnHair = (
+  personImageUrl: string,
+  styleId: string,
+  options: { engine?: 'style' | 'transfer'; keepUsersColour?: boolean } = {},
+) =>
+  api.post<{ resultUrl: string; source: 'youcam' | 'fallback' }>(
+    '/tryon/hair',
+    { personImageUrl, styleId, ...options },
+    { timeout: 180_000 },
+  );
 
 export const listTryOnTemplates = (feature: 'look-vto' | 'hair-style') =>
   api.get<{ items: { id: string; title: string; thumb: string }[] }>(
     `/tryon/templates/${feature}`,
   );
 
+/** One prior turn replayed to the stylist so follow-up questions keep context. */
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export const sendChatMessage = (
   message: string,
-  context: { analysisResult: AnalysisResult | null; wardrobeItems: WardrobeItem[] }
-) => api.post<{ reply: string }>('/chat', { message, context });
+  context: { analysisResult: AnalysisResult | null; wardrobeItems: WardrobeItem[] },
+  history: ChatTurn[] = [],
+) =>
+  api.post<{ reply: string; source: 'opencode' | 'rules' }>(
+    '/chat',
+    { message, context, history },
+    // The server gives the model up to 25s before falling back to its rules
+    // engine, so the client must wait longer than that.
+    { timeout: 45_000 },
+  );
 
 /** One saved entry in a member's account history — an analysis or a try-on. */
 export interface HistoryEntry {
@@ -99,30 +134,48 @@ export const saveTryOnToCloud = (entry: {
 export const subscribeNewsletter = (email: string, source = 'footer') =>
   api.post('/newsletter', { email, source }, { timeout: 15000 });
 
-export interface Product {
-  _id: string;
+/* ------------------------------------------------------------ garments */
+
+export interface Garment {
+  id: number;
   name: string;
   category: string;
-  brand: string;
-  price: number;
-  image?: string;
-  description?: string;
-  skinType?: string[];
-  skinTone?: string[];
+  gender: 'Women' | 'Men';
+  img: string;
+  colourHex: string;
+  colourName: string;
+  buyUrl?: string;
 }
 
-export const listProducts = (limit = 6) =>
-  api.get<{
-    success: boolean;
-    products: Product[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }>('/products', { params: { limit } });
+/** Colour-matched garment recommendation (server computes OKLab distance
+ *  against the user's season palette). */
+export interface GarmentMatch extends Garment {
+  externalId: string;
+  matchScore: number;
+}
 
-export const recommendProducts = (skinType: string, skinTone: string) =>
-  api.post<{
-    success: boolean;
-    count: number;
-    products: Product[];
-  }>('/recommend', { skinType, skinTone });
+/** The server wraps every payload as `{ success, message, data }`. */
+interface ApiEnvelope<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+export const getGarments = async (params?: { gender?: string; category?: string }) =>
+  (
+    await api.get<ApiEnvelope<{ count: number; garments: Garment[] }>>('/garments', { params })
+  ).data.data;
+
+export const getGarmentRecommendations = async (params: {
+  season: string;
+  undertone: string;
+  gender?: string;
+  category?: string;
+  limit?: number;
+}) =>
+  (
+    await api.get<ApiEnvelope<{ count: number; garments: GarmentMatch[] }>>(
+      '/garments/recommend',
+      { params },
+    )
+  ).data.data;

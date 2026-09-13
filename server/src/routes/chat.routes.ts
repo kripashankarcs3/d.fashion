@@ -23,6 +23,15 @@ const bodySchema = z.object({
         .optional(),
     })
     .optional(),
+  history: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().trim().min(1).max(2000),
+      })
+    )
+    .max(20)
+    .optional(),
 });
 
 router.post("/", authenticate, chatLimiter, async (req, res) => {
@@ -32,11 +41,12 @@ router.post("/", authenticate, chatLimiter, async (req, res) => {
     return;
   }
 
-  const reply = await generateStylistReplyAI(
+  const { reply, source } = await generateStylistReplyAI(
     parsed.data.message,
-    parsed.data.context as StylistContext | undefined
+    parsed.data.context as StylistContext | undefined,
+    parsed.data.history ?? []
   );
-  res.json({ success: true, reply });
+  res.json({ success: true, reply, source });
 });
 
 export default router;

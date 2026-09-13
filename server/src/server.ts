@@ -6,8 +6,9 @@ import app from "./app";
 import { env, assertJwtSecretForProduction } from "./config/env";
 import { connectDB } from "./config/database";
 import { ImageService } from "./services/image.service";
+import { seedGarments } from "./services/garment.service";
 
-const UPLOAD_TTL_MS = 2 * 60 * 60 * 1000;
+const UPLOAD_TTL_MS = env.UPLOAD_TTL_MS;
 
 const startServer = async () => {
   try {
@@ -32,6 +33,11 @@ const startServer = async () => {
     }
 
     await connectDB();
+
+    // Idempotent garment-catalogue seed — no-ops once the count matches.
+    await seedGarments().catch((err) =>
+      console.warn("[seed] Garment catalogue seed skipped:", (err as Error).message),
+    );
 
     const removed = await ImageService.cleanupStaleUploads(UPLOAD_TTL_MS);
     if (removed > 0) {

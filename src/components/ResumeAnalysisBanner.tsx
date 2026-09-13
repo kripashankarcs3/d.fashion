@@ -2,18 +2,19 @@ import { Link } from 'wouter';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStyleStore } from '@/store/useStyleStore';
-import { getSeasonInfo } from '@/lib/colour-data';
+import { useSeasonInfo } from '@/hooks/useSeasons';
 import { ROUTES } from '@/config/navigation';
 
 export function ResumeAnalysisBanner() {
   const analysisResult = useStyleStore((s) => s.analysisResult);
+  const seasonInfo = useSeasonInfo(
+    analysisResult?.colourSeason,
+    analysisResult?.colorProfile.undertone,
+  );
 
-  if (!analysisResult) return null;
+  if (!analysisResult || !seasonInfo) return null;
 
-  const season = getSeasonInfo(
-    analysisResult.colourSeason,
-    analysisResult.colorProfile.undertone,
-  ).season;
+  const season = seasonInfo.season;
 
   return (
     <div className="w-full">

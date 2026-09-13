@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'wouter';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -15,7 +15,7 @@ import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import { useStyleStore, type AnalysisResult, type SkinConcerns, type TryOnHistoryEntry } from '@/store/useStyleStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { assetUrl, deleteHistoryEntry, fetchHistory, type HistoryEntry } from '@/services/api';
-import { getSeasonInfo } from '@/lib/colour-data';
+import { useSeasonInfo, useSeasonMap } from '@/hooks/useSeasons';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   PieChart,
@@ -841,18 +841,13 @@ function PaletteRow({ colours }: { colours: { name: string; hex: string }[] }) {
 }
 
 function compareSummary(current: AnalysisResult, previous: AnalysisResult) {
-  const currentSeason = getSeasonInfo(
-    current.colourSeason,
-    current.colorProfile.undertone,
-  );
-  const previousSeason = getSeasonInfo(
-    previous.colourSeason,
-    previous.colorProfile.undertone,
-  );
-  if (previousSeason.season === currentSeason.season) {
-    return `Your season stayed ${currentSeason.season}. Your palette is consistent with your last analysis.`;
+  // Only the season name is needed here; reports always carry theirs.
+  const currentSeason = current.colourSeason ?? 'Unknown';
+  const previousSeason = previous.colourSeason ?? 'Unknown';
+  if (previousSeason === currentSeason) {
+    return `Your season stayed ${currentSeason}. Your palette is consistent with your last analysis.`;
   }
-  return `Your season shifted from ${previousSeason.season} to ${currentSeason.season}. Update your wardrobe staples to your current palette.`;
+  return `Your season shifted from ${previousSeason} to ${currentSeason}. Update your wardrobe staples to your current palette.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1128,9 +1123,11 @@ export default function Dashboard() {
       all.findIndex((other) => other.analyzedAt === report.analyzedAt) === index,
   );
 
-  const seasonInfo = analysisResult
-    ? getSeasonInfo(analysisResult.colourSeason, analysisResult.colorProfile.undertone)
-    : null;
+  const seasonInfo = useSeasonInfo(
+    analysisResult?.colourSeason,
+    analysisResult?.colorProfile.undertone,
+  );
+  const seasonMap = useSeasonMap();
 
   const history = activityLog.slice(0, 8);
   const tryonDone = activityLog.some((e) => e.action === 'tryon');
@@ -1287,10 +1284,8 @@ export default function Dashboard() {
                 <SectionHeading label="Saved" title="Saved Reports" />
                 <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {allSavedReports.map((report) => {
-                    const reportSeason = getSeasonInfo(
-                      report.colourSeason,
-                      report.colorProfile.undertone,
-                    );
+                    const reportSeason = seasonMap[report.colourSeason ?? ''];
+                    if (!reportSeason) return null;
                     return (
                       <div
                         key={report.analyzedAt}
@@ -1329,10 +1324,10 @@ export default function Dashboard() {
                       {(() => {
                         const previous =
                           analysisHistory[analysisHistory.length - 1];
-                        const previousSeason = getSeasonInfo(
-                          previous.colourSeason,
-                          previous.colorProfile.undertone,
-                        );
+                        const previousSeason = seasonMap[
+                          previous.colourSeason ?? ''
+                        ];
+                        if (!previousSeason) return null;
                         return (
                           <div>
                             <p className="text-[0.625rem] font-semibold uppercase tracking-[var(--tracking-label)] text-gold-primary">

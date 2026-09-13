@@ -10,7 +10,11 @@ const PASSWORD_MIN_LENGTH = 8;
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
 
-  if (!name || !email || !password) {
+  if (
+    typeof name !== "string" || !name.trim() ||
+    typeof email !== "string" || !email ||
+    typeof password !== "string" || !password
+  ) {
     return res.status(400).json({ success: false, message: "All fields are required" });
   }
 
@@ -51,7 +55,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
+  if (typeof email !== "string" || !email || typeof password !== "string" || !password) {
     return res.status(400).json({ success: false, message: "Email and password are required" });
   }
 
