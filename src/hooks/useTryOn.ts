@@ -97,14 +97,18 @@ export function useTryOn() {
   const hair = useMutation({
     mutationFn: ({
       styleId,
+      engine,
+      keepUsersColour,
     }: {
       styleId: string;
       styleName: string;
       styleThumb: string;
+      engine?: 'style' | 'transfer';
+      keepUsersColour?: boolean;
     }) => {
       const url = useStyleStore.getState().referenceImageUrl;
       if (!url) throw new Error('No reference image.');
-      return tryOnHair(url, styleId);
+      return tryOnHair(url, styleId, { engine, keepUsersColour });
     },
     onSuccess: (data, vars) => {
       addTryOnHistory({

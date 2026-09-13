@@ -176,7 +176,14 @@ export default function TryOn() {
         },
       });
     } else {
-      hair.mutate({ styleId: selected.id, styleName: selected.name, styleThumb: selected.img }, {
+      const style = INDIAN_HAIR_STYLES.find((s) => s.id === selected.id);
+      hair.mutate({
+        styleId: selected.id,
+        styleName: selected.name,
+        styleThumb: selected.img,
+        engine: style?.engine,
+        keepUsersColour: style?.keepUsersColour,
+      }, {
         onSuccess: (r) => {
           setResultUrl(r.data.resultUrl);
           setIsFallback(r.data.source === 'fallback');

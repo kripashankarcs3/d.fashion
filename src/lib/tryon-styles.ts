@@ -21,6 +21,12 @@ export interface TryOnStyle {
   title: string;
   gender: 'Women' | 'Men';
   thumb: string;
+  /** Hair only. 'transfer' ids come from YouCam's hair-transfer catalogue and
+   *  run on that task (2 units per try-on); unset means the hair-style task. */
+  engine?: 'style' | 'transfer';
+  /** Hair transfer only: keep the member's own hair colour instead of the
+   *  template's. Only templates that support it honour the flag. */
+  keepUsersColour?: boolean;
 }
 
 export const INDIAN_MAKEUP_LOOKS: TryOnStyle[] = [
@@ -351,6 +357,57 @@ export const INDIAN_HAIR_STYLES: TryOnStyle[] = [
   { id: 'male_wavy_undercut', title: 'Wavy Undercut', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/27621d3f-d924-4e17-ba35-e80c3bfbc4a2/1746764101963/file.jpg' },
   { id: 'female_bixie_cut', title: 'Bixie Cut', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/ac828cc1-b345-432e-a0ff-9252171041c3/1718958777675/hairstyle_f_Bixie Cut.jpg' },
   { id: 'female_curly_top_pixie', title: 'Curly Top Pixie', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/8b4b65a1-6d87-4d57-b653-3c0d6acdfbcc/1774603848562/file.jpg' },
+
+  // ── Hair-transfer catalogue, reviewed for an Indian audience ────────
+  // These run on YouCam's hair-transfer task (2 units per try-on) instead of
+  // hair-style. Dyed, neon and costume styles were left out.
+  { id: 'female_sleek_middle_part', title: 'Sleek Middle Part', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/658e8776-fdd0-4d78-8f35-1bbe27e902d4/1780543845278/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_blunt_bob', title: 'Blunt Bob', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/9bc19ca5-2e6d-4816-8dc3-a6a1daf6593d/1781145851280/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_s_wave_brunette', title: 'S-Wave Brunette', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/8074cf6e-9299-4b2e-a10a-19849c5be4c2/1780540769370/file.jpg', engine: 'transfer' },
+  { id: 'female_messy_bun_brown', title: 'Messy Bun Brown', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/0fcab08b-2e07-4173-bd91-aee43d6ad4a7/1780541079712/file.jpg', engine: 'transfer' },
+  { id: 'female_two_braids', title: 'Two Braids', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/174d25bc-b623-4a33-8069-ba6a1b97851f/1781079933103/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_slicked_back_bob', title: 'Slicked-Back Bob', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/857dbcb2-94bf-4863-a0ba-fd45c2240ca3/1781110592389/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_retro_brown_waves', title: 'Retro Brown Waves', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/ed330fc6-41b1-4d12-abcb-71dd43e620f8/1780540975822/file.jpg', engine: 'transfer' },
+  { id: 'female_crimped_bob', title: 'Crimped Bob', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/6966ba54-f8b2-481a-9248-a412869d87ff/1781110699172/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_dark_tone_fringe_bob', title: 'Dark-Tone Fringe Bob', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/6d42c131-d435-42de-bed1-95c14ae53f6b/1780543673483/file.jpg', engine: 'transfer' },
+  { id: 'female_loose_crimped_waves', title: 'Loose Crimped Waves', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/b6d441a7-7cc4-4387-aebb-d2dbb7ffee8b/1781110796167/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_long_brown_crimps', title: 'Long Brown Crimps', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/544b9d72-e09f-49b0-b7e5-b2d6e54f9c40/1780540289515/file.jpg', engine: 'transfer' },
+  { id: 'female_bouncy_curls', title: 'Bouncy Curls', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/f0f7cd99-88ef-4c4c-925d-b327649c6bcd/1780543784410/file.png', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_dark_c_curl_layers', title: 'Dark C-Curl Layers', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/c0678f27-af7f-4f1b-902a-cbb22be12a0f/1778825368023/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_blunt_fringe_straight', title: 'Blunt Fringe Straight', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/2de504ff-60d8-477f-bae1-027f16d0491e/1778750396458/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_tousled_black_bob', title: 'Tousled Black Bob', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/e6355428-6d46-488f-9667-bff0d6e559dc/1778659320287/file.jpg', engine: 'transfer' },
+  { id: 'female_casual_updo', title: 'Casual Updo', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/d2990bab-1a72-4ac5-865a-091e4e165b09/1778749407727/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_soft_flip', title: 'Soft Flip', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/56652402-6cc8-4f9c-b017-f363e9930158/1778658595539/file.jpg', engine: 'transfer' },
+  { id: 'female_brunette_wolf_cut', title: 'Brunette Wolf Cut', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/cce45445-cbef-4105-b91b-c82d94918214/1778750321675/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_bangs_updo', title: 'Bangs Updo', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/2b90cd17-7ce3-4a5f-91d6-c25b95c7688b/1778663068840/file.jpg', engine: 'transfer' },
+  { id: 'female_long_spiral_curls', title: 'Long Spiral Curls', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/d8ebd3f0-503f-4ad3-baf6-11ba77b2d756/1775543705441/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_modern_wavy_lob', title: 'Modern Wavy Lob', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/6f5ed48c-541f-4a22-b967-b3f77f50fb68/1773991575084/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_fresh_fringe_lob', title: 'Fresh Fringe Lob', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/0b9d5c31-2f8e-4f4c-8159-82c8ae0ed765/1773991602850/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'female_boho_side_braid', title: 'Boho Side Braid', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/e8c94fe7-6d94-445f-9653-0ecdfecae73a/1773994281256/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_long_straight_black', title: 'Long Straight Black', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/0874fd3a-b905-45c2-9bec-1dd4b8fb8e69/1775123841558/file.jpg', engine: 'transfer' },
+  { id: 'all_dark_lob_bangs', title: 'Dark Lob & Bangs', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/b41a87a6-39c6-444a-969d-684539834374/1775123948139/file.jpg', engine: 'transfer' },
+  { id: 'all_half_up_soft_waves', title: 'Half-Up Soft Waves', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/9d4d9e61-4ae4-4837-ade1-e3fe47f05dce/1773306203428/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_high_pony_tail', title: 'High Pony Tail', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/9c0ef14d-1952-4c2c-b09e-3ffc00f378da/1768811140017/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_goddess_waves', title: 'Goddess Waves', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/a6339fb0-03f8-4cd3-8ba9-d85895b4ddfd/1776757568161/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_medium_curve_hair', title: 'Medium Curve Hair', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/48805d1c-2632-449f-bba8-e923b42d9795/1768811431421/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_soft_flipped_layers', title: 'Soft Flipped Layers', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/be3dc88c-9b2f-461a-8f45-9e3d57220145/1773284249597/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_face_framing_shag_cut', title: 'Face Framing Shag Cut', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/2ead8fe5-76f3-4233-94f2-98684a3f9d41/1770007724171/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_classic_hollywood_waves', title: 'Classic Hollywood Waves', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/d288812e-638e-4622-8a05-dcc967e58e6e/1770880858767/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_half_up_curls', title: 'Half-Up Curls', gender: 'Women', thumb: 'https://cdn.perfectcorp.com/cms/a4c91db2-a316-40be-8ab8-a113d792ac3a/1776669736020/file.jpg', engine: 'transfer' },
+  { id: 'male_short_curly', title: 'Short Curly', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/47633eff-2086-4791-b454-825aa6f9e160/1780481384535/file.jpg', engine: 'transfer' },
+  { id: 'male_textured_crop', title: 'Textured Crop', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/430a5763-f41c-4ea6-a9c8-7c64b9b3b942/1778665908784/file.jpg', engine: 'transfer' },
+  { id: 'male_textured_comma', title: 'Textured Comma', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/ceea0fd7-a766-4d39-a067-625f4638954c/1778825131587/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'male_tousled_cut', title: 'Tousled Cut', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/e7912a84-747b-4ac2-93db-cf26179d319c/1773989170905/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_crewcut', title: 'Crewcut', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/9771949d-a29c-4ae8-8e0a-aea5d83b28b6/1774947461596/file.jpg', engine: 'transfer' },
+  { id: 'all_messy_tapered_fade', title: 'Messy Tapered Fade', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/619e705a-beb9-4ebf-98d8-a59168df6c7e/1775122911642/file.jpg', engine: 'transfer' },
+  { id: 'all_tousled_waves', title: 'Tousled Waves', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/5f7c2a40-03e5-4ec1-8df4-74a7c1f5eecc/1775100852986/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_side_swept_undercut', title: 'Side-Swept Undercut', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/b7554bb7-a51e-413c-89c3-e36e71df51bc/1770086982870/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_hippie_wave', title: 'Hippie Wave', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/52e611d2-3b52-4a1d-9c86-7e35ab53d0f4/1770006588603/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_buzz_cut', title: 'Buzz Cut', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/9e1bbc56-f235-4609-beb3-213e91c0f984/1770091124492/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_short_feather_cut', title: 'Short Feather Cut', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/15dd8ba1-d1ff-457d-9332-41412e1be14a/1771829284476/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_wolf_cut', title: 'Wolf Cut', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/bbb40a9e-7113-4428-83b0-86b8d832cbb5/1771829230119/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_hush_cut', title: 'Hush Cut', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/ac74e18d-30d1-4f49-9134-e2dee0baed8f/1771829255242/file.jpg', engine: 'transfer', keepUsersColour: true },
+  { id: 'all_wavy_shag', title: 'Wavy Shag', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/7728b4fd-fe57-4beb-a09c-783a2dcbdef7/1773386859274/file.jpg', engine: 'transfer', keepUsersColour: true },
   // ── Rest of the provider's hair catalogue ──────────────────────────
   // Includes the dyed and novelty cuts, added wholesale for a pass by eye.
   { id: 'male_long_wavy_blond', title: 'Long Wavy Blond', gender: 'Men', thumb: 'https://cdn.perfectcorp.com/cms/5cc942e8-6dd9-4ec5-8eb8-32cbf79959ce/1712889501680/d163a2a1-44de-4f68-9279-76827bcfb1b8.jpg' },
