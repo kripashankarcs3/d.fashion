@@ -632,7 +632,7 @@ function ShopSection({
                       rel="noopener noreferrer"
                       className="text-[length:var(--text-caption)] font-medium text-gold-primary underline underline-offset-2 transition-colors hover:text-gold-light"
                     >
-                      Shop →
+                      Buy →
                     </a>
                   )}
                 </div>
@@ -878,6 +878,26 @@ export default function Report() {
           )}
         </EditorialContainer>
       </header>
+
+      {/* Try-on CTA — appears right as the analysis completes */}
+      <EditorialContainer className="mt-8">
+        <div className="flex flex-col items-center justify-between gap-4 rounded-md border border-gold-hairline bg-gold-primary/10 p-6 sm:flex-row">
+          <div>
+            <p className="font-serif text-[length:var(--text-h5)] font-light text-cream-primary">
+              Your analysis is ready — see it on you.
+            </p>
+            <p className="mt-1 text-[length:var(--text-body-sm)] text-cream-primary/60">
+              Try on dresses and outfits in your palette before you buy.
+            </p>
+          </div>
+          <Link href={isSample ? ROUTES.upload : ROUTES.tryOn}>
+            <Button size="lg" className="shrink-0">
+              <ShoppingBag className="mr-2 h-4 w-4" aria-hidden="true" />
+              {isSample ? 'Analyse My Colours →' : 'Try Dress →'}
+            </Button>
+          </Link>
+        </div>
+      </EditorialContainer>
 
       <EditorialContainer width="content" className="mt-10">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-12 print:grid-cols-1">

@@ -623,7 +623,7 @@ export default function TryOn() {
                         {selectedGarment?.buyUrl && (
                           <a href={selectedGarment.buyUrl} target="_blank" rel="noopener noreferrer"
                             className="inline-flex h-10 w-full items-center justify-center bg-gold-primary px-2 text-[0.6rem] font-semibold uppercase tracking-wider text-surface-0 transition-all hover:bg-gold-dark hover:text-cream-primary active:scale-[0.98] rounded-sm">
-                            Buy on Myntra →
+                            Buy →
                           </a>
                         )}
                       </div>
