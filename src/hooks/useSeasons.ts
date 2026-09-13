@@ -18,12 +18,18 @@ export interface SeasonInfo {
   archetypes: { title: string; description: string }[];
 }
 
-interface SeasonsResponse {
-  success: boolean;
+/** Payload of GET /api/seasons. The server wraps every payload as
+ *  `{ success, message, data }`, so this lives under `data`. */
+export interface SeasonsPayload {
   count: number;
   seasons: SeasonInfo[];
   runnerUps: Record<string, string>;
 }
+
+/** Shared by useSeasons and the startup prefetch in App.tsx: both write the
+ *  ['seasons'] cache entry, so they must store the same shape. */
+export const fetchSeasons = async (): Promise<SeasonsPayload> =>
+  (await api.get<{ data: SeasonsPayload }>('/seasons')).data.data;
 
 /**
  * All 12 seasons from GET /api/seasons. Cached for the session
@@ -32,7 +38,7 @@ interface SeasonsResponse {
 export function useSeasons() {
   return useQuery({
     queryKey: ['seasons'],
-    queryFn: async () => (await api.get<SeasonsResponse>('/seasons')).data,
+    queryFn: fetchSeasons,
     staleTime: Infinity,
     gcTime: Infinity,
   });

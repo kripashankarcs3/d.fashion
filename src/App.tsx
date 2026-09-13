@@ -16,7 +16,7 @@ import {
   ROUTE_ALIASES,
 } from '@/config/navigation';
 import { BRAND } from '@/config/site';
-import { api } from '@/services/api';
+import { fetchSeasons } from '@/hooks/useSeasons';
 import { applyPageMeta } from '@/lib/seo';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -55,8 +55,7 @@ const queryClient = new QueryClient({
 // cache at startup so the first palette render doesn't wait on a round-trip.
 queryClient.prefetchQuery({
   queryKey: ['seasons'],
-  queryFn: async () =>
-    (await api.get<unknown>('/seasons')).data,
+  queryFn: fetchSeasons,
 }).catch(() => {
   // Offline / server down: hooks fall back to null and components show
   // their loading state — the app still renders.

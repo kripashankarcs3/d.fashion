@@ -78,7 +78,9 @@ export interface GarmentMatch {
   name: string;
   category: string;
   gender: string;
-  image: string;
+  /** Same field name as the catalogue entries (`GarmentEntry.img`) — the
+   *  client renders both with one Garment type. */
+  img: string;
   colourHex: string;
   colourName: string;
   buyUrl?: string;
@@ -130,7 +132,7 @@ export function matchGarmentsToSeason(
     name: g.name,
     category: g.category,
     gender: g.gender,
-    image: g.img,
+    img: g.img,
     colourHex: g.colourHex,
     colourName: g.colourName,
     buyUrl: g.buyUrl || undefined,

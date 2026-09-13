@@ -58,7 +58,7 @@ export default function TryOn() {
   // per session, cached indefinitely, filtered client-side as before.
   const garmentsQuery = useQuery({
     queryKey: ['garments'],
-    queryFn: async () => (await getGarments()).data,
+    queryFn: () => getGarments(),
     staleTime: Infinity,
     gcTime: Infinity,
   });

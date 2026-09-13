@@ -146,22 +146,28 @@ export interface GarmentMatch extends Garment {
   matchScore: number;
 }
 
-export const getGarments = (params?: { gender?: string; category?: string }) =>
-  api.get<{
-    success: boolean;
-    count: number;
-    garments: Garment[];
-  }>('/garments', { params });
+/** The server wraps every payload as `{ success, message, data }`. */
+interface ApiEnvelope<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
 
-export const getGarmentRecommendations = (params: {
+export const getGarments = async (params?: { gender?: string; category?: string }) =>
+  (
+    await api.get<ApiEnvelope<{ count: number; garments: Garment[] }>>('/garments', { params })
+  ).data.data;
+
+export const getGarmentRecommendations = async (params: {
   season: string;
   undertone: string;
   gender?: string;
   category?: string;
   limit?: number;
 }) =>
-  api.get<{
-    success: boolean;
-    count: number;
-    garments: GarmentMatch[];
-  }>('/garments/recommend', { params });
+  (
+    await api.get<ApiEnvelope<{ count: number; garments: GarmentMatch[] }>>(
+      '/garments/recommend',
+      { params },
+    )
+  ).data.data;
