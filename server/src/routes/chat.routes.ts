@@ -44,7 +44,8 @@ router.post("/", authenticate, chatLimiter, async (req, res) => {
   const { reply, source } = await generateStylistReplyAI(
     parsed.data.message,
     parsed.data.context as StylistContext | undefined,
-    parsed.data.history ?? []
+    parsed.data.history ?? [],
+    { sessionId: (req as { user?: { id?: string } }).user?.id ? `dstyle-${(req as { user?: { id?: string } }).user?.id}` : undefined }
   );
   res.json({ success: true, reply, source });
 });
