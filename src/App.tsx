@@ -15,6 +15,8 @@ import {
   ROUTES,
   ROUTE_ALIASES,
 } from '@/config/navigation';
+import { BRAND } from '@/config/site';
+import { api } from '@/services/api';
 import { applyPageMeta } from '@/lib/seo';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -47,6 +49,17 @@ const queryClient = new QueryClient({
     queries: { retry: 1, staleTime: 5 * 60 * 1000 },
     mutations: { retry: 0 },
   },
+});
+
+// Season data is single-sourced on the server (GET /api/seasons) — warm the
+// cache at startup so the first palette render doesn't wait on a round-trip.
+queryClient.prefetchQuery({
+  queryKey: ['seasons'],
+  queryFn: async () =>
+    (await api.get<unknown>('/seasons')).data,
+}).catch(() => {
+  // Offline / server down: hooks fall back to null and components show
+  // their loading state — the app still renders.
 });
 
 const PageFallback = () => (
@@ -205,7 +218,7 @@ function Router() {
               </AppRoute>
             </Route>
             <Route path={ROUTES.chat}>
-              <AppRoute name="D'Style">
+              <AppRoute name={BRAND.stylistName}>
                 <Chat />
               </AppRoute>
             </Route>

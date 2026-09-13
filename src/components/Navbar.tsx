@@ -14,6 +14,7 @@ import {
 import { signOut as firebaseSignOut } from '@/services/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { scopeStoreToUser, useStyleStore } from '@/store/useStyleStore';
+import { BRAND } from '@/config/site';
 
 const drawerVariants = {
   open: { y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
@@ -161,11 +162,11 @@ export default function Navbar() {
             <Link
               href={ROUTES.home}
               className="shrink-0 translate-y-1.5 transition-opacity duration-300 hover:opacity-70"
-              aria-label="D'Fashion — home"
+              aria-label={`${BRAND.name} — home`}
             >
               <img
-                src="/images/campaign/logo3.png"
-                alt="D'Fashion"
+                src={BRAND.logoPath}
+                alt={BRAND.name}
                 className="h-28 w-auto object-contain"
               />
             </Link>
@@ -322,8 +323,8 @@ export default function Navbar() {
           >
             <div className="flex h-16 shrink-0 items-center justify-between px-[var(--gutter)]">
               <img
-                src="/images/campaign/logo3.png"
-                alt="D'Fashion"
+                src={BRAND.logoPath}
+                alt={BRAND.name}
                 className="h-28 w-auto object-contain"
               />
               <button

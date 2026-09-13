@@ -6,6 +6,8 @@
  * once. Anything that appears in two places here would drift — it did before.
  */
 
+import { BRAND } from '@/config/site';
+
 export interface NavLink {
   /** Route to navigate to. For anchor links this is always the landing page. */
   href: string;
@@ -162,90 +164,96 @@ export interface PageMeta {
   description: string;
 }
 
+/**
+ * Titles are composed from the central brand config so a rebrand never needs a
+ * sweep of the router's meta table.
+ */
+const brandTitle = (suffix: string): string => `${BRAND.name}${suffix}`;
+
 export const PAGE_META: Record<string, PageMeta> = {
   [ROUTES.root]: {
-    title: "D'Fashion — Welcome",
+    title: brandTitle(' — Welcome'),
     description:
       'Personalised colour analysis for your skin tone, undertone, and style personality.',
   },
   [ROUTES.home]: {
-    title: "D'Fashion — Discover Your Colour Season",
+    title: brandTitle(' — Discover Your Colour Season'),
     description:
       'Discover the colours that were made for you. AI-powered colour analysis personalised to your skin tone, undertone, and style personality.',
   },
   [ROUTES.pricing]: {
-    title: "Pricing — D'Fashion",
+    title: brandTitle(' — Pricing'),
     description:
       'Simple, transparent pricing for personalised colour analysis. Analyse your colours, read your report, and shop your palette.',
   },
   [ROUTES.upload]: {
-    title: "Upload — D'Fashion",
+    title: brandTitle(' — Upload'),
     description:
       'Upload a clear photo in natural light and let D\u2019Fashion read your skin undertone, depth, and contrast.',
   },
   [ROUTES.report]: {
-    title: "Your Colour Report — D'Fashion",
+    title: brandTitle(' — Your Colour Report'),
     description:
       'Your personalised colour season, palette, neutrals, makeup shades, and wardrobe guidance.',
   },
   [ROUTES.tryOn]: {
-    title: "Virtual Try-On — D'Fashion",
+    title: brandTitle(' — Virtual Try-On'),
     description:
       'See outfits, makeup, and hairstyles rendered in your exact palette before you buy.',
   },
   [ROUTES.chat]: {
-    title: "D'Style Stylist Chat — D'Fashion",
+    title: `${BRAND.stylistName} Stylist Chat — ${BRAND.name}`,
     description:
       'Ask your personal AI stylist anything about your palette, wardrobe, and colour choices.',
   },
   [ROUTES.dashboard]: {
-    title: "Dashboard — D'Fashion",
+    title: brandTitle(' — Dashboard'),
     description:
       'Your colour intelligence at a glance — palette, reports, wardrobe, and weekly guidance.',
   },
   [ROUTES.login]: {
-    title: "Sign In — D'Fashion",
+    title: brandTitle(' — Sign In'),
     description: 'Sign in to access your colour report and dashboard.',
   },
   [ROUTES.signup]: {
-    title: "Sign Up — D'Fashion",
+    title: brandTitle(' — Sign Up'),
     description:
       'Create your D\u2019Fashion account and discover the colours made for you.',
   },
   [ROUTES.privacy]: {
-    title: "Privacy Policy — D'Fashion",
+    title: brandTitle(' — Privacy Policy'),
     description:
       'How D\u2019Fashion collects, uses, and protects your data — including exactly what happens to the photos you upload.',
   },
   [ROUTES.terms]: {
-    title: "Terms of Service — D'Fashion",
+    title: brandTitle(' — Terms of Service'),
     description:
       'The terms that govern your use of the D\u2019Fashion colour analysis service.',
   },
   [ROUTES.about]: {
-    title: "About — D'Fashion",
+    title: brandTitle(' — About'),
     description:
       'The story behind D\u2019Fashion — colour intelligence, rendered personal.',
   },
   [ROUTES.contact]: {
-    title: "Contact — D'Fashion",
+    title: brandTitle(' — Contact'),
     description:
       'Get in touch with the D\u2019Fashion team for support, press, and partnerships.',
   },
   [ROUTES.faq]: {
-    title: "FAQ — D'Fashion",
+    title: brandTitle(' — FAQ'),
     description:
       'Answers to common questions about colour analysis, your report, privacy, and payments.',
   },
   [ROUTES.blog]: {
-    title: "Journal — D'Fashion",
+    title: brandTitle(' — Journal'),
     description:
       'Essays and guides on colour analysis, undertones, and building a wardrobe in your palette.',
   },
 };
 
 export const FALLBACK_PAGE_META: PageMeta = {
-  title: "Page Not Found — D'Fashion",
+  title: brandTitle(' — Page Not Found'),
   description: "The page you're looking for could not be found.",
 };
 

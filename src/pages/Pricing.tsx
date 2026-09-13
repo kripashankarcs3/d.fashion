@@ -8,6 +8,16 @@ import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import CampaignSection from '@/components/editorial/CampaignSection';
 import { CAMPAIGN } from '@/lib/editorial-images';
 import { ROUTES } from '@/config/navigation';
+import {
+  ANNUAL_SAVE_LABEL,
+  COMPARE,
+  PLANS,
+  PRICING_FAQS,
+  annualMonthlyEquivalent,
+  annualPayable,
+  annualSavings,
+  formatPrice,
+} from '@/config/pricing';
 import { Check, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,133 +36,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
-
-interface Plan {
-  name: string;
-  title: string;
-  tagline: string;
-  monthly: number;
-  popular?: boolean;
-  cta: string;
-  features: string[];
-  missing: string[];
-  included: string[];
-}
-
-const PLANS: Plan[] = [
-  {
-    name: 'Starter',
-    title: 'Starter Collection',
-    tagline: 'Core colour analysis only.',
-    monthly: 0,
-    cta: 'Get Started with Starter',
-    features: [
-      'Colour season analysis',
-      'Personal colour palette',
-      'Skin undertone report',
-      'Colours to avoid',
-    ],
-    missing: [
-      'Full wardrobe report',
-      'Palette download',
-      'Virtual try-on',
-      'AI stylist chat',
-    ],
-    included: [
-      'One analysis on upload',
-      'Your colour season and palette',
-      'Skin undertone reading',
-      'A clear list of colours to avoid',
-    ],
-  },
-  {
-    name: 'Essentials',
-    title: 'Essentials Collection',
-    tagline: 'Your complete colour identity.',
-    monthly: 499,
-    popular: true,
-    cta: 'Get Started with Essentials',
-    features: [
-      'Everything in Starter',
-      'Full wardrobe report',
-      'Colour palette download',
-      'Best neutrals guide',
-      'Analysis history',
-    ],
-    missing: ['Virtual try-on', 'AI stylist chat'],
-    included: [
-      'Unlimited re-analysis',
-      'Downloadable colour palette',
-      'Best neutrals for your season',
-      'Wardrobe recommendations',
-      'Saved analysis history',
-    ],
-  },
-  {
-    name: 'Atelier',
-    title: 'Atelier Collection',
-    tagline: 'The full atelier experience.',
-    monthly: 999,
-    cta: 'Get Started with Atelier',
-    features: [
-      'Everything in Essentials',
-      'Virtual try-on',
-      'AI stylist chat',
-      'Priority updates',
-      'Early access to new features',
-    ],
-    missing: [],
-    included: [
-      'Unlimited virtual try-on',
-      '24/7 AI stylist conversations',
-      'Priority support',
-      'Early access to every new feature',
-      'Personal style archetypes',
-    ],
-  },
-];
-
-const COMPARE: { feature: string; starter: boolean; essentials: boolean; atelier: boolean }[] = [
-  { feature: 'Colour season analysis', starter: true, essentials: true, atelier: true },
-  { feature: 'Personal colour palette', starter: true, essentials: true, atelier: true },
-  { feature: 'Skin undertone report', starter: true, essentials: true, atelier: true },
-  { feature: 'Colours to avoid', starter: true, essentials: true, atelier: true },
-  { feature: 'Full wardrobe report', starter: false, essentials: true, atelier: true },
-  { feature: 'Colour palette download', starter: false, essentials: true, atelier: true },
-  { feature: 'Best neutrals guide', starter: false, essentials: true, atelier: true },
-  { feature: 'Saved analysis history', starter: false, essentials: true, atelier: true },
-  { feature: 'Virtual try-on', starter: false, essentials: false, atelier: true },
-  { feature: 'AI stylist chat', starter: false, essentials: false, atelier: true },
-  { feature: 'Priority updates', starter: false, essentials: false, atelier: true },
-  { feature: 'Early access to new features', starter: false, essentials: false, atelier: true },
-];
-
-const faqs = [
-  {
-    q: 'Can I cancel anytime?',
-    a: 'Yes. Cancel directly from your account at any time — no hidden fees, no questions asked.',
-  },
-  {
-    q: 'What happens to my analysis if I cancel?',
-    a: 'Your colour identity is yours. Download your palette before you leave and we keep nothing after 30 days.',
-  },
-  {
-    q: 'How accurate is the colour analysis?',
-    a: 'The analysis reads your undertone, depth, and contrast from a clear photo in natural light. The more accurate the photo, the more accurate the season.',
-  },
-  {
-    q: 'Does the free plan ever expire?',
-    a: 'No. Starter is free forever — your colour analysis and palette stay with you, with no credit card required.',
-  },
-  {
-    q: 'Can I use Atelier as a professional stylist?',
-    a: 'Yes. Atelier is built for stylists and power users who want try-on, chat, and early access for their clients.',
-  },
-];
-
-function formatInr(value: number): string {
-  return `₹${value.toLocaleString('en-IN')}`;
-}
 
 export default function Pricing() {
   const [annual, setAnnual] = useState(false);
@@ -202,7 +85,7 @@ export default function Pricing() {
                 )}
               >
                 Annual
-                <span className="ml-1 text-gold-primary">Save 2 months</span>
+                <span className="ml-1 text-gold-primary">Save {ANNUAL_SAVE_LABEL}</span>
               </span>
             </div>
           }
@@ -212,11 +95,9 @@ export default function Pricing() {
         {/* Pricing cards */}
         <div className="mt-16 grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-stretch">
           {PLANS.map((plan) => {
-            const annualPayable = plan.monthly === 0 ? 0 : plan.monthly * 10;
-            const monthlyEquivalent =
-              plan.monthly === 0 ? 0 : Math.floor(annualPayable / 12);
-            const savings =
-              plan.monthly === 0 ? 0 : plan.monthly * 12 - annualPayable;
+            const pay = annualPayable(plan.monthly);
+            const monthlyEquivalent = annualMonthlyEquivalent(plan.monthly);
+            const savings = annualSavings(plan.monthly);
             const price = annual ? monthlyEquivalent : plan.monthly;
 
             return (
@@ -259,7 +140,7 @@ export default function Pricing() {
                           transition={{ duration: 0.2, ease: [0, 0, 0.2, 1] }}
                           className="inline-block"
                         >
-                          {plan.monthly === 0 ? 'Free' : formatInr(price)}
+                          {plan.monthly === 0 ? 'Free' : formatPrice(price)}
                         </motion.span>
                       </AnimatePresence>
                     </span>
@@ -271,9 +152,9 @@ export default function Pricing() {
                   </div>
                   {annual && plan.monthly !== 0 && (
                     <p className={cn('mt-2 text-[length:var(--text-caption)] tabular-nums', plan.popular ? 'text-cream-primary/60' : 'text-cream-primary/55')}>
-                      {formatInr(annualPayable)}/year — {formatInr(monthlyEquivalent)}/month
+                      {formatPrice(pay)}/year — {formatPrice(monthlyEquivalent)}/month
                       <span className="ml-1 text-gold-primary">
-                        · Save {formatInr(savings)}
+                        · Save {formatPrice(savings)}
                       </span>
                     </p>
                   )}
@@ -444,7 +325,7 @@ export default function Pricing() {
             </EditorialHeading>
           </div>
           <div className="mt-10">
-            {faqs.map((faq) => (
+            {PRICING_FAQS.map((faq) => (
               <div key={faq.q} className="border-b border-gold-hairline py-6">
                 <h3 className="font-editorial text-h5 font-light text-cream-primary">
                   {faq.q}

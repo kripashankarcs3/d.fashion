@@ -3,19 +3,17 @@ import fs from "fs";
 import path from "path";
 import { env } from "../config/env";
 
-const YOUCAM_BASE = "https://yce-api-01.perfectcorp.com";
-
 class YouCamService {
   private client;
 
   constructor() {
     this.client = axios.create({
-      baseURL: YOUCAM_BASE,
+      baseURL: env.YOUCAM_BASE_URL,
       headers: {
         Authorization: `Bearer ${env.YOUCAM_API_KEY}`,
         "Content-Type": "application/json",
       },
-      timeout: 120000,
+      timeout: env.YOUCAM_TIMEOUT_MS,
     });
   }
 
@@ -41,7 +39,7 @@ class YouCamService {
         "Content-Type": contentType,
         "Content-Length": String(stats.size),
       },
-      timeout: 120000,
+      timeout: env.YOUCAM_TIMEOUT_MS,
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
     });
@@ -79,7 +77,7 @@ class YouCamService {
     return data;
   }
 
-  async pollTaskResult(feature: string, taskId: string, maxRetries = 30, intervalMs = 2000) {
+  async pollTaskResult(feature: string, taskId: string, maxRetries = env.YOUCAM_POLL_MAX_RETRIES, intervalMs = env.YOUCAM_POLL_INTERVAL_MS) {
     if (!this.isAvailable()) return null;
 
     for (let i = 0; i < maxRetries; i++) {
@@ -106,7 +104,7 @@ class YouCamService {
     if (!this.isAvailable()) return null;
 
     const { data } = await this.client.get(`/s2s/v2.0/task/template/${feature}`, {
-      params: { page_size: 20 },
+      params: { page_size: env.YOUCAM_TEMPLATE_PAGE_SIZE },
     });
     return data;
   }
@@ -137,7 +135,7 @@ class YouCamService {
       const taskId = task?.data?.task_id;
       if (!taskId) throw new Error("Failed to start skin-analysis task");
 
-      return this.pollTaskResult("skin-analysis", taskId, 20, 2500);
+      return this.pollTaskResult("skin-analysis", taskId, env.YOUCAM_TASK_MAX_RETRIES, env.YOUCAM_TASK_INTERVAL_MS);
     };
 
     try {
@@ -165,7 +163,7 @@ class YouCamService {
     const taskId = task?.data?.task_id;
     if (!taskId) throw new Error("Failed to start skin-tone-analysis task");
 
-    const result = await this.pollTaskResult("skin-tone-analysis", taskId, 20, 2500);
+    const result = await this.pollTaskResult("skin-tone-analysis", taskId, env.YOUCAM_TASK_MAX_RETRIES, env.YOUCAM_TASK_INTERVAL_MS);
     return result?.data?.results ?? null;
   }
 
@@ -182,7 +180,7 @@ class YouCamService {
     const taskId = task?.data?.task_id;
     if (!taskId) throw new Error("Failed to start enhance task");
 
-    const result = await this.pollTaskResult("enhance", taskId, 20, 2500);
+    const result = await this.pollTaskResult("enhance", taskId, env.YOUCAM_TASK_MAX_RETRIES, env.YOUCAM_TASK_INTERVAL_MS);
     return result?.data?.results?.url ?? null;
   }
 

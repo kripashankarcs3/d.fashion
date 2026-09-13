@@ -4,10 +4,9 @@ import CampaignSection from '@/components/editorial/CampaignSection';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import { CAMPAIGN } from '@/lib/editorial-images';
 import { ROUTES } from '@/config/navigation';
+import { PALETTE_PREVIEW } from '@/config/site';
 
 const easeOut = [0, 0, 0.2, 1] as const;
-
-const PALETTE_PREVIEW = ['#C19A6B', '#B8974A', '#3E6B5E', '#8B4513', '#D4AF71'];
 
 export default function FinalCTA() {
   return (

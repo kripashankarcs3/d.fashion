@@ -11,7 +11,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { getSeasonInfo } from '@/lib/colour-data';
+import { getSeasonPalettes } from '@/hooks/useSeasons';
 
 const stats = [
   { value: 50000, suffix: '+', label: 'Colour profiles created' },
@@ -75,6 +75,8 @@ const testimonials = [
 ];
 
 export default function SocialProof() {
+  // Server-sourced palettes for the testimonial season chips.
+  const seasonPalettes = getSeasonPalettes();
   return (
     <section className="relative bg-surface-2 py-section-xl">
       <EditorialContainer>
@@ -127,8 +129,8 @@ export default function SocialProof() {
             opts={{ loop: true }}
           >
             <CarouselContent>
-              {testimonials.map((t, i) => {
-                const palette = getSeasonInfo(t.season, t.undertone).palette.slice(0, 3);
+              {testimonials.map((t) => {
+                const palette = (seasonPalettes[t.season] ?? []).slice(0, 3);
                 const avatarGradient =
                   t.undertone === 'warm'
                     ? 'bg-gradient-to-br from-[#C7953A] to-[#8B4513]'

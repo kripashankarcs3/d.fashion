@@ -16,6 +16,7 @@ import {
   ROUTES,
   SITE_URL,
 } from '@/config/navigation';
+import { BRAND, DEFAULT_LANGUAGE, LANGUAGE_OPTIONS, SOCIALS } from '@/config/site';
 import { useAuthStore } from '@/store/useAuthStore';
 
 const linkClassName =
@@ -24,26 +25,20 @@ const linkClassName =
 const colHeadingClassName =
   'text-footer-label font-semibold uppercase tracking-label text-gold-primary';
 
-const LANGUAGE_OPTIONS = [
-  { code: 'en-US', label: 'English (US)' },
-  { code: 'en-GB', label: 'English (UK)' },
-  { code: 'en-IN', label: 'English (India)' },
-  { code: 'hi-IN', label: 'हिन्दी' },
-];
-
-const SOCIALS = [
-  { label: 'Instagram', href: 'https://www.instagram.com/', Icon: FaInstagram },
-  { label: 'Pinterest', href: 'https://www.pinterest.com/', Icon: FaPinterest },
-  { label: 'YouTube', href: 'https://www.youtube.com/', Icon: FaYoutube },
-  { label: 'X (Twitter)', href: 'https://x.com/', Icon: FaXTwitter },
-];
+/** UI binding: social label → the icon rendered for it. Must stay in sync with `SOCIALS`. */
+const SOCIAL_ICONS: Record<string, typeof FaInstagram> = {
+  Instagram: FaInstagram,
+  Pinterest: FaPinterest,
+  YouTube: FaYoutube,
+  'X (Twitter)': FaXTwitter,
+};
 
 type NewsletterStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
   const [status, setNewsletterStatus] = useState<NewsletterStatus>('idle');
-  const [lang, setLang] = useState('en-US');
+  const [lang, setLang] = useState(DEFAULT_LANGUAGE);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   /* Guests are never pointed at a gated page from the footer. */
@@ -94,19 +89,19 @@ export default function Footer() {
             <Link
               href={ROUTES.home}
               className="inline-flex items-center gap-3"
-              aria-label="D'Fashion — home"
+              aria-label={`${BRAND.name} — home`}
             >
               <img
-                src="/images/campaign/logo3.png"
-                alt="D'Fashion"
+                src={BRAND.logoPath}
+                alt={BRAND.name}
                 className="h-28 w-auto object-contain"
               />
             </Link>
             <p className="mt-6 text-body-sm leading-[1.6] text-gold-soft">
-              Colour Intelligence, Personalised.
+              {BRAND.tagline}
             </p>
             <p className="mt-3 max-w-xs text-body-sm leading-[1.6] text-gold-muted">
-              Discover the colours that were made for you.
+              {BRAND.strapline}
             </p>
           </div>
 
@@ -187,7 +182,7 @@ export default function Footer() {
         <div className="mt-12 flex flex-col gap-5 border-t border-gold-hairline pt-6 pb-12">
           <div className="flex flex-col items-center justify-between gap-5 md:flex-row">
             <p className="text-caption leading-[1.5] text-gold-muted">
-              &copy; {new Date().getFullYear()} D&rsquo;Fashion. Colour
+              &copy; {new Date().getFullYear()} {BRAND.name}. Colour
               intelligence, rendered personal. All rights reserved.
             </p>
 
@@ -208,18 +203,21 @@ export default function Footer() {
               <span className="text-caption uppercase tracking-label text-gold-muted">
                 Follow
               </span>
-              {SOCIALS.map(({ label, href, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`D'Fashion on ${label}`}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-gold-hairline text-gold-soft transition-colors duration-200 ease-out hover:border-gold-primary hover:text-gold-primary"
-                >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                </a>
-              ))}
+              {SOCIALS.map(({ label, href }) => {
+                const Icon = SOCIAL_ICONS[label];
+                return Icon ? (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${BRAND.name} on ${label}`}
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-gold-hairline text-gold-soft transition-colors duration-200 ease-out hover:border-gold-primary hover:text-gold-primary"
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                  </a>
+                ) : null;
+              })}
             </div>
 
             <div className="flex items-center gap-5">

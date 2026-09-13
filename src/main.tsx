@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onIdTokenChanged } from 'firebase/auth';
 
 import App from './App';
 import './index.css';
@@ -13,8 +13,11 @@ if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
 
+// onIdTokenChanged, not onAuthStateChanged: the latter fires only on sign-in
+// and sign-out, so the cached ID token went stale after its one-hour lifetime
+// and every authenticated request 401'd until the page was reloaded.
 if (firebaseAuth) {
-  onAuthStateChanged(firebaseAuth, async (user) => {
+  onIdTokenChanged(firebaseAuth, async (user) => {
     if (!user) {
       useAuthStore.getState().clearSession();
       useAuthStore.getState().setAuthReady(true);

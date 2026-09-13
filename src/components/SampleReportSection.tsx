@@ -4,12 +4,8 @@ import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import Reveal from '@/components/editorial/Reveal';
-import { getSeasonInfo } from '@/lib/colour-data';
+import { useSeasonInfo } from '@/hooks/useSeasons';
 import { ROUTES } from '@/config/navigation';
-
-// ─── Static Warm Autumn data ──────────────────────────────────────────────────
-
-const seasonData = getSeasonInfo('Warm Autumn', 'warm');
 
 // ─── Animation variants ───────────────────────────────────────────────────────
 
@@ -42,14 +38,14 @@ const WARM_DOTS = ['#C19A6B', '#B7410E', '#C7953A'] as const;
 
 // ─── Sub-sections ─────────────────────────────────────────────────────────────
 
-function SeasonBadge() {
+function SeasonBadge({ season, tagline }: { season: string; tagline: string }) {
   return (
     <motion.div variants={subSectionItemVariants} className="flex flex-col gap-3">
       <EyebrowLabel size="micro" tone="gold">
         Your Colour Season
       </EyebrowLabel>
       <p className="font-editorial text-h2 font-light leading-none text-cream-primary">
-        {seasonData.season}
+        {season}
       </p>
       {/* Warm-tone family dots */}
       <div className="flex items-center gap-2" aria-label="Warm tone family">
@@ -62,13 +58,13 @@ function SeasonBadge() {
           />
         ))}
       </div>
-      <p className="text-body-sm text-cream-primary/70">{seasonData.tagline}</p>
+      <p className="text-body-sm text-cream-primary/70">{tagline}</p>
     </motion.div>
   );
 }
 
-function YourPalette() {
-  const displaySwatches = seasonData.palette.slice(0, 8);
+function YourPalette({ palette }: { palette: { hex: string; name: string }[] }) {
+  const displaySwatches = palette.slice(0, 8);
 
   return (
     <motion.div variants={subSectionItemVariants} className="flex flex-col gap-3">
@@ -93,8 +89,12 @@ function YourPalette() {
   );
 }
 
-function ArchetypeCard() {
-  const archetype = seasonData.archetypes[0];
+function ArchetypeCard({
+  archetype,
+}: {
+  archetype: { title: string; description: string } | undefined;
+}) {
+  if (!archetype) return null;
 
   return (
     <motion.div variants={subSectionItemVariants} className="flex flex-col gap-3">
@@ -109,8 +109,8 @@ function ArchetypeCard() {
   );
 }
 
-function ColoursToAvoid() {
-  const avoidSwatches = seasonData.avoid.slice(0, 4);
+function ColoursToAvoid({ avoid }: { avoid: { hex: string; name: string }[] }) {
+  const avoidSwatches = avoid.slice(0, 4);
 
   return (
     <motion.div variants={subSectionItemVariants} className="flex flex-col gap-3">
@@ -146,6 +146,9 @@ function ColoursToAvoid() {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function SampleReportSection() {
+  // Server-sourced season data (single source of truth).
+  const seasonData = useSeasonInfo('Warm Autumn', 'warm');
+
   return (
     <section
       id="sample-report"
@@ -211,18 +214,20 @@ export default function SampleReportSection() {
           </div>
 
           {/* 2×2 sub-section grid */}
-          <motion.div
-            variants={subSectionVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-            className="relative grid grid-cols-1 gap-10 sm:grid-cols-2"
-          >
-            <SeasonBadge />
-            <YourPalette />
-            <ArchetypeCard />
-            <ColoursToAvoid />
-          </motion.div>
+          {seasonData && (
+            <motion.div
+              variants={subSectionVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              className="relative grid grid-cols-1 gap-10 sm:grid-cols-2"
+            >
+              <SeasonBadge season={seasonData.season} tagline={seasonData.tagline} />
+              <YourPalette palette={seasonData.palette} />
+              <ArchetypeCard archetype={seasonData.archetypes[0]} />
+              <ColoursToAvoid avoid={seasonData.avoid} />
+            </motion.div>
+          )}
         </motion.div>
 
         {/* CTA below card */}

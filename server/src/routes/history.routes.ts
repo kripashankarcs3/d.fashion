@@ -7,11 +7,12 @@ import {
 } from "../controllers/history.controller";
 
 import { authenticate } from "../middleware/auth.middleware";
+import { historyWriteLimiter } from "../middleware/rateLimiter";
 
 const router = Router();
 
 // Save Analysis History
-router.post("/", authenticate, saveHistory);
+router.post("/", authenticate, historyWriteLimiter, saveHistory);
 
 // Get Logged-in User History
 router.get("/", authenticate, getHistory);

@@ -14,10 +14,15 @@ import authRoutes from "./routes/auth.routes";
 import productRoutes from "./routes/product.routes";
 import favoriteRoutes from "./routes/favorite.routes";
 import historyRoutes from "./routes/history.routes";
-import recommendationRoutes from "./routes/recommendation.routes";
 import tryOnRoutes from "./routes/tryon.routes";
+import garmentRoutes from "./routes/garment.routes";
+import seasonRoutes from "./routes/season.routes";
 import newsletterRoutes from "./routes/newsletter.routes";
 import { env } from "./config/env";
+import { API_PREFIX, GALLERY_DIR, TMP_DIR } from "./constants";
+
+/** Hosts allowed to load images via CSP — env-driven, comma-separated. */
+const cspImageHosts = env.CSP_IMG_HOSTS.split(",").map((h) => h.trim()).filter(Boolean);
 
 const app = express();
 
@@ -36,10 +41,7 @@ app.use(
           "'self'",
           "data:",
           "blob:",
-          "https://images.unsplash.com",
-          "https://*.youcamcdn.com",
-          "https://*.perfectcorp.com",
-          "https://lh3.googleusercontent.com",
+          ...cspImageHosts,
         ],
         connectSrc: [
           "'self'",
@@ -77,28 +79,31 @@ app.use(
 // Serve uploaded images. Helmet's default `crossOriginResourcePolicy:
 // same-origin` would block cross-origin <img> loads of these files, so the
 // header is explicitly allowed for this mount only.
+// Stored filenames are built from the accepted mimetype, so nothing but an
+// image can land in these folders. This header is the second lock: a document
+// served from here can load nothing and run nothing, which costs an <img>
+// consumer nothing — a response's own CSP does not govern the page embedding it.
+const staticAssetHeaders = (cacheControl: string) =>
+  (_req: express.Request, res: express.Response, next: express.NextFunction) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    res.setHeader("Cache-Control", cacheControl);
+    res.setHeader("X-Robots-Tag", "noindex");
+    res.setHeader("Content-Security-Policy", "default-src 'none'; sandbox");
+    next();
+  };
+
 app.use(
   "/uploads",
-  (_req, res, next) => {
-    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    res.setHeader("Cache-Control", "private, no-store");
-    res.setHeader("X-Robots-Tag", "noindex");
-    next();
-  },
-  express.static(path.join(__dirname, "../tmp"), { maxAge: "1h", index: false })
+  staticAssetHeaders("private, no-store"),
+  express.static(TMP_DIR, { maxAge: "1h", index: false })
 );
 
 // Saved dashboard images. Same cross-origin allowance as /uploads, but this
 // folder is durable: entries a member saved must survive the /uploads sweep.
 app.use(
   "/gallery",
-  (_req, res, next) => {
-    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    res.setHeader("Cache-Control", "private, max-age=86400");
-    res.setHeader("X-Robots-Tag", "noindex");
-    next();
-  },
-  express.static(path.join(__dirname, "../gallery"), { maxAge: "1d", index: false })
+  staticAssetHeaders("private, max-age=86400"),
+  express.static(GALLERY_DIR, { maxAge: "1d", index: false })
 );
 
 // Compress responses
@@ -114,16 +119,17 @@ app.use("/api", apiLimiter);
 
 // Parse URL Encoded Data
 app.use(express.urlencoded({ extended: true }));
-app.use("/api/health", healthRoutes);
-app.use("/api/analyze", analyzeRoutes);
-app.use("/api/chat", chatRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/favorites", favoriteRoutes);
-app.use("/api/history", historyRoutes);
-app.use("/api/recommend", recommendationRoutes);
-app.use("/api/tryon", tryOnRoutes);
-app.use("/api/newsletter", newsletterRoutes);
+app.use(`${API_PREFIX}/health`, healthRoutes);
+app.use(`${API_PREFIX}/analyze`, analyzeRoutes);
+app.use(`${API_PREFIX}/chat`, chatRoutes);
+app.use(`${API_PREFIX}/auth`, authRoutes);
+app.use(`${API_PREFIX}/products`, productRoutes);
+app.use(`${API_PREFIX}/favorites`, favoriteRoutes);
+app.use(`${API_PREFIX}/history`, historyRoutes);
+app.use(`${API_PREFIX}/tryon`, tryOnRoutes);
+app.use(`${API_PREFIX}/garments`, garmentRoutes);
+app.use(`${API_PREFIX}/seasons`, seasonRoutes);
+app.use(`${API_PREFIX}/newsletter`, newsletterRoutes);
 
 // Serve the built frontend if it exists (production deployments)
 const distDir = path.join(__dirname, "../../dist");
@@ -133,7 +139,7 @@ if (fs.existsSync(distDir)) {
 
 // SPA fallback: unknown GET routes serve index.html, API routes return 404
 app.use((req, res) => {
-  if (req.method !== "GET" || req.path.startsWith("/api/")) {
+  if (req.method !== "GET" || req.path.startsWith(`${API_PREFIX}/`)) {
     res.status(404).json({ success: false, message: "Endpoint not found" });
     return;
   }

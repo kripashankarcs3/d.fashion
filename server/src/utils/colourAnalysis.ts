@@ -14,7 +14,7 @@ export interface SeasonFeatures {
   eyeColor?: string;
 }
 
-const SEASON_PROFILES: Record<string, SeasonProfile> = {
+export const SEASON_PROFILES: Record<string, SeasonProfile> = {
   "Light Spring": {
     season: "Light Spring",
     palette: [
@@ -390,7 +390,7 @@ const EYE_LIGHTNESS: Record<string, number> = {
   blue: 0.42, "light blue": 0.5, grey: 0.5, gray: 0.5, dark: 0.15,
 };
 
-function hairLightness(hair?: string): number | null {
+export function hairLightness(hair?: string): number | null {
   if (!hair) return null;
   const key = hair.trim().toLowerCase();
   const names = Object.keys(HAIR_LIGHTNESS).sort((a, b) => b.length - a.length);
@@ -410,15 +410,15 @@ function eyeLightness(eye?: string): number | null {
   return null;
 }
 
-function skinLightness(features?: SeasonFeatures): number | null {
+export function skinLightness(features?: SeasonFeatures): number | null {
   if (!features?.skinHex) return null;
   const hsl = hexToHsl(features.skinHex);
   return hsl ? hsl.l : null;
 }
 
-type ValueLevel = "light" | "medium" | "deep";
+export type ValueLevel = "light" | "medium" | "deep";
 
-function valueDepth(features?: SeasonFeatures): ValueLevel {
+export function valueDepth(features?: SeasonFeatures): ValueLevel {
   const sample = [hairLightness(features?.hairColor), skinLightness(features)].filter(
     (v): v is number => typeof v === "number"
   );
@@ -429,7 +429,7 @@ function valueDepth(features?: SeasonFeatures): ValueLevel {
   return "medium";
 }
 
-function contrastLevel(features?: SeasonFeatures): "soft" | "true" | "bright" {
+export function contrastLevel(features?: SeasonFeatures): "soft" | "true" | "bright" {
   const skin = skinLightness(features);
   const hair = hairLightness(features?.hairColor);
   const eye = eyeLightness(features?.eyeColor);
@@ -452,6 +452,24 @@ function contrastLevel(features?: SeasonFeatures): "soft" | "true" | "bright" {
 export function getSeasonProfile(season?: string, undertone?: Undertone): SeasonProfile {
   const key = season ?? deriveSeason(undertone ?? "neutral");
   return SEASON_PROFILES[key] ?? SEASON_PROFILES["Warm Autumn"];
+}
+
+export function hslToHex(h: number, s: number, l: number): string {
+  const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+  const sat = clamp01(s);
+  const lig = clamp01(l);
+  const c = (1 - Math.abs(2 * lig - 1)) * sat;
+  const hp = ((h % 360) + 360) % 360 / 60;
+  const x = c * (1 - Math.abs((hp % 2) - 1));
+  const [r1, g1, b1] =
+    hp < 1 ? [c, x, 0] :
+    hp < 2 ? [x, c, 0] :
+    hp < 3 ? [0, c, x] :
+    hp < 4 ? [0, x, c] :
+    hp < 5 ? [x, 0, c] : [c, 0, x];
+  const m = lig - c / 2;
+  const to255 = (n: number) => Math.round(n * 255).toString(16).padStart(2, "0");
+  return `#${to255(r1 + m)}${to255(g1 + m)}${to255(b1 + m)}`.toUpperCase();
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
@@ -502,7 +520,7 @@ export function deriveSeasonConfidence(skinHex: string, undertone: Undertone): n
   return Math.round(Math.min(99, Math.max(50, 50 + (abs - 0.07) * 100)));
 }
 
-function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
+export function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
   const rgb = hexToRgb(hex);
   if (!rgb) return null;
   const r = rgb.r / 255;

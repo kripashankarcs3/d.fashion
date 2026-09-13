@@ -343,7 +343,7 @@ All backend endpoints are mounted under:
 | ----------------- | ----------------------------- |
 | `/api/auth`       | Authentication and sessions   |
 | `/api/analyze`    | Photo and colour analysis     |
-| `/api/recommend`  | Palette-based recommendations |
+| `/api/garments/recommend` | Colour-matched garments |
 | `/api/tryon`      | Virtual try-on jobs           |
 | `/api/chat`       | D'Style AI stylist            |
 | `/api/products`   | Product catalogue             |
@@ -481,7 +481,6 @@ Configure:
 | `FIREBASE_PROJECT_ID` |        ✅ | Firebase authentication      |
 | `CLIENT_EMAIL`        |        ✅ | Firebase service account     |
 | `PRIVATE_KEY`         |        ✅ | Firebase service account     |
-| `ANTHROPIC_API_KEY`   | Optional | Enhanced AI stylist          |
 | `PORT`                | Optional | Backend port                 |
 | `NODE_ENV`            | Optional | Runtime environment          |
 | `CLIENT_ORIGIN`       | Optional | Frontend origin              |

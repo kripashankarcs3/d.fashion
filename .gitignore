@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# AI / Agent configurations
+# Local editor tool workspaces
 .kiro
 .agents
 .gemini
@@ -57,7 +57,7 @@ server/tmp/
 # Runtime output written by the running server (try-on and analysis results).
 /server/gallery/
 
-# Third-party agent workspace
+# Third-party tool workspace
 /.abacusai/
 
 # Local design bible (do not publish)

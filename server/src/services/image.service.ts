@@ -3,12 +3,18 @@ import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
 import { fetchPublicImage } from "../utils/safeImageFetch";
-
-const TMP_DIR = path.resolve(__dirname, "../../tmp");
-
-/** Durable store for images shown on the dashboard — never auto-swept. */
-export const GALLERY_DIR = path.resolve(__dirname, "../../gallery");
-const MAX_GALLERY_IMAGE_BYTES = 12 * 1024 * 1024;
+import {
+  GALLERY_DIR,
+  GALLERY_IMAGE,
+  GALLERY_MAX_BYTES,
+  OPTIMIZE,
+  REMOTE_IMAGE_QUALITY,
+  SAMPLE_SIZE,
+  SKIN_FALLBACK,
+  SKIN_PIXEL,
+  SKIN_SAMPLE,
+  TMP_DIR,
+} from "../constants";
 
 fs.mkdirSync(GALLERY_DIR, { recursive: true });
 
@@ -43,14 +49,14 @@ export async function extractSkinToneLocally(
     const h = meta.height ?? 400;
 
     // Sample the central face area
-    const left = Math.round(w * 0.3);
-    const top = Math.round(h * 0.2);
-    const width = Math.round(w * 0.4);
-    const height = Math.round(h * 0.35);
+    const left = Math.round(w * SKIN_SAMPLE.leftX);
+    const top = Math.round(h * SKIN_SAMPLE.topY);
+    const width = Math.round(w * SKIN_SAMPLE.width);
+    const height = Math.round(h * SKIN_SAMPLE.height);
 
     const { data } = await img
       .extract({ left, top, width, height })
-      .resize(60, 60, { fit: "fill" })
+      .resize(SAMPLE_SIZE, SAMPLE_SIZE, { fit: "fill" })
       .removeAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
@@ -66,12 +72,12 @@ export async function extractSkinToneLocally(
 
       // Skin pixel heuristic: reddish, not too dark, not too bright
       if (
-        r > 60 && r < 255 &&
-        g > 40 && g < 230 &&
-        b > 20 && b < 210 &&
+        r > SKIN_PIXEL.min.r && r < SKIN_PIXEL.max.r &&
+        g > SKIN_PIXEL.min.g && g < SKIN_PIXEL.max.g &&
+        b > SKIN_PIXEL.min.b && b < SKIN_PIXEL.max.b &&
         r > g && r > b &&       // red dominance
-        r - b > 10 &&           // warm bias
-        toLuma(r, g, b) > 50 && toLuma(r, g, b) < 230
+        r - b > SKIN_PIXEL.minWarmBias &&           // warm bias
+        toLuma(r, g, b) > SKIN_PIXEL.minLuma && toLuma(r, g, b) < SKIN_PIXEL.maxLuma
       ) {
         rs.push(r);
         gs.push(g);
@@ -79,7 +85,7 @@ export async function extractSkinToneLocally(
       }
     }
 
-    if (rs.length < 20) {
+    if (rs.length < SKIN_PIXEL.minSamples) {
       // Not enough skin pixels — likely unusual lighting; use average of all
       let sumR = 0, sumG = 0, sumB = 0;
       for (let i = 0; i < data.length; i += 3) {
@@ -100,7 +106,7 @@ export async function extractSkinToneLocally(
     const luma = toLuma(r, g, b);
     return { skinToneHex: rgbToHex(r, g, b), luma };
   } catch {
-    return { skinToneHex: "#D2A679", luma: 160 };
+    return { skinToneHex: SKIN_FALLBACK.hex, luma: SKIN_FALLBACK.luma };
   }
 }
 
@@ -123,13 +129,13 @@ export class ImageService {
 
     await sharp(filePath)
       .resize({
-        width: 1024,
-        height: 1024,
+        width: OPTIMIZE.width,
+        height: OPTIMIZE.height,
         fit: "inside",
         withoutEnlargement: true,
       })
       .jpeg({
-        quality: 85,
+        quality: OPTIMIZE.quality,
       })
       .toFile(outputPath);
 
@@ -152,7 +158,7 @@ export class ImageService {
     const buf = Buffer.from(await res.arrayBuffer());
 
     const outputPath = path.join(TMP_DIR, `${prefix}-${crypto.randomUUID()}.jpg`);
-    await sharp(buf).jpeg({ quality: 92 }).toFile(outputPath);
+    await sharp(buf).jpeg({ quality: REMOTE_IMAGE_QUALITY }).toFile(outputPath);
     return outputPath;
   }
 
@@ -178,7 +184,7 @@ export class ImageService {
         throw new Error(`Failed to download image: HTTP ${res.status}`);
       }
       const arrayBuffer = await res.arrayBuffer();
-      if (arrayBuffer.byteLength > MAX_GALLERY_IMAGE_BYTES) {
+      if (arrayBuffer.byteLength > GALLERY_MAX_BYTES) {
         throw new Error("Image too large to archive");
       }
       buf = Buffer.from(arrayBuffer);
@@ -187,8 +193,8 @@ export class ImageService {
     const fileName = `${prefix}-${crypto.randomUUID()}.jpg`;
     // Re-encoding through sharp also strips anything that is not an image.
     await sharp(buf)
-      .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 88 })
+      .resize({ width: GALLERY_IMAGE.width, height: GALLERY_IMAGE.height, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: GALLERY_IMAGE.quality })
       .toFile(path.join(GALLERY_DIR, fileName));
 
     return `/gallery/${fileName}`;
@@ -210,7 +216,14 @@ export class ImageService {
     }
 
     const now = Date.now();
-    const stale = files.filter((f) => /^(optimized|enhanced)-.+\.(jpg|jpeg|png)$/i.test(f));
+    // Files this server writes into TMP_DIR: the inbound upload plus the two
+    // derived copies. The bare-UUID form is what uploads were named before
+    // they carried an `upload-` prefix — an aborted request used to leave one
+    // behind that nothing ever swept.
+    const OWN_FILE = /^(optimized|enhanced|upload)-.+\.(jpg|jpeg|png|webp|heic|heif)$/i;
+    const LEGACY_UPLOAD =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]+$/i;
+    const stale = files.filter((f) => OWN_FILE.test(f) || LEGACY_UPLOAD.test(f));
 
     let removed = 0;
     for (const f of stale) {

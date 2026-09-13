@@ -2,17 +2,10 @@ import { motion } from 'framer-motion';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
+import { COMPARISON_COLUMNS, COMPARISON_ROWS } from '@/config/marketing';
 
-const columns = ["", "D'Fashion", "Professional Appointment", "Guessing"] as const;
-
-const rows: [string, string, string, string][] = [
-  ["Price",        "From ₹299",                "₹3,000–₹8,000",         "Free... for now"],
-  ["Time needed",  "~3 minutes",               "2–4 hours",              "Every morning"],
-  ["Works remotely","Yes",                     "In-person only",         "—"],
-  ["Repeatable",   "Anytime",                  "Book again",             "Never consistent"],
-  ["What you get", "Full report + palette",    "Notes, maybe a sheet",   "A vague impression"],
-  ["Accuracy",     "AI-measured, objective",   "Varies by consultant",   "Subjective"],
-];
+const columns = COMPARISON_COLUMNS;
+const rows = COMPARISON_ROWS;
 
 export default function ComparisonSection() {
   return (
@@ -45,29 +38,31 @@ export default function ComparisonSection() {
 
             {/* ── Header row ── */}
             <div className="contents">
-              {/* Empty first header cell */}
-              <div className="bg-surface-3 border-b border-gold-primary/30 px-5 py-4" />
-
-              {/* D'Fashion header — highlighted */}
-              <div className="bg-surface-3 border-b border-gold-primary/30 border-x border-x-gold-hairline/60 px-5 py-4">
-                <span className="text-gold-primary font-semibold text-body-sm tracking-wide">
-                  D&apos;Fashion
-                </span>
-              </div>
-
-              {/* Professional Appointment header */}
-              <div className="bg-surface-3 border-b border-gold-primary/30 px-5 py-4">
-                <span className="text-cream-primary/50 text-body-sm font-medium">
-                  Professional Appointment
-                </span>
-              </div>
-
-              {/* Guessing header */}
-              <div className="bg-surface-3 border-b border-gold-primary/30 px-5 py-4">
-                <span className="text-cream-primary/50 text-body-sm font-medium">
-                  Guessing
-                </span>
-              </div>
+              {columns.map((col, index) => {
+                const isBrand = index === 1;
+                return (
+                  <div
+                    key={col || 'row-label'}
+                    className={
+                      isBrand
+                        ? 'bg-surface-3 border-b border-gold-primary/30 border-x border-x-gold-hairline/60 px-5 py-4'
+                        : 'bg-surface-3 border-b border-gold-primary/30 px-5 py-4'
+                    }
+                  >
+                    {col && (
+                      <span
+                        className={
+                          isBrand
+                            ? 'text-gold-primary font-semibold text-body-sm tracking-wide'
+                            : 'text-cream-primary/50 text-body-sm font-medium'
+                        }
+                      >
+                        {col}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* ── Data rows ── */}

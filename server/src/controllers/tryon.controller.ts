@@ -3,17 +3,7 @@ import path from "path";
 import fs from "fs";
 import { URL } from "url";
 import YouCamService from "../services/youcam.service";
-
-const PRIVATE_IPS = /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.|169\.254\.|::1|fc00:|fe80:)/;
-
-const UPLOADS_DIR = path.resolve(__dirname, "../../tmp");
-
-// Static asset roots holding the bundled garment images: the built frontend in
-// production, the source `public/` folder in development.
-const STATIC_ASSET_DIRS = [
-  path.resolve(__dirname, "../../../dist"),
-  path.resolve(__dirname, "../../../public"),
-];
+import { PRIVATE_IPS, STATIC_ASSET_DIRS, TMP_DIR as UPLOADS_DIR } from "../constants";
 
 // Resolves a bundled asset path such as `/images/garments/foo.png` to a file on
 // disk, or null when it escapes the asset roots or does not exist.
@@ -84,7 +74,7 @@ const extractResultUrl = (youcamResult: any, fallbackUrl: string): string => {
   );
 };
 
-export const listTemplates = async (req: Request, res: Response, next: NextFunction) => {
+export const listTemplates = async (req: Request, res: Response, _next: NextFunction) => {
   try {
     const feature = String(req.params.feature);
     const result = await YouCamService.listTemplates(feature);
