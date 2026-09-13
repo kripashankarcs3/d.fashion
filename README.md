@@ -1,822 +1,183 @@
-<div align="center">
+# D'Fashion
 
-# ✦ D'Fashion
+A web app for personal colour analysis and virtual fashion styling. Upload a
+photo, get your colour season and palette, see garments on your own photo,
+and ask a stylist for guidance.
 
-### **Colour Intelligence, Rendered Personal.**
-
-**AI-powered personal colour intelligence and virtual fashion experience.**
-
-Upload a photo. Discover your colour season. Get a personalised palette.
-Then **see how real outfits look on you before you buy them.**
-
-<br/>
-
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-D'Fashion-ff1493?style=for-the-badge)](https://dfashion-rust.vercel.app/home)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge\&logo=github)](https://github.com/kripashankarcs3/d.fashion)
-[![Hackathon](https://img.shields.io/badge/YouCam_AI-Hackathon-ff4f9b?style=for-the-badge)](https://www.perfectcorp.com/business/showcase/youcam-ai-api)
-
-<br/>
-
-![React](https://img.shields.io/badge/React_18-61DAFB?style=flat-square\&logo=react\&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?style=flat-square\&logo=typescript\&logoColor=white)
-![Express](https://img.shields.io/badge/Express_5-000000?style=flat-square\&logo=express\&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat-square\&logo=mongodb\&logoColor=white)
-![Tailwind](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=flat-square\&logo=tailwindcss\&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square\&logo=docker\&logoColor=white)
-
-<br/>
-
-**YouCam API Hackathon — Category 3: Skin AI + Apparel VTO**
-
-</div>
+Live demo: https://dfashion-rust.vercel.app/home
 
 ---
 
-# 🚀 Live Demo
+## Features
 
-### Experience D'Fashion live
+- **Colour analysis** - uploads a photo and reads undertone, depth and contrast
+- **Season report** - one of twelve colour seasons with a palette, neutrals,
+  metals and colours to avoid
+- **Virtual try-on** - garments, makeup and hairstyles on the user's photo
+- **D'Style stylist chat** - an LLM-powered stylist that answers with your
+  colour profile in mind. It keeps the stylist persona and never claims to be
+  an AI. It falls back to a built-in rules engine when no model is configured
+- **Buy links** - the catalogue is sourced from several retailers (Snitch,
+  Myntra, Amazon and others); the Buy button opens the source store
+- **Saved looks** - favourites, saved reports and analysis history on a
+  personal dashboard
 
-👉 **https://dfashion-rust.vercel.app/home**
+## How it works
 
-D'Fashion is deployed as a production web application with a complete user journey from authentication and colour analysis to personalised reports, virtual try-on, saved looks and AI styling.
+1. The user uploads a photograph.
+2. YouCam AI extracts skin and colour data.
+3. The colour engine maps the result to one of twelve seasonal profiles.
+4. The report shows the palette, neutrals, avoid colours and wardrobe guidance.
+5. Virtual try-on lets the user see outfits in their palette on their own photo.
+6. The D'Style chat answers styling questions, grounded in the member's
+   season and palette, in clear structured sections.
 
----
-
-# 💡 Why D'Fashion?
-
-Choosing the right clothes is not only about trends.
-
-**Colour matters.**
-
-A colour that looks amazing on one person can make another person look washed out, dull, or disconnected from their natural features.
-
-Professional colour analysis can solve this problem, but traditional services can be expensive and require studio appointments.
-
-### D'Fashion brings that experience to the web.
-
-With just a photograph, D'Fashion can analyse:
-
-* Skin undertone
-* Skin depth
-* Overall contrast
-* Personal colour season
-* Recommended colour palette
-* Neutrals
-* Metals
-* Colours to avoid
-
-And it goes one step further.
-
-### **Don't just know what colour suits you. See it on you.**
-
-Our virtual try-on experience lets users visualise real garments on their own photo before making a purchase.
-
----
-
-# ✨ Core Experience
-
-|     | Feature                    | Description                                                                                    |
-| --- | -------------------------- | ---------------------------------------------------------------------------------------------- |
-| 📸  | **AI Colour Analysis**     | Analyse a user's photograph to determine undertone, depth and contrast.                        |
-| 🎨  | **Personal Colour Report** | Generate a personalised seasonal colour palette with recommended colours, neutrals and metals. |
-| 👗  | **Virtual Try-On**         | Visualise real garments, curated Indian hairstyles and makeup on the user's own photograph.    |
-| 💬  | **D'Style AI Stylist**     | LLM-powered stylist that answers in clear, structured GPT-style sections based on the user's colour season and wardrobe. |
-| 🔗  | **Buy from Real Stores**   | Garments come from several retailers (Snitch, Myntra, Amazon and more) — the Buy button opens the source store's product. |
-| 🛍️ | **Smart Recommendations**  | Discover garments matched to the user's personal colour profile.                               |
-| ❤️  | **Saved Looks**            | Save favourite looks, analysis reports and fashion inspiration for later.                      |
-| 📊  | **Personal Dashboard**     | Access analysis history, saved images, favourites and personalised fashion information from one place. |
-
----
-
-# 🎯 The User Journey
+## Architecture
 
 ```text
-                    ┌──────────────────┐
-                    │   Upload Photo   │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                  ┌─────────────────────┐
-                  │     YouCam AI       │
-                  │ Skin + Colour AI    │
-                  └──────────┬──────────┘
-                             │
-                             ▼
-                ┌────────────────────────┐
-                │  Colour Analysis Engine│
-                │                        │
-                │ Undertone               │
-                │ Depth                   │
-                │ Contrast                │
-                └───────────┬────────────┘
-                            │
-                            ▼
-                 ┌──────────────────────┐
-                 │  Seasonal Analysis   │
-                 │                      │
-                 │   1 of 12 Seasons    │
-                 └──────────┬───────────┘
-                            │
-            ┌───────────────┼────────────────┐
-            ▼               ▼                ▼
-      ┌──────────┐    ┌────────────┐   ┌──────────────┐
-      │  Report  │    │ Virtual    │   │ D'Style AI   │
-      │  & Color │    │ Try-On     │   │ Stylist      │
-      │  Palette │    │            │   │              │
-      └──────────┘    └────────────┘   └──────────────┘
+Browser (React + Vite)
+        |
+        | REST API
+        v
+Express server
+  |          |          |
+  v          v          v
+YouCam Ai  Colour    D'Style   -> rules engine or an LLM
+(analysis,  engine    stylist       (local model server / Zen API)
+ try-on)   (12 seasons)
+        |
+        v
+     MongoDB
 ```
 
----
+## Tech stack
 
-# 🧠 How It Works
+- Frontend: React 18, TypeScript, Vite, Tailwind CSS v4, Wouter, TanStack
+  Query, Zustand, Framer Motion
+- Backend: Node.js, Express 5, TypeScript, MongoDB + Mongoose, JWT, bcrypt,
+  Helmet, express-rate-limit
+- AI: YouCam AI (analysis and virtual try-on), LLM stylist served through a
+  local `opencode serve` or the OpenCode Zen API
+- Tooling: Vitest, Playwright (e2e), Docker, GitHub Actions
 
-D'Fashion combines computer vision, colour intelligence, virtual try-on and conversational AI into one fashion experience.
+## Routes
 
-### Step 1 — Upload
+| Route        | Access  | Purpose                                |
+| ------------ | ------- | -------------------------------------- |
+| `/`          | Auth    | Entry point (login or dashboard)       |
+| `/home`      | Public  | Landing page                           |
+| `/pricing`   | Public  | Plans                                  |
+| `/about`     | Public  | About                                  |
+| `/contact`   | Public  | Contact                                |
+| `/faq`       | Public  | FAQ                                    |
+| `/blog`      | Public  | Content                                |
+| `/privacy`   | Public  | Privacy policy                         |
+| `/terms`     | Public  | Terms                                  |
+| `/login`     | Guests  | Sign in                                |
+| `/signup`    | Guests  | Create account                         |
+| `/dashboard` | Members | Personal dashboard                     |
+| `/upload`    | Members | Photo upload and analysis              |
+| `/report`    | Members | Colour report                          |
+| `/try-on`    | Members | Virtual try-on                         |
+| `/chat`      | Members | D'Style stylist chat                   |
 
-The user uploads a photograph.
+## API
 
-### Step 2 — AI Analysis
+All endpoints are mounted under `/api`.
 
-The image is processed through the YouCam AI pipeline to extract skin and colour information.
+| Endpoint          | Purpose                              |
+| ----------------- | ------------------------------------ |
+| `/api/auth`       | Register and log in                  |
+| `/api/analyze`    | Colour analysis                      |
+| `/api/seasons`    | Season catalogue                     |
+| `/api/garments`   | Garment catalogue and recommendations |
+| `/api/tryon`      | Try-on jobs (clothes, makeup, hair)  |
+| `/api/chat`       | D'Style stylist chat                 |
+| `/api/products`   | Product catalogue                    |
+| `/api/favorites`  | Saved products and looks             |
+| `/api/history`    | Analysis history                     |
+| `/api/newsletter` | Newsletter subscriptions             |
+| `/api/health`     | Health check                         |
 
-### Step 3 — Colour Intelligence
-
-Our colour analysis engine interprets:
-
-* Undertone
-* Depth
-* Contrast
-
-The result is mapped to **one of twelve seasonal colour profiles**.
-
-### Step 4 — Personalised Report
-
-The user receives:
-
-* Personal colour season
-* Recommended palette
-* Neutrals
-* Metal recommendations
-* Colours to avoid
-* Wardrobe guidance
-
-### Step 5 — Virtual Try-On
-
-Users can select garments and visualise how they look on their own photograph using YouCam Virtual Try-On.
-
-### Step 6 — AI Styling
-
-**D'Style** is an LLM-powered personal stylist. Chat replies are based on the
-member's colour season, palette and wardrobe, and are formatted as scannable
-sections with headings and short steps. The stylist stays fully on persona —
-it never reveals that it is an AI model — and redirects off-topic questions
-back to style, colour and wardrobe advice. It answers questions such as:
-
-> "Does this jacket work for me?"
-
-The report page also links the user straight into the try-on so they can see
-their palette on themselves in one click.
-
----
-
-# 🏗️ System Architecture
+## Project structure
 
 ```text
-                           ┌────────────────────┐
-                           │      User           │
-                           │  Web / Mobile       │
-                           └─────────┬──────────┘
-                                     │
-                                     ▼
-                         ┌───────────────────────┐
-                         │ React + TypeScript    │
-                         │ Vite + Tailwind       │
-                         │ Shadcn/UI             │
-                         └───────────┬───────────┘
-                                     │
-                              REST API Calls
-                                     │
-                                     ▼
-                         ┌───────────────────────┐
-                         │    Express Server     │
-                         │      TypeScript       │
-                         └───────────┬───────────┘
-                                     │
-              ┌──────────────────────┼─────────────────────┐
-              │                      │                     │
-              ▼                      ▼                     ▼
-      ┌──────────────┐      ┌────────────────┐    ┌────────────────┐
-      │   YouCam AI  │      │ Colour Engine  │    │ D'Style AI     │
-      │              │      │                │    │ Stylist        │
-      │ Skin AI      │      │ 12 Seasons     │    │ Rules + LLM    │
-      │ VTO          │      │ Palette Engine │    │ (server / Zen) │
-      └──────────────┘      └────────────────┘    └────────────────┘
-              │                      │                     │
-              └──────────────────────┼─────────────────────┘
-                                     │
-                                     ▼
-                           ┌───────────────────┐
-                           │     MongoDB       │
-                           │                   │
-                           │ Users             │
-                           │ Analysis History  │
-                           │ Products          │
-                           │ Favorites         │
-                           │ Saved Looks       │
-                           └───────────────────┘
+src/            React client (pages, components, hooks, store)
+server/src/     Express server (routes, services, models, data/)
+server/scripts/  helpers (e.g. opencode-serve.mjs)
+server/src/data/garments.json   garment catalogue (571 items)
+e2e/            Playwright end-to-end tests
 ```
 
----
+## Getting started
 
-# 🔐 Security Architecture
-
-Security was considered as part of the application architecture rather than as an afterthought.
-
-### API Key Protection
-
-The browser never receives third-party AI credentials.
-
-```text
-Browser
-   │
-   │ Request
-   ▼
-Express API
-   │
-   │ Secure server-side request
-   ▼
-YouCam / AI Services
-```
-
-This keeps sensitive credentials inside the server environment.
-
-### Security measures
-
-* JWT-based authentication
-* bcrypt password hashing
-* Helmet security headers
-* Content Security Policy
-* API rate limiting
-* Protected routes
-* Guest-only routes
-* Server-side AI API calls
-* Private upload handling
-* `no-store` upload responses
-* `noindex` protection for private uploads
-* SSRF protection for remote image inputs
-* Admin-gated routes
-
----
-
-# 🛠️ Tech Stack
-
-## Frontend
-
-* React 18
-* TypeScript 5.5
-* Vite 6
-* Tailwind CSS v4
-* shadcn/ui
-* Wouter
-* Framer Motion
-* TanStack Query
-* Zustand
-
-## Backend
-
-* Node.js
-* Express 5
-* TypeScript
-* MongoDB
-* Mongoose
-* JWT
-* bcrypt
-* Helmet
-* express-rate-limit
-* Vitest
-
-## AI & Computer Vision
-
-* YouCam AI
-* YouCam Virtual Try-On
-* Colour analysis engine
-* Rules-based styling (built-in fallback)
-* LLM-powered stylist — model served via OpenCode Zen API or a local `opencode serve`
-* Structured GPT-style reply rendering in the chat
-
-## Infrastructure
-
-* Docker
-* Docker Compose
-* GitHub Actions
-* Vercel
-* Render
-
----
-
-# 🗺️ Application Routes
-
-| Route        | Access     | Purpose                                 |
-| ------------ | ---------- | --------------------------------------- |
-| `/`          | Auth-based | Login or application entry              |
-| `/home`      | Public     | D'Fashion campaign landing page         |
-| `/pricing`   | Public     | Pricing and plans                       |
-| `/about`     | Public     | About D'Fashion                         |
-| `/contact`   | Public     | Contact                                 |
-| `/faq`       | Public     | Frequently asked questions              |
-| `/blog`      | Public     | Fashion and colour intelligence content |
-| `/privacy`   | Public     | Privacy policy                          |
-| `/terms`     | Public     | Terms                                   |
-| `/login`     | Guests     | User authentication                     |
-| `/signup`    | Guests     | Account creation                        |
-| `/dashboard` | Members    | Personal fashion dashboard              |
-| `/upload`    | Members    | Photo upload and colour analysis        |
-| `/report`    | Members    | Personal colour report                  |
-| `/try-on`    | Members    | Virtual apparel try-on                  |
-| `/chat`      | Members    | D'Style AI stylist                      |
-
----
-
-# 🔌 API Architecture
-
-All backend endpoints are mounted under:
-
-```text
-/api
-```
-
-| Endpoint                   | Purpose                             |
-| -------------------------- | ----------------------------------- |
-| `/api/auth`                | Authentication and sessions         |
-| `/api/analyze`             | Photo colour analysis               |
-| `/api/seasons`             | Season catalogue                    |
-| `/api/garments`            | Garment catalogue + colour-matched recommendations |
-| `/api/tryon`               | Virtual try-on jobs (clothes, makeup, hair) + templates |
-| `/api/chat`                | D'Style AI stylist                  |
-| `/api/products`            | Product catalogue                   |
-| `/api/favorites`           | Saved products and looks            |
-| `/api/history`             | User analysis history               |
-| `/api/newsletter`          | Newsletter subscriptions            |
-| `/api/health`              | Application health check            |
-
----
-
-# 📁 Project Structure
-
-```text
-d.fashion/
-│
-├── src/
-│   ├── components/
-│   │   ├── UI components
-│   │   ├── Editorial system
-│   │   └── shadcn primitives
-│   │
-│   ├── pages/
-│   │   ├── Home
-│   │   ├── Dashboard
-│   │   ├── Upload
-│   │   ├── Report
-│   │   ├── Try-On
-│   │   └── Chat
-│   │
-│   ├── hooks/
-│   │   ├── useAnalysis
-│   │   └── useTryOn
-│   │
-│   ├── store/
-│   │   ├── auth
-│   │   └── style
-│   │
-│   ├── services/
-│   │   └── API client
-│   │
-│   └── config/
-│       └── Navigation + page metadata
-│
-├── server/
-│   └── src/
-│       ├── routes/
-│       ├── controllers/
-│       ├── services/
-│       │   ├── YouCam
-│       │   ├── stylist
-│       │   ├── recommendations
-│       │   └── images
-│       │
-│       ├── data/
-│       │   └── garments.json      (571-item multi-retailer catalogue)
-│       ├── models/
-│       ├── middleware/
-│       └── utils/
-│           ├── colourAnalysis
-│           ├── JWT
-│           └── responses
-│
-├── server/scripts/
-│   └── opencode-serve.mjs   (launches the local stylist model server)
-│
-├── e2e/
-│   └── Playwright tests
-│
-├── scripts/
-│   └── Image optimisation
-│
-├── public/
-│   └── images/
-│
-├── Dockerfile
-├── docker-compose.yml
-├── package.json
-├── vite.config.js
-├── render.yaml
-├── vercel.json
-└── README.md
-```
-
----
-
-# ⚡ Getting Started
-
-## Prerequisites
-
-Make sure the following are installed:
-
-* Node.js 18+
-* npm
-* MongoDB
-* YouCam AI API key
-
----
-
-## 1. Clone the repository
+Requirements: Node.js 18+, npm, MongoDB, and a YouCam AI API key.
 
 ```bash
 git clone https://github.com/kripashankarcs3/d.fashion.git
-
 cd d.fashion
-```
 
----
-
-## 2. Install dependencies
-
-```bash
 npm install
-
 npm --prefix server install
-```
 
----
-
-## 3. Configure environment variables
-
-Create the frontend environment file:
-
-```bash
 cp .env.example .env
-```
-
-Create the server environment file:
-
-```bash
 cp server/.env.example server/.env
 ```
 
-Configure:
+Environment variables (see `server/src/config/env.ts` for the full schema):
 
-| Variable                  | Required | Purpose                                        |
-| ------------------------- | -------: | ---------------------------------------------- |
-| `JWT_SECRET`              |        ✅ | Authentication security                        |
-| `MONGODB_URI`             |        ✅ | MongoDB connection                             |
-| `YOUCAM_API_KEY`          |        ✅ | AI colour analysis + virtual try-on            |
-| `OPENCODE_MODE`           |   Optional | `zen` (paid model API) or `server` (local `opencode serve` uses free models) |
-| `OPENCODE_API_KEY`        |   Optional | Zen-mode API key for the stylist chat (falls back to the rules engine) |
-| `OPENCODE_MODEL`          |   Optional | Model id for the stylist chat (e.g. `ling-3.0-flash-fin-free`) |
-| `OPENCODE_SERVER_URL`     |   Optional | Local model server URL (default `http://127.0.0.1:4096`) |
-| `OPENCODE_SERVER_USERNAME` / `PASSWORD` | Optional | Credentials for the local model server |
-| `OPENCODE_TIMEOUT_MS`     |   Optional | Model reply timeout; on timeout the rules engine answers |
-| `FIREBASE_PROJECT_ID`     |        ✅ | Firebase authentication                       |
-| `FIREBASE_CLIENT_EMAIL`   |        ✅ | Firebase service account                       |
-| `FIREBASE_PRIVATE_KEY`    |        ✅ | Firebase service account                       |
-| `CLIENT_ORIGIN`           |   Optional | Frontend origin                                |
-| `PORT`                    |   Optional | Backend port                                   |
-| `NODE_ENV`                |   Optional | Runtime environment                            |
+| Variable                      | Required | Purpose                                 |
+| ----------------------------- | -------- | --------------------------------------- |
+| `JWT_SECRET`                  | Yes      | Authentication                          |
+| `MONGODB_URI`                 | Yes      | MongoDB connection                      |
+| `YOUCAM_API_KEY`              | Yes      | Colour analysis and try-on              |
+| `FIREBASE_PROJECT_ID`         | Yes      | Firebase auth                           |
+| `FIREBASE_CLIENT_EMAIL`       | Yes      | Firebase service account                |
+| `FIREBASE_PRIVATE_KEY`        | Yes      | Firebase service account                |
+| `OPENCODE_MODE`               | No       | `zen` (model API) or `server` (local serve) |
+| `OPENCODE_MODEL`              | No       | Model id for the stylist chat           |
+| `OPENCODE_SERVER_URL`         | No       | Local model server address              |
+| `OPENCODE_SERVER_USERNAME`    | No       | Local model server username             |
+| `OPENCODE_SERVER_PASSWORD`    | No       | Local model server password             |
+| `OPENCODE_TIMEOUT_MS`         | No       | Model reply timeout (rules engine on timeout) |
+| `CLIENT_ORIGIN`               | No       | Frontend origin                         |
+| `PORT`                        | No       | Backend port (default 3001)             |
 
-> **Important:** Never commit `.env` files or API keys to GitHub.
+Never commit `.env` files or keys.
 
----
-
-# ▶️ Run Locally
-
-Start the application:
+## Run locally
 
 ```bash
 npm run dev
 ```
 
-The development environment starts both frontend and backend.
+- Frontend: http://localhost:5173
+- API: http://localhost:3001
 
-### Frontend
+A local stylist model server (`opencode serve`) can be started with
+`npm --prefix server run serve:stylist` if you use `OPENCODE_MODE=server`.
 
-```text
-http://localhost:5173
-```
-
-### API
-
-```text
-http://localhost:3001
-```
-
----
-
-# 🧪 Testing & Verification
-
-## Type checking
+## Tests
 
 ```bash
-npm run typecheck
-```
-
-## Production build
-
-```bash
-npm run build
-```
-
-## Backend tests
-
-```bash
+npm run typecheck       # type checking
+npm run build           # production build
 npm --prefix server test
-```
-
----
-
-# 🎭 End-to-End Testing
-
-D'Fashion uses Playwright for end-to-end testing.
-
-Install Chromium:
-
-```bash
-npx playwright install chromium
-```
-
-Start the development server:
-
-```bash
-npm run dev
-```
-
-Then run:
-
-```bash
+npx playwright install chromium   # once, for e2e
 npm run test:e2e
 ```
 
-The E2E suite covers the application's major routes and user flows including:
-
-```text
-Signup
-   ↓
-Authentication
-   ↓
-Photo Upload
-   ↓
-Colour Analysis
-   ↓
-Report
-   ↓
-AI Stylist
-```
-
----
-
-# 🐳 Docker Deployment
-
-D'Fashion can also be deployed using Docker.
-
-### Full stack
+## Docker
 
 ```bash
-export YOUCAM_API_KEY=your_key_here
-
 docker compose up --build -d
 ```
 
-Application:
+## Deployment
 
-```text
-http://localhost:3001
-```
+Vercel and Render configs are included (`vercel.json`, `render.yaml`). The
+Express server can serve both the API and the built client from one container.
 
-### Server-only image
+## License
 
-```bash
-docker build -t dfashion .
-```
-
-Run:
-
-```bash
-docker run -p 3001:3001 \
-  -e JWT_SECRET=... \
-  -e MONGODB_URI=... \
-  -e YOUCAM_API_KEY=... \
-  dfashion
-```
-
----
-
-# ☁️ Deployment
-
-Production deployment configurations are included for:
-
-* Vercel
-* Render
-* Docker
-
-The Express server can serve both the backend API and the built React application, allowing the complete product to run through a single production container.
-
----
-
-# 🔄 Continuous Integration
-
-GitHub Actions runs the project's verification pipeline on pushes and pull requests to `main`.
-
-```text
-Git Push / Pull Request
-          │
-          ▼
-    ┌──────────────┐
-    │ Type Checking│
-    └──────┬───────┘
-           ▼
-    ┌──────────────┐
-    │ Production   │
-    │ Build        │
-    └──────┬───────┘
-           ▼
-    ┌──────────────┐
-    │ Backend Tests │
-    └──────┬───────┘
-           ▼
-    ┌──────────────┐
-    │ E2E Tests    │
-    └──────┬───────┘
-           ▼
-       ✅ PASS
-```
-
----
-
-# 🏆 Hackathon
-
-### YouCam API Hackathon
-
-**Category 3 — Skin AI + Apparel Virtual Try-On**
-
-D'Fashion combines:
-
-**Skin AI + Colour Intelligence + Personalisation + Virtual Try-On + AI Styling**
-
-into one end-to-end fashion experience.
-
----
-
-# 🌟 What Makes D'Fashion Different?
-
-Most fashion platforms answer:
-
-> **"What's trending?"**
-
-D'Fashion asks:
-
-> **"What actually works for YOU?"**
-
-The platform connects a user's personal colour profile with fashion discovery and virtual visualisation.
-
-```text
-PERSON
-  │
-  ▼
-SKIN + COLOUR INTELLIGENCE
-  │
-  ▼
-PERSONAL COLOUR PROFILE
-  │
-  ├───────────────┐
-  ▼               ▼
-FASHION          AI STYLE
-DISCOVERY        ASSISTANT
-  │               │
-  └───────┬───────┘
-          ▼
-     VIRTUAL TRY-ON
-          │
-          ▼
-   CONFIDENT DECISION
-```
-
----
-
-# 🔮 Future Roadmap
-
-Potential future improvements include:
-
-* 📱 Native mobile application
-* 🧥 Larger apparel catalogue
-* 🪞 More advanced virtual try-on
-* 🧠 Improved personal styling intelligence
-* 🛒 Direct fashion marketplace integration
-* 👚 Digital wardrobe management
-* 📈 Personal style evolution tracking
-* 🌍 Multi-region fashion recommendations
-* 🤝 Brand and retailer integrations
-* 🎯 More granular body and style personalisation
-
----
-
-# 👥 Team
-
-Built with passion for the **YouCam AI Hackathon**.
-
-### Contributors
-
-* **Deepali Kumari**
-* **Kripashankar Yadav**
-
----
-
-# 🤝 Contributing
-
-Contributions are welcome for future development.
-
-### Development workflow
-
-```bash
-git checkout main
-
-git pull origin main
-
-git checkout -b feature/your-feature
-
-# Make your changes
-
-npm run typecheck
-npm run build
-npm run test:e2e
-
-git add .
-
-git commit -m "feat: add your feature"
-
-git push origin feature/your-feature
-```
-
-Then open a Pull Request.
-
----
-
-# 🔒 Security
-
-If you discover a security vulnerability, please do not publicly disclose sensitive information through GitHub Issues.
-
-Instead, contact the project maintainers privately.
-
----
-
-# 📜 License
-
-**Private Project — All Rights Reserved**
-
-This project and its source code are proprietary unless otherwise stated by the project maintainers.
-
----
-
-<div align="center">
-
-# ✦ D'Fashion
-
-### **Discover. Style. Inspire.**
-
-**AI that understands your colours.
-Fashion that understands you.**
-
-<br/>
-
-### 🚀 Try D'Fashion
-
-**[Live Demo →](https://dfashion-rust.vercel.app/home)**
-
-<br/>
-
-**Built with React · TypeScript · Express · MongoDB · YouCam AI**
-
-<br/>
-
-⭐ **If you like the project, consider starring the repository!** ⭐
-
-</div>
+Private project - all rights reserved.
