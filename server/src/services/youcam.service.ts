@@ -116,10 +116,13 @@ class YouCamService {
     "redness", "eye_bag", "texture",
   ];
 
+  // Names must match YouCam's SD dst_actions exactly — one unknown name (this
+  // list used to send "dark_circle") rejects the whole request, and the call
+  // silently fell back to the six base metrics.
   private static readonly SKIN_EXTENDED_ACTIONS = [
     ...YouCamService.SKIN_BASE_ACTIONS,
     "oiliness", "moisture", "firmness", "radiance",
-    "age_spot", "dark_circle", "skin_type",
+    "age_spot", "dark_circle_v2", "skin_type",
   ];
 
   async analyzeSkin(filePath: string) {
