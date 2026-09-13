@@ -22,6 +22,8 @@ services:
         sync: false
       - key: YOUCAM_API_KEY
         sync: false
+      - key: OPENCODE_API_KEY
+        sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
       - key: FIREBASE_CLIENT_EMAIL

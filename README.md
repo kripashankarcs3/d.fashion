@@ -478,6 +478,7 @@ Configure:
 | `JWT_SECRET`          |        ✅ | Authentication security      |
 | `MONGODB_URI`         |        ✅ | MongoDB connection           |
 | `YOUCAM_API_KEY`      |        ✅ | AI analysis + virtual try-on |
+| `OPENCODE_API_KEY`    | Optional | Stylist chat replies (falls back to the rules engine) |
 | `FIREBASE_PROJECT_ID` |        ✅ | Firebase authentication      |
 | `CLIENT_EMAIL`        |        ✅ | Firebase service account     |
 | `PRIVATE_KEY`         |        ✅ | Firebase service account     |
