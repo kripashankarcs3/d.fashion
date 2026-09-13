@@ -1,3 +1,5 @@
+import os from "os";
+import path from "path";
 import { env } from "../config/env";
 import {
   deriveSeason,
@@ -177,7 +179,7 @@ export function generateStylistReply(message: string, context?: StylistContext):
   return `I want to give you something genuinely useful, so let me work with what I know: your season is **${season}** (${undertone} undertone), which means colours like **${paletteLine}** tend to flatter you, while ${avoidLine} are best kept small. Ask me about an occasion, a specific colour, makeup, hair, or how to style your wardrobe — and I will tailor the answer to you.`;
 }
 
-/* ------------------------------------------------ OpenCode Zen model path */
+/* ---------------------------------------------------- OpenCode model path */
 
 /** One prior conversational turn, oldest first. */
 export interface ChatTurn {
@@ -249,11 +251,164 @@ function buildSystemPrompt(ctx?: StylistContext): string {
   ].join("\n");
 }
 
+/** OPENCODE_MODEL as OpenCode's `{ providerID, modelID }`. A bare id such as
+ *  `big-pickle` means the `opencode` (Zen) provider; `provider/model` is honoured. */
+export function openCodeModelRef(): { providerID: string; modelID: string } {
+  const [first, ...rest] = env.OPENCODE_MODEL.split("/");
+  return rest.length > 0
+    ? { providerID: first, modelID: rest.join("/") }
+    : { providerID: "opencode", modelID: first };
+}
+
+/** Zen mode: OpenCode Zen's OpenAI-compatible chat completions API (paid models). */
+async function replyViaZen(message: string, ctx: StylistContext | undefined, history: ChatTurn[]) {
+  const res = await fetch(`${env.OPENCODE_BASE_URL.replace(/\/+$/, "")}/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.OPENCODE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: openCodeModelRef().modelID,
+      max_tokens: env.OPENCODE_MAX_TOKENS,
+      messages: [
+        { role: "system", content: buildSystemPrompt(ctx) },
+        ...history.slice(-MAX_HISTORY_TURNS),
+        { role: "user", content: message },
+      ],
+    }),
+    signal: AbortSignal.timeout(env.OPENCODE_TIMEOUT_MS),
+  });
+
+  if (!res.ok) {
+    // The body is what explains a bad key, an unknown model or exhausted credit.
+    const detail = (await res.text().catch(() => "")).slice(0, 300);
+    throw new Error(`HTTP ${res.status} ${detail}`.trim());
+  }
+
+  const data = (await res.json()) as {
+    choices?: { message?: { content?: unknown } }[];
+  };
+  const content = data.choices?.[0]?.message?.content;
+  if (typeof content !== "string" || !content.trim()) {
+    throw new Error("Completion contained no text");
+  }
+  return content.trim();
+}
+
+/** Folder the local OpenCode server's sessions run in. Must stay an empty
+ *  sandbox, never this checkout; scripts/opencode-serve.mjs uses the same default. */
+export function openCodeSandboxDirectory(): string {
+  return env.OPENCODE_SERVER_DIRECTORY || path.join(os.tmpdir(), "deestyle-stylist");
+}
+
+function openCodeServerFetch(route: string, init: RequestInit = {}) {
+  const url = new URL(route, env.OPENCODE_SERVER_URL);
+  url.searchParams.set("directory", openCodeSandboxDirectory());
+  const credentials = Buffer.from(
+    `${env.OPENCODE_SERVER_USERNAME}:${env.OPENCODE_SERVER_PASSWORD}`,
+  ).toString("base64");
+  return fetch(url, {
+    ...init,
+    headers: { Authorization: `Basic ${credentials}`, "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(env.OPENCODE_TIMEOUT_MS),
+  });
+}
+
 /**
- * Answers through OpenCode Zen's OpenAI-compatible chat completions endpoint,
- * and falls back to the rules engine whenever that is not possible — no key
- * configured, a timeout, a provider error, or an empty completion — so the
- * chat always replies.
+ * Every tool the server offers, switched off. OpenCode is a coding agent whose
+ * tools read and write files and run shell commands, and a member's chat
+ * message must never be able to reach them. The list is fetched on every
+ * request rather than hardcoded or cached, so a tool added by an OpenCode
+ * upgrade or a newly configured MCP server is disabled as well — and when the
+ * list cannot be read, the caller sends nothing at all.
+ */
+async function allToolsDisabled(): Promise<Record<string, boolean>> {
+  const res = await openCodeServerFetch("/experimental/tool/ids");
+  if (!res.ok) throw new Error(`Tool list unavailable (HTTP ${res.status})`);
+  const ids: unknown = await res.json();
+  if (!Array.isArray(ids) || ids.length === 0) throw new Error("Tool list was empty");
+  return Object.fromEntries(
+    ids.filter((id): id is string => typeof id === "string").map((id) => [id, false]),
+  );
+}
+
+/** Server mode opens a fresh session per request, so prior turns ride in the prompt. */
+function withTranscript(message: string, history: ChatTurn[]): string {
+  const turns = history
+    .slice(-MAX_HISTORY_TURNS)
+    .map((turn) => `${turn.role === "user" ? "Member" : "Stylist"}: ${turn.content}`);
+  return turns.length === 0
+    ? message
+    : `Conversation so far:\n${turns.join("\n")}\n\nMember's new message:\n${message}`;
+}
+
+/** Server mode: a local `opencode serve`, which is where Zen's free models may be used. */
+async function replyViaOpenCodeServer(
+  message: string,
+  ctx: StylistContext | undefined,
+  history: ChatTurn[],
+) {
+  const tools = await allToolsDisabled();
+
+  const created = await openCodeServerFetch("/session", {
+    method: "POST",
+    body: JSON.stringify({ title: "stylist-chat" }),
+  });
+  if (!created.ok) throw new Error(`Could not open a session (HTTP ${created.status})`);
+  const { id } = (await created.json()) as { id?: unknown };
+  if (typeof id !== "string" || !id) throw new Error("Session had no id");
+
+  try {
+    const res = await openCodeServerFetch(`/session/${encodeURIComponent(id)}/message`, {
+      method: "POST",
+      body: JSON.stringify({
+        model: openCodeModelRef(),
+        system: buildSystemPrompt(ctx),
+        tools,
+        parts: [{ type: "text", text: withTranscript(message, history) }],
+      }),
+    });
+    if (!res.ok) {
+      const detail = (await res.text().catch(() => "")).slice(0, 300);
+      throw new Error(`HTTP ${res.status} ${detail}`.trim());
+    }
+
+    const data = (await res.json()) as {
+      info?: { error?: unknown };
+      parts?: { type?: unknown; text?: unknown }[];
+    };
+    if (data.info?.error) {
+      throw new Error(`Provider error: ${JSON.stringify(data.info.error).slice(0, 300)}`);
+    }
+    const parts = data.parts ?? [];
+    // Tools are all disabled; a tool part here means that guard failed, so the
+    // reply is not trusted.
+    if (parts.some((part) => part.type === "tool")) {
+      throw new Error("Model attempted a tool call");
+    }
+    const text = parts
+      .filter((part): part is { type: "text"; text: string } =>
+        part.type === "text" && typeof part.text === "string")
+      .map((part) => part.text)
+      .join("\n")
+      .trim();
+    if (!text) throw new Error("Completion contained no text");
+    return text;
+  } finally {
+    // Sessions persist in OpenCode's local database; a member's chat has no
+    // reason to outlive the reply.
+    void openCodeServerFetch(`/session/${encodeURIComponent(id)}`, { method: "DELETE" }).catch(
+      () => {},
+    );
+  }
+}
+
+/**
+ * Answers through OpenCode — the Zen API directly, or a local OpenCode server
+ * (OPENCODE_MODE) — and falls back to the rules engine whenever that is not
+ * possible: nothing configured, a timeout, a provider error, a refused tool
+ * call or an empty completion. The chat always replies.
  */
 export async function generateStylistReplyAI(
   message: string,
@@ -265,42 +420,15 @@ export async function generateStylistReplyAI(
     source: "rules",
   });
 
-  if (!env.OPENCODE_API_KEY) return fromRules();
+  const viaServer = env.OPENCODE_MODE === "server";
+  const configured = viaServer ? Boolean(env.OPENCODE_SERVER_PASSWORD) : Boolean(env.OPENCODE_API_KEY);
+  if (!configured) return fromRules();
 
   try {
-    const res = await fetch(`${env.OPENCODE_BASE_URL.replace(/\/+$/, "")}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.OPENCODE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: env.OPENCODE_MODEL,
-        max_tokens: env.OPENCODE_MAX_TOKENS,
-        messages: [
-          { role: "system", content: buildSystemPrompt(ctx) },
-          ...history.slice(-MAX_HISTORY_TURNS),
-          { role: "user", content: message },
-        ],
-      }),
-      signal: AbortSignal.timeout(env.OPENCODE_TIMEOUT_MS),
-    });
-
-    if (!res.ok) {
-      // The body is what explains a bad key, an unknown model or exhausted credit.
-      const detail = (await res.text().catch(() => "")).slice(0, 300);
-      throw new Error(`HTTP ${res.status} ${detail}`.trim());
-    }
-
-    const data = (await res.json()) as {
-      choices?: { message?: { content?: unknown } }[];
-    };
-    const content = data.choices?.[0]?.message?.content;
-    if (typeof content !== "string" || !content.trim()) {
-      throw new Error("Completion contained no text");
-    }
-
-    return { reply: content.trim(), source: "opencode" };
+    const reply = viaServer
+      ? await replyViaOpenCodeServer(message, ctx, history)
+      : await replyViaZen(message, ctx, history);
+    return { reply, source: "opencode" };
   } catch (err) {
     console.warn("OpenCode stylist reply failed, using rules engine:", (err as Error).message);
     return fromRules();

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon --watch src --ext ts --exec ts-node ./src/server.ts",
     "build": "tsc && npm run copy:assets",
-    "copy:assets": "node -e \"require('fs').cpSync('src/data','dist/data',{recursive:true,filter:p=>!p.endsWith('.ts')})\"",
+    "stylist:serve": "node scripts/opencode-serve.mjs",
+    "copy:assets":"node -e \"require('fs').cpSync('src/data','dist/data',{recursive:true,filter:p=>!p.endsWith('.ts')})\"",
     "typecheck": "tsc --noEmit",
     "start": "node dist/server.js",
     "test": "vitest run"
