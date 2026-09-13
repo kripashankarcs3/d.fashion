@@ -22,7 +22,6 @@ Then **see how real outfits look on you before you buy them.**
 ![Express](https://img.shields.io/badge/Express_5-000000?style=flat-square\&logo=express\&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat-square\&logo=mongodb\&logoColor=white)
 ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=flat-square\&logo=tailwindcss\&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square\&logo=docker\&logoColor=white)
 
 <br/>
 
@@ -191,7 +190,7 @@ before making a purchase.
 
 **Infrastructure**
 
-- Docker, Docker Compose, GitHub Actions, Vercel, Render
+- Vercel and Render, with GitHub Actions running the verification pipeline
 
 ---
 
@@ -290,23 +289,6 @@ Never commit `.env` files or keys.
 
 ---
 
-## Run Locally
-
-```bash
-npm run dev
-```
-
-- Frontend: http://localhost:5173
-- API: http://localhost:3001
-
-For the LLM stylist in server mode, start the local model server first:
-
-```bash
-npm --prefix server run serve:stylist
-```
-
----
-
 ## Testing
 
 ```bash
@@ -325,22 +307,11 @@ npm run test:e2e
 
 ---
 
-## Docker
-
-```bash
-export YOUCAM_API_KEY=your_key_here
-docker compose up --build -d
-```
-
-Application: http://localhost:3001
-
----
-
 ## Deployment
 
-Production configs are included for Vercel (`vercel.json`), Render
-(`render.yaml`) and Docker. The Express server can serve both the backend API
-and the built React app from a single container.
+Production configs are included for Vercel (`vercel.json`) and Render
+(`render.yaml`). The Express server can serve both the backend API and the
+built React app from a single container.
 
 ---
 
