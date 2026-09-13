@@ -8,6 +8,7 @@ import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import Reveal from '@/components/editorial/Reveal';
 import { CAMPAIGN } from '@/lib/editorial-images';
 import { ROUTES } from '@/config/navigation';
+import { BRAND } from '@/config/site';
 
 const STATS = [
   { value: '50,000+', label: 'Colour profiles created' },
@@ -72,7 +73,7 @@ export default function About() {
       >
         <div className="max-w-[44rem]">
           <Reveal variant="fade">
-            <EyebrowLabel tone="inverse" rule>About D&rsquo;Fashion</EyebrowLabel>
+            <EyebrowLabel tone="inverse" rule>About {BRAND.name}</EyebrowLabel>
           </Reveal>
           <motion.div
             initial={{ clipPath: 'inset(0 0 100% 0)', y: 8 }}
@@ -174,7 +175,7 @@ export default function About() {
 
               <Reveal variant="fade" delay={0.2}>
                 <p className="text-body-sm leading-relaxed text-cream-primary/60">
-                  D&rsquo;Fashion reads your skin undertone, depth, and contrast from a single
+                  {BRAND.name} reads your skin undertone, depth, and contrast from a single
                   photograph in natural light, places you in one of the twelve colour seasons, and
                   builds a palette you can actually wear. The technology is ours; the eye is the
                   same one a stylist would bring.

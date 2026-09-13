@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 import StylistChat from '@/components/StylistChat';
 import PageMasthead from '@/components/editorial/PageMasthead';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
-import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
+import { Emphasis } from '@/components/editorial/EditorialHeading';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import { MessageSquare, Palette, Shirt, Sparkles } from 'lucide-react';
+import { BRAND } from '@/config/site';
 
 const samplePrompts = [
   'What should I wear to a casual Friday at a creative agency?',
@@ -163,7 +164,7 @@ export default function Chat() {
             {/* What D'Style Knows — minimal list */}
             <div>
               <EyebrowLabel tone="muted" className="mb-4">
-                What D&rsquo;Style Knows
+                What {BRAND.stylistName} Knows
               </EyebrowLabel>
               <ul className="space-y-5">
                 {knowledge.map((item) => (

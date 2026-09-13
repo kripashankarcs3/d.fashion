@@ -1,11 +1,15 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { env } from "../config/env";
 import {
   deriveSeason,
-  deriveUndertone,
   getSeasonProfile,
   colourName,
 } from "../utils/colourAnalysis";
+import {
+  COMMON_COLOURS,
+  OCCASIONS,
+  OCCASION_GUIDANCE,
+  OCCASION_PICK,
+  STYLIST_NAME,
+} from "../config/stylist";
 
 export interface StylistContext {
   analysisResult?: {
@@ -32,55 +36,9 @@ export interface StylistContext {
   }>;
 }
 
-const OCCASIONS: { id: string; regex: string; label: string }[] = [
-  { id: "work", regex: "work|office|meeting|corporate", label: "the office" },
-  { id: "interview", regex: "interview", label: "an interview" },
-  { id: "party", regex: "party|club|night|evening out", label: "an evening out" },
-  { id: "wedding", regex: "wedding|marriage|sangeet|reception|function|bride", label: "a wedding" },
-  { id: "date", regex: "date|dinner", label: "a date" },
-  { id: "casual", regex: "casual|weekend|brunch|coffee", label: "a casual weekend" },
-  { id: "vacation", regex: "vacation|beach|holiday|trip|travel", label: "a getaway" },
-  { id: "festival", regex: "festival|diwali|holi|navratri|eid", label: "a festival" },
-];
-
-const OCCASION_GUIDANCE: Record<string, string> = {
-  work: "Lean on your neutrals and a single statement piece. A tailored blazer in a muted neutral anchors the look, while one bold accent keeps it personal without shouting.",
-  interview: "Interviews call for quiet confidence. Keep the silhouette clean and the colours calm — a neutral base with one small accent reads as composed and capable.",
-  party: "An evening out is your moment to use the deeper, richer end of your palette. Let one vivid colour lead, keep the rest neutral, and add a metallic that sits in your season.",
-  wedding: "Weddings let you go bold, but stay within your season so the colour flatters rather than competes. Pick one saturated shade for the main piece and carry it with a neutral or two.",
-  date: "For a date, choose colours that warm your complexion and feel approachable. A soft, flattering tone near the face does more than a loud print ever could.",
-  casual: "For a casual weekend, keep it effortless: a neutral base, one relaxed layer from your palette, and comfortable fits. Style comes from the colour, not the complication.",
-  vacation: "On holiday, translate your palette into relaxed fabrics — lighter versions of your colours read effortless in bright light and photograph beautifully.",
-  festival: "Festivals are made for colour. Pull a rich shade from your palette for the main outfit and balance it with a neutral; skip anything on your avoid list so you glow, not clash.",
-};
-
-const OCCASION_PICK: Record<string, string[]> = {
-  work: ["#C19A6B", "#556B2F", "#F3E7CF"],
-  interview: ["#8B4513", "#3A3F44", "#F7F8FB"],
-  party: ["#B7410E", "#16213E", "#1F4ED8"],
-  wedding: ["#B8860B", "#C21B7E", "#954535"],
-  date: ["#D2691E", "#C9A2A4", "#E8B4C8"],
-  casual: ["#556B2F", "#9DB6C9", "#8A8D7A"],
-  vacation: ["#C7953A", "#9DB6C9", "#E2D0B4"],
-  festival: ["#C21B7E", "#2B3A8F", "#B8860B"],
-};
-
 function has(haystack: string, pattern: RegExp): boolean {
   return pattern.test(haystack);
 }
-
-const COMMON_COLOURS: Record<string, "warm" | "cool" | "neutral"> = {
-  red: "warm", orange: "warm", rust: "warm", terracotta: "warm", coral: "warm",
-  yellow: "warm", gold: "warm", goldenrod: "warm", ochre: "warm", camel: "warm",
-  olive: "warm", brown: "warm", beige: "warm", tan: "warm", cream: "warm",
-  ivory: "neutral", mustard: "warm", maroon: "warm", brick: "warm",
-  burgundy: "warm", chestnut: "warm", chocolate: "warm", copper: "warm",
-  blue: "cool", navy: "cool", royal: "cool", teal: "cool", turquoise: "cool",
-  purple: "cool", violet: "cool", magenta: "cool", fuchsia: "cool",
-  pink: "cool", rose: "cool", berry: "cool", plum: "cool", lavender: "cool",
-  white: "neutral", black: "neutral", grey: "neutral", gray: "neutral",
-  silver: "cool", charcoal: "cool", slate: "cool", sage: "neutral",
-};
 
 export function generateStylistReply(message: string, context?: StylistContext): string {
   const text = ` ${(message ?? "").trim().toLowerCase()} `;
@@ -133,7 +91,6 @@ export function generateStylistReply(message: string, context?: StylistContext):
           ? { foundation: "#CDA27E", blush: "#DE9AA6", lip: "#B9686B" }
           : { foundation: "#C99B6A", blush: "#E8A0B4", lip: "#C97B84" };
     const shades = analysis?.recommendations?.makeupShades ?? fallbackShades;
-    const foundation = shades.foundation ?? fallbackShades.foundation;
     const blush = shades.blush ?? fallbackShades.blush;
     const lip = shades.lip ?? fallbackShades.lip;
     const hex = analysis?.colorProfile?.skinToneHex;
@@ -211,38 +168,9 @@ export function generateStylistReply(message: string, context?: StylistContext):
 
   // ── Greeting ──
   if (has(text, /(^|\s)(hi|hello|hey|namaste|yo)([\s,.!?]|$)/)) {
-    return `Hello! I am **D'Style**, your personal stylist. I have your colour season — **${season}** — and I can help with colours, occasions, makeup, hair, or styling pieces from your wardrobe. What shall we plan today?`;
+    return `Hello! I am **${STYLIST_NAME}**, your personal stylist. I have your colour season — **${season}** — and I can help with colours, occasions, makeup, hair, or styling pieces from your wardrobe. What shall we plan today?`;
   }
 
   // ── Fallback ──
   return `I want to give you something genuinely useful, so let me work with what I know: your season is **${season}** (${undertone} undertone), which means colours like **${paletteLine}** tend to flatter you, while ${avoidLine} are best kept small. Ask me about an occasion, a specific colour, makeup, hair, or how to style your wardrobe — and I will tailor the answer to you.`;
-}
-
-export async function generateStylistReplyAI(
-  message: string,
-  ctx?: StylistContext
-): Promise<string> {
-  if (!env.ANTHROPIC_API_KEY) return generateStylistReply(message, ctx);
-
-  try {
-    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-    const res = await client.messages.create({
-      model: "claude-sonnet-5",
-      max_tokens: 700,
-      system:
-        "You are D'Style, a warm, expert personal colour-and-style consultant for D'Fashion. " +
-        "Ground every answer in the user's colour analysis JSON below. Never invent an analysis " +
-        "they don't have. Be specific and concise; use **bold** for colour names.\n" +
-        `USER ANALYSIS: ${JSON.stringify(ctx?.analysisResult ?? null)}\n` +
-        `USER WARDROBE: ${JSON.stringify(ctx?.wardrobeItems ?? [])}`,
-      messages: [{ role: "user", content: message }],
-    });
-    return res.content
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join("\n");
-  } catch (err) {
-    console.warn("Claude stylist failed, using rules engine:", (err as Error).message);
-    return generateStylistReply(message, ctx);
-  }
 }

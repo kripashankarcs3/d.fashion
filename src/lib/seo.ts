@@ -1,4 +1,5 @@
 import { SITE_URL, type PageMeta } from '@/config/navigation';
+import { OG_IMAGE_PATH } from '@/config/site';
 
 function ensureMeta(attr: 'name' | 'property', key: string, content: string) {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
@@ -20,7 +21,7 @@ function ensureCanonical(href: string) {
   link.setAttribute('href', href);
 }
 
-const OG_IMAGE = `${SITE_URL}/images/campaign/opening-og.jpg`;
+const OG_IMAGE = `${SITE_URL}${OG_IMAGE_PATH}`;
 
 /**
  * Per-route SEO: title + description + Open Graph + Twitter card + canonical.

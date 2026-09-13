@@ -6,45 +6,9 @@ import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHead
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import Reveal from '@/components/editorial/Reveal';
 import { CAMPAIGN } from '@/lib/editorial-images';
+import { BLOG_POSTS } from '@/config/content';
 
-const POSTS = [
-  {
-    slug: 'what-is-colour-season',
-    image: CAMPAIGN.season,
-    date: 'June 2026',
-    readingTime: '6 min',
-    title: 'What is a colour season, actually?',
-    excerpt:
-      'Warm Spring, Cool Winter, Soft Autumn — the names sound like poetry, but each one encodes a measurable relationship between your skin, hair, and eyes. Here is how the system works, and why twelve seasons are better than four.',
-  },
-  {
-    slug: 'reading-your-undertone',
-    image: CAMPAIGN.undertone,
-    date: 'July 2026',
-    readingTime: '5 min',
-    title: 'How to read your undertone without squinting',
-    excerpt:
-      'Vein colour, jewellery tests, white-cloth comparisons — the classic tricks all work, and all fail in the wrong light. A practical guide to finding your warm/cool signal under real-world conditions.',
-  },
-  {
-    slug: 'building-neutral-wardrobe',
-    image: CAMPAIGN.archetype,
-    date: 'August 2026',
-    readingTime: '7 min',
-    title: 'Building a neutral wardrobe that isn\u2019t beige',
-    excerpt:
-      'A \u201cneutral\u201d is any colour quiet enough to support the rest of your outfit. Learn the neutral set that flatters your season — and the three you should stop reaching for.',
-  },
-  {
-    slug: 'lighting-and-analysis',
-    image: CAMPAIGN.process,
-    date: 'August 2026',
-    readingTime: '4 min',
-    title: 'Why lighting decides your analysis',
-    excerpt:
-      'The same face reads three different seasons in three different lights. What the camera sees, what makes a photo unusable, and how to take the shot that gets the most honest result.',
-  },
-];
+const POSTS = BLOG_POSTS;
 
 const cardVariants = {
   hidden: { opacity: 0, y: 28 },

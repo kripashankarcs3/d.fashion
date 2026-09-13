@@ -8,6 +8,13 @@ export const addFavorite = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
   const { productId } = req.body;
 
+  // Must be checked before it reaches a query: an object such as
+  // {"$ne": null} would otherwise be read as an operator, not a value.
+  if (typeof productId !== "string" || !mongoose.isValidObjectId(productId)) {
+    res.status(400).json({ success: false, message: "A valid productId is required" });
+    return;
+  }
+
   const existing = await Favorite.findOne({ userId, productId });
   if (existing) {
     res.status(409).json({ success: false, message: "Product already in favorites" });

@@ -14,9 +14,20 @@ export interface ColorAnalysis {
 
 export interface RecommendationResult {
   outfitPalette: string[];
-  makeupShades: string[];
-  hairOptions: string[];
-  skincareRoutine: string[];
+  avoidColors: string[];
+  makeupShades: {
+    foundation: string;
+    blush: string;
+    lip: string;
+  };
+  makeupShadeNames?: {
+    foundation: string;
+    blush: string;
+    lip: string;
+  };
+  hairColorOptions: string[];
+  skincareRoutine: Array<{ step: number; product: string; reason: string }>;
+  styleInsight: string;
 }
 
 export interface AnalysisResult {

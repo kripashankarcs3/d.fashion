@@ -10,10 +10,11 @@ import { Label } from '@/components/ui/label';
 import { AuthFooterLink } from '@/components/AuthCard';
 import GoogleSignInButton from '@/components/GoogleSignInButton';
 import EditorialImage from '@/components/editorial/EditorialImage';
-import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
+import EditorialHeading from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import { CAMPAIGN } from '@/lib/editorial-images';
 import { AUTHENTICATED_HOME, ROUTES } from '@/config/navigation';
+import { BRAND } from '@/config/site';
 import { register } from '@/services/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { isAxiosError } from '@/lib/utils';
@@ -58,7 +59,7 @@ export default function Signup() {
     onSuccess: (response) => {
       const { token, user } = response.data;
       setSession(token, user);
-      success(`Welcome to D'Fashion, ${user.name.split(' ')[0]}`);
+      success(`Welcome to ${BRAND.name}, ${user.name.split(' ')[0]}`);
       navigate(redirectTo);
     },
     onError: (err) => {
@@ -108,13 +109,13 @@ export default function Signup() {
         <div className="absolute inset-0 bg-[#0B0B0E]/40 z-10" />
 
         <div className="absolute inset-0 flex flex-col justify-center p-12 lg:p-16 z-20 bg-gradient-to-tr from-[#0B0B0E] via-[#0B0B0E]/60 to-[#0B0B0E]/30">
-          <EyebrowLabel tone="inverse">D&rsquo;Fashion</EyebrowLabel>
+          <EyebrowLabel tone="inverse">{BRAND.name}</EyebrowLabel>
           <EditorialHeading size="lg" tone="inverse" className="mt-4 max-w-[16ch] leading-tight font-light text-shadow-sm">
-            Colour Intelligence, <Emphasis>Personalised.</Emphasis>
+            {BRAND.tagline}
           </EditorialHeading>
 
           <p className="mt-6 max-w-[28rem] text-[length:var(--text-body-sm)] leading-[1.7] text-cream-primary/70 font-sans tracking-wide">
-            D&rsquo;Fashion bridges the gap between advanced spectral analysis and haute couture.
+            {BRAND.name} bridges the gap between advanced spectral analysis and haute couture.
             Our proprietary AI algorithms scan your skin tone, undertone, and contrast ratios
             to curate a bespoke wardrobe aligned with your natural harmony.
           </p>
@@ -198,7 +199,7 @@ export default function Signup() {
               <GoogleSignInButton
                 label="Sign up with Google"
                 onSuccess={() => {
-                  success("Welcome to D'Fashion!");
+                  success(`Welcome to ${BRAND.name}!`);
                   navigate(redirectTo);
                 }}
                 onError={(message) => setError(message)}

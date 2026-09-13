@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { getSeasonInfo } from '@/lib/colour-data';
+import { useSeasonInfo } from '@/hooks/useSeasons';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
@@ -93,7 +93,10 @@ const cardVariants = {
 // ─── Season card ──────────────────────────────────────────────────────────────
 
 function SeasonCard({ name, undertone }: SeasonCardData) {
-  const data = getSeasonInfo(name, undertone);
+  // Server-sourced season data (single source of truth). Renders nothing
+  // until the seasons query lands.
+  const data = useSeasonInfo(name, undertone);
+  if (!data) return null;
   const swatches = data.palette.slice(0, 5);
   const description = data.archetypes[0]?.description ?? '';
 

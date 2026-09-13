@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { generateStylistReplyAI, StylistContext } from "../services/stylist.service";
+import { generateStylistReply, StylistContext } from "../services/stylist.service";
 import { authenticate } from "../middleware/auth.middleware";
 import { chatLimiter } from "../middleware/rateLimiter";
 
@@ -32,7 +32,7 @@ router.post("/", authenticate, chatLimiter, async (req, res) => {
     return;
   }
 
-  const reply = await generateStylistReplyAI(
+  const reply = generateStylistReply(
     parsed.data.message,
     parsed.data.context as StylistContext | undefined
   );

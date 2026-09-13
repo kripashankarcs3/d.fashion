@@ -6,6 +6,7 @@ import { Send, Sparkles } from 'lucide-react';
 import { error } from '@/lib/toast';
 import { sendChatMessage } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
+import { BRAND } from '@/config/site';
 
 interface Message {
   role: 'user' | 'ai';
@@ -33,7 +34,7 @@ function initialMessage(hasAnalysis: boolean): Message {
 
 function TypingIndicator() {
   return (
-    <span className="inline-flex items-center gap-1.5" aria-label="D'Style is typing">
+    <span className="inline-flex items-center gap-1.5" aria-label={`${BRAND.stylistName} is typing`}>
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}

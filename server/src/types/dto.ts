@@ -1,5 +1,3 @@
-import { IProduct } from "../models/product.model";
-
 export interface CreateProductDto {
   name: string;
   category: string;
@@ -11,7 +9,7 @@ export interface CreateProductDto {
   skinTone?: string[];
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> {}
+export type UpdateProductDto = Partial<CreateProductDto>;
 
 export interface AddFavoriteDto {
   userId: string;

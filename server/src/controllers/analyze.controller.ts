@@ -59,9 +59,16 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     }
 
     let youcamResult: any = null;
+    // Provenance — surfaced to the client so estimated values are never
+    // presented as real AI analysis.
+    const sources = {
+      skinAnalysis: "youcam" as "youcam" | "estimated",
+      colorTones: "youcam" as "youcam" | "local-extraction",
+    };
     if (skinRes.status === "fulfilled") {
       youcamResult = skinRes.value;
     } else {
+      sources.skinAnalysis = "estimated";
       const detail = (skinRes.reason as any)?.response?.data
         ? JSON.stringify((skinRes.reason as any).response.data)
         : (skinRes.reason as Error).message;
@@ -132,6 +139,7 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
     if (toneRes.status === "fulfilled" && toneRes.value?.color) {
       color = toneRes.value.color;
     } else {
+      sources.colorTones = "local-extraction";
       if (toneRes.status === "rejected") {
         const detail = (toneRes.reason as any)?.response?.data
           ? JSON.stringify((toneRes.reason as any).response.data)
@@ -177,11 +185,17 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
         undertone,
         recommendedColors: seasonProfile.palette,
       },
+      features: {
+        skinHex: skinToneHex,
+        hairColor: (color as any).hair_color_name ?? undefined,
+        eyeColor: (color as any).eye_color_name ?? undefined,
+      },
     });
 
     return sendSuccess(res, "Analysis completed successfully", {
       enhancedImageUrl,
       skinConcerns,
+      sources,
       colorProfile,
       colourSeason: season,
       seasonConfidence,

@@ -25,8 +25,6 @@ export function useTryOn() {
   const clothes = useMutation({
     mutationFn: ({
       garmentUrl,
-      garmentName,
-      garmentImg,
       colourHex,
       personImageUrl,
     }: {
@@ -67,8 +65,6 @@ export function useTryOn() {
   const makeup = useMutation({
     mutationFn: ({
       productId,
-      productName,
-      productThumb,
     }: {
       productId: string;
       productName: string;
@@ -101,8 +97,6 @@ export function useTryOn() {
   const hair = useMutation({
     mutationFn: ({
       styleId,
-      styleName,
-      styleThumb,
     }: {
       styleId: string;
       styleName: string;
