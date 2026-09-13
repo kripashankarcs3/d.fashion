@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 import { Send, Sparkles } from 'lucide-react';
 import { error } from '@/lib/toast';
-import { sendChatMessage } from '@/services/api';
+import { sendChatMessage, type ChatTurn } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
 import { BRAND } from '@/config/site';
 
@@ -12,6 +12,21 @@ interface Message {
   role: 'user' | 'ai';
   text: string;
   link?: { href: string; label: string };
+  /** The canned opening line — UI chrome, not part of the conversation. */
+  intro?: boolean;
+}
+
+const HISTORY_TURNS = 12;
+
+/** The recent conversation, in the shape the server replays to the model. */
+function toHistory(messages: Message[]): ChatTurn[] {
+  return messages
+    .filter((m) => !m.intro)
+    .slice(-HISTORY_TURNS)
+    .map((m) => ({
+      role: m.role === 'ai' ? 'assistant' : 'user',
+      content: m.text.slice(0, 2000),
+    }));
 }
 
 interface StylistChatProps {
@@ -23,12 +38,14 @@ function initialMessage(hasAnalysis: boolean): Message {
     return {
       role: 'ai',
       text: 'Based on your colour season, I can help you find colours and outfits that work for you.',
+      intro: true,
     };
   }
   return {
     role: 'ai',
     text: 'Upload a selfie first to get personalised style advice. ',
     link: { href: '/upload', label: 'Upload a selfie →' },
+    intro: true,
   };
 }
 
@@ -65,8 +82,8 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
   const submittedPromptRef = useRef('');
 
   const mutation = useMutation({
-    mutationFn: (text: string) =>
-      sendChatMessage(text, { analysisResult, wardrobeItems }),
+    mutationFn: ({ text, history }: { text: string; history: ChatTurn[] }) =>
+      sendChatMessage(text, { analysisResult, wardrobeItems }, history),
     onSuccess: (response) => {
       setMessages((prev) => [
         ...prev,
@@ -83,14 +100,18 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
       submittedPromptRef.current = initialPrompt;
       setInput(initialPrompt);
       if (analysisResult) {
+        // History is taken before the prompt is appended: the prompt itself
+        // travels as `message`, not as a past turn.
+        mutation.mutate({ text: initialPrompt, history: toHistory(messages) });
         setMessages((prev) => [
           ...prev,
           { role: 'user', text: initialPrompt },
         ]);
-        mutation.mutate(initialPrompt);
       }
     }
-  }, [initialPrompt, analysisResult, mutation]);
+    // `messages` changes after every exchange; submittedPromptRef keeps the
+    // re-run from sending the same prompt twice.
+  }, [initialPrompt, analysisResult, mutation, messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -100,9 +121,9 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
     e?.preventDefault();
     const text = input.trim();
     if (!text || mutation.isPending) return;
+    mutation.mutate({ text, history: toHistory(messages) });
     setMessages((prev) => [...prev, { role: 'user', text }]);
     setInput('');
-    mutation.mutate(text);
   };
 
   return (

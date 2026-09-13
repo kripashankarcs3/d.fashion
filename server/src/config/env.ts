@@ -27,6 +27,16 @@ const envSchema = z.object({
 
   YOUCAM_API_KEY: z.string().default(""),
 
+  /* ---------------------------------------------- OpenCode Zen stylist */
+  /** Unset = the stylist chat answers from the built-in rules engine. */
+  OPENCODE_API_KEY: z.string().default(""),
+  OPENCODE_BASE_URL: z.string().default("https://opencode.ai/zen/v1"),
+  /** Must be a model Zen serves on /chat/completions (DeepSeek, GLM, Kimi,
+   *  MiniMax, …) — GPT and Claude models live on other endpoints. */
+  OPENCODE_MODEL: z.string().default("deepseek-v4-flash"),
+  OPENCODE_MAX_TOKENS: int("OPENCODE_MAX_TOKENS", 1024),
+  OPENCODE_TIMEOUT_MS: int("OPENCODE_TIMEOUT_MS", 25000),
+
   /* -------------------------------------------------- brand / persona */
   PRODUCT_NAME: z.string().default("D'Fashion"),
   STYLIST_NAME: z.string().default("D'Style"),

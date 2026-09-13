@@ -66,10 +66,24 @@ export const listTryOnTemplates = (feature: 'look-vto' | 'hair-style') =>
     `/tryon/templates/${feature}`,
   );
 
+/** One prior turn replayed to the stylist so follow-up questions keep context. */
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export const sendChatMessage = (
   message: string,
-  context: { analysisResult: AnalysisResult | null; wardrobeItems: WardrobeItem[] }
-) => api.post<{ reply: string }>('/chat', { message, context });
+  context: { analysisResult: AnalysisResult | null; wardrobeItems: WardrobeItem[] },
+  history: ChatTurn[] = [],
+) =>
+  api.post<{ reply: string; source: 'opencode' | 'rules' }>(
+    '/chat',
+    { message, context, history },
+    // The server gives the model up to 25s before falling back to its rules
+    // engine, so the client must wait longer than that.
+    { timeout: 45_000 },
+  );
 
 /** One saved entry in a member's account history — an analysis or a try-on. */
 export interface HistoryEntry {
