@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { generateStylistReplyAI, StylistContext } from "../services/stylist.service";
+import { generateStylistReplyAI, StylistContext, stylistDiagnostics } from "../services/stylist.service";
 import { authenticate } from "../middleware/auth.middleware";
 import { chatLimiter } from "../middleware/rateLimiter";
 
@@ -32,6 +32,10 @@ const bodySchema = z.object({
     )
     .max(20)
     .optional(),
+});
+
+router.get("/status", chatLimiter, (_req, res) => {
+  res.json(stylistDiagnostics());
 });
 
 router.post("/", authenticate, chatLimiter, async (req, res) => {
