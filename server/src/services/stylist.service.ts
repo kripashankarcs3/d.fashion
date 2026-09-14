@@ -196,6 +196,23 @@ export interface StylistReply {
 
 const MAX_HISTORY_TURNS = 12;
 
+/** Last recorded OpenCode failure, so operators can tell a misconfiguration
+ *  from a provider outage without digging through logs. */
+let lastOpenCodeError: { at: string; message: string } | null = null;
+
+/** Public, secret-free view of the stylist wiring for operators. */
+export function stylistDiagnostics() {
+  const viaServer = env.OPENCODE_MODE === "server";
+  const configured = viaServer ? Boolean(env.OPENCODE_SERVER_PASSWORD) : Boolean(env.OPENCODE_API_KEY);
+  return {
+    mode: env.OPENCODE_MODE,
+    model: env.OPENCODE_MODEL,
+    viaServer,
+    configured,
+    lastOpenCodeError,
+  };
+}
+
 /**
  * The part of the member's analysis the model needs, with every hex given a
  * name. The client posts its whole stored result — photo URLs included — and
@@ -460,8 +477,10 @@ export async function generateStylistReplyAI(
     const reply = await (viaServer
       ? replyViaOpenCodeServer(message, ctx, history)
       : replyViaZen(message, ctx, history, opts?.sessionId)).then(sanitiseReply);
+    lastOpenCodeError = null;
     return { reply, source: "opencode" };
   } catch (err) {
+    lastOpenCodeError = { at: new Date().toISOString(), message: (err as Error).message.slice(0, 200) };
     console.warn("OpenCode stylist reply failed, using rules engine:", (err as Error).message);
     return fromRules();
   }
