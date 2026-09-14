@@ -22,8 +22,15 @@ services:
         sync: false
       - key: YOUCAM_API_KEY
         sync: false
+      # OpenCode Zen powers the AI stylist chat. Set OPENCODE_API_KEY in the
+      # dashboard (workspace needs billing); big-pickle is a free Zen model
+      # served when the request carries an x-opencode-session header.
       - key: OPENCODE_API_KEY
         sync: false
+      - key: OPENCODE_MODE
+        value: zen
+      - key: OPENCODE_MODEL
+        value: big-pickle
       - key: FIREBASE_PROJECT_ID
         sync: false
       - key: FIREBASE_CLIENT_EMAIL
