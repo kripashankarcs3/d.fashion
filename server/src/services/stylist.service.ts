@@ -267,47 +267,62 @@ export function openCodeModelRef(): { providerID: string; modelID: string } {
 /** Zen mode: OpenCode Zen's OpenAI-compatible chat completions API. Free-tier
  *  models such as big-pickle are only served when the request carries an
  *  `x-opencode-session` header (as the OpenCode product does); without it the
- *  gateway rejects them with MissingSessionID. */
+ *  gateway rejects them with MissingSessionID. Free tiers also throttle bursts
+ *  with 429s, so retry with backoff (OPENCODE_ZEN_MAX_RETRIES) before failing. */
 async function replyViaZen(
   message: string,
   ctx: StylistContext | undefined,
   history: ChatTurn[],
   sessionId?: string,
 ) {
-  const res = await fetch(`${env.OPENCODE_BASE_URL.replace(/\/+$/, "")}/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.OPENCODE_API_KEY}`,
-      "Content-Type": "application/json",
-      "x-opencode-session": sessionId ?? randomUUID(),
-      "x-opencode-request": randomUUID(),
-    },
-    body: JSON.stringify({
-      model: openCodeModelRef().modelID,
-      max_tokens: env.OPENCODE_MAX_TOKENS,
-      messages: [
-        { role: "system", content: buildSystemPrompt(ctx) },
-        ...history.slice(-MAX_HISTORY_TURNS),
-        { role: "user", content: message },
-      ],
-    }),
-    signal: AbortSignal.timeout(env.OPENCODE_TIMEOUT_MS),
-  });
+  const session = sessionId ?? randomUUID();
+  const lastAttempt = env.OPENCODE_ZEN_MAX_RETRIES;
 
-  if (!res.ok) {
-    // The body is what explains a bad key, an unknown model or exhausted credit.
-    const detail = (await res.text().catch(() => "")).slice(0, 300);
-    throw new Error(`HTTP ${res.status} ${detail}`.trim());
+  for (let attempt = 1; attempt <= lastAttempt; attempt++) {
+    const res = await fetch(`${env.OPENCODE_BASE_URL.replace(/\/+$/, "")}/chat/completions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.OPENCODE_API_KEY}`,
+        "Content-Type": "application/json",
+        "x-opencode-session": session,
+        "x-opencode-request": randomUUID(),
+      },
+      body: JSON.stringify({
+        model: openCodeModelRef().modelID,
+        max_tokens: env.OPENCODE_MAX_TOKENS,
+        messages: [
+          { role: "system", content: buildSystemPrompt(ctx) },
+          ...history.slice(-MAX_HISTORY_TURNS),
+          { role: "user", content: message },
+        ],
+      }),
+      signal: AbortSignal.timeout(env.OPENCODE_TIMEOUT_MS),
+    });
+
+    if (res.status === 429 && attempt < lastAttempt) {
+      const delayMs = 2 ** attempt * 1000;
+      console.warn(`Zen throttled (429); retrying in ${delayMs}ms (attempt ${attempt}/${lastAttempt})`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      continue;
+    }
+
+    if (!res.ok) {
+      // The body is what explains a bad key, an unknown model or exhausted credit.
+      const detail = (await res.text().catch(() => "")).slice(0, 300);
+      throw new Error(`HTTP ${res.status} ${detail}`.trim());
+    }
+
+    const data = (await res.json()) as {
+      choices?: { message?: { content?: unknown } }[];
+    };
+    const content = data.choices?.[0]?.message?.content;
+    if (typeof content !== "string" || !content.trim()) {
+      throw new Error("Completion contained no text");
+    }
+    return content.trim();
   }
 
-  const data = (await res.json()) as {
-    choices?: { message?: { content?: unknown } }[];
-  };
-  const content = data.choices?.[0]?.message?.content;
-  if (typeof content !== "string" || !content.trim()) {
-    throw new Error("Completion contained no text");
-  }
-  return content.trim();
+  throw new Error(`Zen kept throttling after ${lastAttempt} attempts`);
 }
 
 /** Folder the local OpenCode server's sessions run in. Must stay an empty
