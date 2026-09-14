@@ -45,6 +45,9 @@ const envSchema = z.object({
   OPENCODE_SERVER_DIRECTORY: z.string().default(""),
   OPENCODE_MAX_TOKENS: int("OPENCODE_MAX_TOKENS", 1024),
   OPENCODE_TIMEOUT_MS: int("OPENCODE_TIMEOUT_MS", 25000),
+  /** Zen's free-tier bursts are throttled with 429s; retry with backoff
+   *  before giving up and falling back to the rules engine. */
+  OPENCODE_ZEN_MAX_RETRIES: int("OPENCODE_ZEN_MAX_RETRIES", 4),
 
   /* -------------------------------------------------- brand / persona */
   PRODUCT_NAME: z.string().default("D'Fashion"),
