@@ -74,6 +74,10 @@ export const listTryOnTemplates = (feature: 'look-vto' | 'hair-style') =>
     `/tryon/templates/${feature}`,
   );
 
+/** Lifetime AI try-on usage for the signed-in account: `used` of `limit`. */
+export const getTryOnUsage = async () =>
+  (await api.get<{ success: boolean; used: number; limit: number }>('/tryon/usage')).data;
+
 /** One prior turn replayed to the stylist so follow-up questions keep context. */
 export interface ChatTurn {
   role: 'user' | 'assistant';

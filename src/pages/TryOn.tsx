@@ -1,15 +1,16 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { success } from '@/lib/toast';
-import { Bookmark, ChevronLeft, ChevronRight, Download, LoaderCircle, MoreVertical, RotateCw, Sparkles } from 'lucide-react';
+import { AlertTriangle, Bookmark, ChevronLeft, ChevronRight, Download, LoaderCircle, MoreVertical, RotateCw, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/navigation';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
 import Reveal from '@/components/editorial/Reveal';
 import CampaignSection from '@/components/editorial/CampaignSection';
+import { TryOnQuotaPill } from '@/components/TryOnQuotaPill';
 import BeforeAfterSlider from '@/components/BeforeAfterSlider';
 import { CAMPAIGN } from '@/lib/editorial-images';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
@@ -52,6 +53,8 @@ export default function TryOn() {
   const analysisResult = useStyleStore((s) => s.analysisResult);
   const addWardrobeItem = useStyleStore((s) => s.addWardrobeItem);
   const { clothes, makeup, hair } = useTryOn();
+  const queryClient = useQueryClient();
+  const refreshUsage = () => void queryClient.invalidateQueries({ queryKey: ['tryon-usage'] });
   const [, setLocation] = useLocation();
 
   // The catalogue comes from the server (GET /api/garments) — fetched once
@@ -80,6 +83,7 @@ export default function TryOn() {
   const [selected, setSelected] = useState<Selected | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [isFallback, setIsFallback] = useState(false);
+  const [quotaMessage, setQuotaMessage] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -133,10 +137,13 @@ export default function TryOn() {
     setSelected(item);
     setResultUrl(null);
     setIsFallback(false);
+    setQuotaMessage(null);
   };
 
   const handleTryOn = () => {
     if (!selected) return;
+    // Limit already reached — show the notice instead of firing another paid call.
+    if (quotaMessage) return;
     // Reached without an analysis (a stale reference photo, or a direct link
     // into the page) — send them to run one rather than rendering the garment
     // onto a stand-in photo that is not theirs.
@@ -146,6 +153,7 @@ export default function TryOn() {
     }
     setResultUrl(null);
     setIsFallback(false);
+    setQuotaMessage(null);
     const refUrl = referenceImageUrl;
     if (selected.kind === 'outfit') {
       // Bundled garments are sent as their app-relative path so the server can
@@ -157,8 +165,13 @@ export default function TryOn() {
           onSuccess: (r) => {
             setResultUrl(r.data.resultUrl);
             setIsFallback(r.data.source === 'fallback');
+            refreshUsage();
           },
-          onError: () => {
+          onError: (err: any) => {
+            if (err?.response?.status === 429) {
+              setQuotaMessage(err?.response?.data?.message ?? 'Free AI try-on limit reached.');
+              return;
+            }
             setResultUrl(selected.img);
             setIsFallback(true);
           },
@@ -170,7 +183,11 @@ export default function TryOn() {
           setResultUrl(r.data.resultUrl);
           setIsFallback(r.data.source === 'fallback');
         },
-        onError: () => {
+        onError: (err: any) => {
+          if (err?.response?.status === 429) {
+            setQuotaMessage(err?.response?.data?.message ?? 'Free AI try-on limit reached.');
+            return;
+          }
           setResultUrl(refUrl);
           setIsFallback(true);
         },
@@ -188,7 +205,11 @@ export default function TryOn() {
           setResultUrl(r.data.resultUrl);
           setIsFallback(r.data.source === 'fallback');
         },
-        onError: () => {
+        onError: (err: any) => {
+          if (err?.response?.status === 429) {
+            setQuotaMessage(err?.response?.data?.message ?? 'Free AI try-on limit reached.');
+            return;
+          }
           setResultUrl(refUrl);
           setIsFallback(true);
         },
@@ -287,6 +308,7 @@ export default function TryOn() {
                   {cat}
                 </span>
               ))}
+              <TryOnQuotaPill />
             </motion.div>
           </div>
 
@@ -484,6 +506,14 @@ export default function TryOn() {
                 <div>
                   {selected ? (
                     <>
+                      {/* Quota notice: free AI try-ons exhausted on this account */}
+                      {quotaMessage && (
+                        <div className="mb-3 rounded-sm border border-gold-primary/50 bg-gold-primary/15 px-4 py-3 text-center">
+                          <AlertTriangle className="mx-auto mb-1.5 h-5 w-5 text-gold-primary" aria-hidden />
+                          <p className="text-xs font-semibold uppercase tracking-widest text-gold-primary">Max limit reached</p>
+                          <p className="mt-1 text-xs leading-snug text-cream-primary">{quotaMessage}</p>
+                        </div>
+                      )}
                       {/* Result: Pure BeforeAfter Slider view when try-on result available */}
                       {resultUrl && !isFallback ? (
                         <div>

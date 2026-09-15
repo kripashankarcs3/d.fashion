@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   listTemplates,
+  getUsage,
   tryOnClothes,
   tryOnMakeup,
   tryOnHair,
@@ -10,6 +11,7 @@ import { aiLightLimiter } from "../middleware/rateLimiter";
 
 const router = Router();
 
+router.get("/usage", authenticate, aiLightLimiter, getUsage);
 router.get("/templates/:feature", authenticate, aiLightLimiter, listTemplates);
 router.post("/clothes", authenticate, aiLightLimiter, tryOnClothes);
 router.post("/makeup", authenticate, aiLightLimiter, tryOnMakeup);

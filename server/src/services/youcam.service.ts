@@ -17,7 +17,7 @@ class YouCamService {
     });
   }
 
-  private isAvailable(): boolean {
+  isAvailable(): boolean {
     return !!env.YOUCAM_API_KEY;
   }
 

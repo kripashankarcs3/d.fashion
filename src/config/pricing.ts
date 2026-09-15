@@ -99,7 +99,7 @@ export const PLANS: Plan[] = [
     ],
     missing: [],
     included: [
-      'Unlimited virtual try-on',
+      '5 free AI try-ons',
       '24/7 AI stylist conversations',
       'Priority support',
       'Early access to every new feature',
