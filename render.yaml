@@ -22,15 +22,22 @@ services:
         sync: false
       - key: YOUCAM_API_KEY
         sync: false
-      # OpenCode Zen powers the AI stylist chat. Set OPENCODE_API_KEY in the
-      # dashboard (workspace needs billing); big-pickle is a free Zen model
-      # served when the request carries an x-opencode-session header.
+      # OpenCode Zen powers the AI stylist chat, but free-tier bursts are
+      # throttled server-side right now. In Docker the container runs its own
+      # `opencode serve` (server mode) with the machine's auth — set
+      # OPENCODE_AUTH_B64 (base64 of ~/.local/share/opencode/auth.json) and
+      # OPENCODE_SERVER_PASSWORD in the dashboard alongside OPENCODE_API_KEY.
+      # Set OPENCODE_MODE=server to use that local server.
       - key: OPENCODE_API_KEY
         sync: false
       - key: OPENCODE_MODE
-        value: zen
+        value: server
       - key: OPENCODE_MODEL
         value: big-pickle
+      - key: OPENCODE_SERVER_PASSWORD
+        sync: false
+      - key: OPENCODE_AUTH_B64
+        sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
       - key: FIREBASE_CLIENT_EMAIL
