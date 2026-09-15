@@ -645,6 +645,7 @@ export default function TryOn() {
                       )}
 
                       {/* CTA Buttons Side-by-Side in 1 Row */}
+                      <TryOnQuotaPill full className="mt-4" />
                       <div className="mt-2 grid grid-cols-2 gap-2">
                         <Button size="sm" onClick={handleTryOn} disabled={isPending} className="h-10 text-[0.6rem] px-1.5">
                           {isPending ? <LoaderCircle className="animate-spin" aria-hidden /> : <RotateCw aria-hidden />}
