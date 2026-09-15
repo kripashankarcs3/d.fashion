@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 import { URL } from "url";
 import YouCamService from "../services/youcam.service";
+import { reserveTryOnSlot, getTryOnUsage } from "../services/tryon.quota.service";
 import { PRIVATE_IPS, STATIC_ASSET_DIRS, TMP_DIR as UPLOADS_DIR } from "../constants";
 
 // Resolves a bundled asset path such as `/images/garments/foo.png` to a file on
@@ -91,6 +92,16 @@ export const listTemplates = async (req: Request, res: Response, _next: NextFunc
   }
 };
 
+/** How many of the lifetime AI try-on quota this account has used. */
+export const getUsage = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const usage = await getTryOnUsage(req);
+    return res.status(200).json({ success: true, ...usage });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const tryOnClothes = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const personImageUrl = resolveAndValidatePersonUrl(req, req.body.personImageUrl);
@@ -106,6 +117,18 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
 
     if (!isValidImageUrl(garmentImageUrl)) {
       return res.status(400).json({ success: false, message: "Invalid image URL" });
+    }
+
+    // Paid AI calls are rationed per email so the YouCam bill stays predictable.
+    if (YouCamService.isAvailable()) {
+      const remaining = await reserveTryOnSlot(req);
+      if (remaining === null) {
+        return res.status(429).json({
+          success: false,
+          message: "Maximum try-on limit reached. You have used all your free AI try-ons for this account.",
+          remaining: 0,
+        });
+      }
     }
 
     try {
@@ -157,6 +180,18 @@ export const tryOnMakeup = async (req: Request, res: Response, next: NextFunctio
     }
 
     if (productId) {
+      // Paid AI calls are rationed per email so the YouCam bill stays predictable.
+      if (YouCamService.isAvailable()) {
+        const remaining = await reserveTryOnSlot(req);
+        if (remaining === null) {
+          return res.status(429).json({
+            success: false,
+            message: "Maximum try-on limit reached. You have used all your free AI try-ons for this account.",
+            remaining: 0,
+          });
+        }
+      }
+
       try {
         const selfieFilePath = serverUploadFilePath(req.body.personImageUrl);
         const youcamResult = selfieFilePath
@@ -202,6 +237,18 @@ export const tryOnHair = async (req: Request, res: Response, next: NextFunction)
         success: false,
         message: "personImageUrl and styleId are required",
       });
+    }
+
+    // Paid AI calls are rationed per email so the YouCam bill stays predictable.
+    if (YouCamService.isAvailable()) {
+      const remaining = await reserveTryOnSlot(req);
+      if (remaining === null) {
+        return res.status(429).json({
+          success: false,
+          message: "Maximum try-on limit reached. You have used all your free AI try-ons for this account.",
+          remaining: 0,
+        });
+      }
     }
 
     try {

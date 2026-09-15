@@ -12,6 +12,7 @@ import { ROUTES } from '@/config/navigation';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EditorialHeading from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
+import { TryOnQuotaPill } from '@/components/TryOnQuotaPill';
 import { useStyleStore, type AnalysisResult, type SkinConcerns, type TryOnHistoryEntry } from '@/store/useStyleStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { assetUrl, deleteHistoryEntry, fetchHistory, type HistoryEntry } from '@/services/api';
@@ -1137,6 +1138,9 @@ export default function Dashboard() {
       <EditorialContainer width="content">
         {!analysisResult || !seasonInfo ? (
           <>
+            <div className="mb-4 flex justify-end">
+              <TryOnQuotaPill />
+            </div>
             <div className="border border-gold-hairline bg-surface-3 p-8">
               <EmptyAnalysisState
                 title="Your colour identity is waiting"
@@ -1156,9 +1160,12 @@ export default function Dashboard() {
               className="border-b border-gold-hairline pb-10"
             >
               <EyebrowLabel tone="gold">Your Colour Identity</EyebrowLabel>
-              <EditorialHeading as="h1" size="lg" className="mt-4">
-                {seasonInfo.season}
-              </EditorialHeading>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <EditorialHeading as="h1" size="lg">
+                  {seasonInfo.season}
+                </EditorialHeading>
+                <TryOnQuotaPill className="mt-1" />
+              </div>
               <p className="mt-2 eyebrow text-cream-primary/55">
                 Analysed {format(new Date(analysisResult.analyzedAt), 'MMMM yyyy')} ·{' '}
                 {analysisResult.colorProfile.undertone} undertone

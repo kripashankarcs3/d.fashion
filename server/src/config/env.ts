@@ -66,6 +66,10 @@ const envSchema = z.object({
   UPLOAD_MAX_BYTES: int("UPLOAD_MAX_BYTES", 10 * 1024 * 1024),
   UPLOAD_TTL_MS: int("UPLOAD_TTL_MS", 2 * 60 * 60 * 1000),
 
+  /* ---------------------------------------------------- AI try-on quota */
+  /** Lifetime AI try-on attempts allowed per email (YouCam costs money). */
+  TRY_ON_LIMIT: int("TRY_ON_LIMIT", 9),
+
   /* ---------------------------------------------------- rate limiting */
   RATE_LIMIT_API_WINDOW_MS: int("RATE_LIMIT_API_WINDOW_MS", 60 * 1000),
   RATE_LIMIT_API_MAX: int("RATE_LIMIT_API_MAX", 100),
