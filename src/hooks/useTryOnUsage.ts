@@ -15,6 +15,7 @@ export const useTryOnUsage = () =>
       const res = await getTryOnUsage();
       return { used: res.used, limit: res.limit };
     },
-    staleTime: 60_000,
-    retry: false,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    retry: 2,
   });
