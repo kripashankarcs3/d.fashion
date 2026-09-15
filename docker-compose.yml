@@ -19,9 +19,14 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
       MONGODB_URI: mongodb://mongo:27017/deestyle
       YOUCAM_API_KEY: ${YOUCAM_API_KEY}
-      OPENCODE_API_KEY: ${OPENCODE_API_KEY:-}
-      OPENCODE_MODE: ${OPENCODE_MODE:-zen}
+      # AI stylist: the container runs its own `opencode serve` on loopback
+      # (server mode) using OPENCODE_AUTH_B64 — base64 of the machine's
+      # ~/.local/share/opencode/auth.json. Set both in the root .env.
+      OPENCODE_MODE: ${OPENCODE_MODE:-server}
       OPENCODE_MODEL: ${OPENCODE_MODEL:-big-pickle}
+      OPENCODE_SERVER_URL: http://127.0.0.1:4096
+      OPENCODE_SERVER_PASSWORD: ${OPENCODE_SERVER_PASSWORD:-}
+      OPENCODE_AUTH_B64: ${OPENCODE_AUTH_B64:-}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:-}

@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently --names client,server \"npm:dev:client\" \"npm:dev:server\"",
+    "dev": "concurrently --names client,server,stylist \"npm:dev:client\" \"npm:dev:server\" \"npm:dev:stylist\"",
     "dev:client": "vite",
     "dev:server": "cd server && npm run dev",
+    "dev:stylist": "cd server && npm run stylist:serve",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
     "build:server": "cd server && npm run build",
