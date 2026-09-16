@@ -19,6 +19,7 @@ import {
   formatPrice,
 } from '@/config/pricing';
 import { Check, Minus } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -37,8 +38,18 @@ import {
 } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
 
+/** Where a plan's CTA goes: a signed-out visitor always signs up first (Signup
+ *  then forwards a paid plan into `/payment`); a signed-in member skips
+ *  straight to payment for a paid plan, or to the upload flow for Starter. */
+function ctaHref(planName: string, monthly: number, isAuthenticated: boolean): string {
+  if (!isAuthenticated) return `/signup?plan=${encodeURIComponent(planName)}`;
+  if (monthly === 0) return ROUTES.upload;
+  return `/payment?kind=plan&planId=${encodeURIComponent(planName.toLowerCase())}`;
+}
+
 export default function Pricing() {
   const [annual, setAnnual] = useState(false);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   return (
     <div className="w-full pt-28 pb-24">
@@ -166,7 +177,7 @@ export default function Pricing() {
                 </div>
 
                 <Link
-                  href={`/signup?plan=${encodeURIComponent(plan.name)}`}
+                  href={ctaHref(plan.name, plan.monthly, isAuthenticated)}
                   className="mt-8"
                 >
                   <Button

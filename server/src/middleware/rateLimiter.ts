@@ -73,3 +73,15 @@ export const chatLimiter = rateLimit({
     message: "Message limit reached. Please try again later.",
   },
 });
+
+/** Per-user ceiling for submitting payment proof (each save writes a file to
+ *  the never-swept payment-proofs folder). */
+export const paymentLimiter = rateLimit({
+  windowMs: env.RATE_LIMIT_PAYMENT_WINDOW_MS,
+  max: env.RATE_LIMIT_PAYMENT_MAX,
+  keyGenerator: perUser,
+  message: {
+    success: false,
+    message: "Too many payment submissions. Please try again later.",
+  },
+});

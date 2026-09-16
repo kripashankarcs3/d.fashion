@@ -512,6 +512,12 @@ export default function TryOn() {
                           <AlertTriangle className="mx-auto mb-1.5 h-5 w-5 text-gold-primary" aria-hidden />
                           <p className="text-xs font-semibold uppercase tracking-widest text-gold-primary">Max limit reached</p>
                           <p className="mt-1 text-xs leading-snug text-cream-primary">{quotaMessage}</p>
+                          <Link
+                            href="/payment?kind=topup"
+                            className="mt-2 inline-block text-xs font-semibold uppercase tracking-widest text-gold-primary underline underline-offset-2"
+                          >
+                            Get 1 more try-on — ₹5
+                          </Link>
                         </div>
                       )}
                       {/* Result: Pure BeforeAfter Slider view when try-on result available */}

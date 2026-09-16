@@ -1,9 +1,10 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import http from "http";
 import type { AddressInfo } from "net";
 import jwt from "jsonwebtoken";
 import app from "../src/app";
 import YouCamService from "../src/services/youcam.service";
+import * as quotaService from "../src/services/tryon.quota.service";
 
 const TEST_SECRET = "test-secret"; // matches vitest.config.ts env.JWT_SECRET
 const token = (id: string) => jwt.sign({ id }, TEST_SECRET);
@@ -32,6 +33,14 @@ afterAll(
 );
 
 afterEach(() => vi.restoreAllMocks());
+
+// This suite is about hair-endpoint routing (transfer vs. style, the colour
+// flag), not the quota engine (covered by tryonQuota.test.ts) — mocked out so
+// it never depends on a live MongoDB connection, which the test app never
+// opens (only server.ts's bootstrap calls connectDB()).
+beforeEach(() => {
+  vi.spyOn(quotaService, "reserveTryOnSlot").mockResolvedValue(999);
+});
 
 // Each test signs in as its own member so the per-user try-on limiter never
 // carries over between cases.

@@ -18,6 +18,7 @@ import tryOnRoutes from "./routes/tryon.routes";
 import garmentRoutes from "./routes/garment.routes";
 import seasonRoutes from "./routes/season.routes";
 import newsletterRoutes from "./routes/newsletter.routes";
+import paymentRoutes from "./routes/payment.routes";
 import { env } from "./config/env";
 import { API_PREFIX, GALLERY_DIR, TMP_DIR } from "./constants";
 
@@ -130,6 +131,7 @@ app.use(`${API_PREFIX}/tryon`, tryOnRoutes);
 app.use(`${API_PREFIX}/garments`, garmentRoutes);
 app.use(`${API_PREFIX}/seasons`, seasonRoutes);
 app.use(`${API_PREFIX}/newsletter`, newsletterRoutes);
+app.use(`${API_PREFIX}/payments`, paymentRoutes);
 
 // Serve the built frontend if it exists (production deployments)
 const distDir = path.join(__dirname, "../../dist");
