@@ -44,3 +44,13 @@ services:
         sync: false
       - key: FIREBASE_PRIVATE_KEY
         sync: false
+      # Manual-payment review: who can approve/reject at /admin/payments, and
+      # (optional) who gets emailed the moment a member submits one.
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_APP_PASSWORD
+        sync: false
+      - key: NOTIFY_EMAIL
+        sync: false

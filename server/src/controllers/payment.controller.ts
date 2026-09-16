@@ -7,6 +7,7 @@ import Payment from "../models/payment.model";
 import { asyncHandler } from "../utils/asyncHandler";
 import { PLAN_PRICES, TOPUP_PRICE_PER_UNIT } from "../config/plans";
 import { applyPaymentToUsage } from "../services/tryon.quota.service";
+import { sendPaymentAlert } from "../services/email.service";
 import { PAYMENT_PROOF_DIR } from "../constants";
 import { isAdminEmail } from "../middleware/requireAdmin";
 
@@ -116,6 +117,16 @@ export const submitPayment = asyncHandler(async (req: Request, res: Response) =>
       utr: data.utr,
       screenshotFile: file.filename,
       status: "pending",
+    });
+    // Fire-and-forget: sendPaymentAlert never throws (best-effort), and a
+    // member's submission must never wait on an SMTP round-trip.
+    void sendPaymentAlert({
+      email: payment.email,
+      kind: payment.kind,
+      planId: payment.planId,
+      topupQty: payment.topupQty,
+      amount: payment.amount,
+      utr: payment.utr,
     });
     res.status(201).json({ success: true, message: "Payment submitted for review", payment: toClientPayment(payment) });
   } catch (err) {
