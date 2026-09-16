@@ -34,6 +34,7 @@ export const ROUTES = {
   chat: '/chat',
   payment: '/payment',
   adminPayments: '/admin/payments',
+  adminUsage: '/admin/usage',
   privacy: '/privacy',
   terms: '/terms',
   about: '/about',
@@ -220,6 +221,10 @@ export const PAGE_META: Record<string, PageMeta> = {
   [ROUTES.adminPayments]: {
     title: brandTitle(' — Payment Review'),
     description: 'Review and approve pending UPI payments.',
+  },
+  [ROUTES.adminUsage]: {
+    title: brandTitle(' — Try-On Usage'),
+    description: 'See every account’s AI try-on usage and plan.',
   },
   [ROUTES.login]: {
     title: brandTitle(' — Sign In'),

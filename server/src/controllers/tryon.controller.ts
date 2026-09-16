@@ -3,7 +3,8 @@ import path from "path";
 import fs from "fs";
 import { URL } from "url";
 import YouCamService from "../services/youcam.service";
-import { reserveTryOnSlot, refundTryOnSlot, getTryOnUsage } from "../services/tryon.quota.service";
+import { reserveTryOnSlot, refundTryOnSlot, getTryOnUsage, listAllUsage } from "../services/tryon.quota.service";
+import type { TryOnPlan } from "../models/tryon.usage.model";
 import { PRIVATE_IPS, STATIC_ASSET_DIRS, TMP_DIR as UPLOADS_DIR } from "../constants";
 
 // Resolves a bundled asset path such as `/images/garments/foo.png` to a file on
@@ -97,6 +98,25 @@ export const getUsage = async (req: Request, res: Response, next: NextFunction) 
   try {
     const usage = await getTryOnUsage(req);
     return res.status(200).json({ success: true, ...usage });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const PLAN_VALUES = ["starter", "essentials", "atelier"];
+
+/** Admin: every account's try-on usage — who's using how much, on which plan. */
+export const listUsage = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const planParam = req.query.plan;
+    const plan = typeof planParam === "string" && PLAN_VALUES.includes(planParam) ? (planParam as TryOnPlan) : undefined;
+    const result = await listAllUsage({
+      q: typeof req.query.q === "string" ? req.query.q : undefined,
+      plan,
+      page: Number(req.query.page) || undefined,
+      pageSize: Number(req.query.pageSize) || undefined,
+    });
+    return res.status(200).json({ success: true, ...result });
   } catch (err) {
     next(err);
   }

@@ -28,6 +28,7 @@ import {
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EditorialHeading from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
+import { AdminNav } from '@/components/AdminNav';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { ROUTES } from '@/config/navigation';
 import { formatPrice } from '@/config/pricing';
@@ -168,6 +169,7 @@ export default function AdminPayments() {
         <EditorialHeading as="h1" size="lg" className="mt-4 text-cream-primary">
           Payment Verification
         </EditorialHeading>
+        <AdminNav />
 
         <div className="mt-6 flex flex-wrap items-center gap-3 text-body-sm text-cream-primary/70">
           <span>Pending: <strong className="text-cream-primary">{counts.pending}</strong></span>

@@ -240,3 +240,28 @@ export const approvePayment = (id: string) =>
 
 export const rejectPayment = (id: string, reason?: string) =>
   api.post<{ success: boolean; message: string; payment: PaymentRecord }>(`/payments/${id}/reject`, { reason });
+
+/* ---------------------------------------------------------- admin usage */
+
+export type TryOnPlan = 'starter' | 'essentials' | 'atelier';
+
+export interface UsageAccount {
+  email: string;
+  plan: TryOnPlan;
+  used: number;
+  /** null on an unlimited (Atelier) account. */
+  limit: number | null;
+  unlimited: boolean;
+  updatedAt?: string;
+}
+
+export interface AdminUsagePage {
+  accounts: UsageAccount[];
+  total: number;
+  page: number;
+  pageSize: number;
+  planCounts: Record<TryOnPlan, number>;
+}
+
+export const listTryOnUsageAdmin = (params: { plan?: TryOnPlan; q?: string; page?: number; pageSize?: number }) =>
+  api.get<{ success: boolean } & AdminUsagePage>('/tryon/admin/usage', { params });

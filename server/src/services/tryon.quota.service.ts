@@ -158,3 +158,54 @@ export const applyPaymentToUsage = async (payment: Pick<IPayment, "email" | "kin
     { upsert: true, updatePipeline: true }
   );
 };
+
+/** Neutralises regex metacharacters in a user-supplied search term and caps
+ *  its length — an unescaped term on an admin-only route is still a ReDoS
+ *  vector against whoever's signed in as admin. */
+const escapeRegex = (value: string): string =>
+  value.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Admin: every account's try-on usage, paginated and searchable by email —
+ *  "who is using how much, on which plan" in one place. */
+export const listAllUsage = async (params: {
+  q?: string;
+  plan?: TryOnPlan;
+  page?: number;
+  pageSize?: number;
+}) => {
+  const q = params.q ? escapeRegex(params.q.trim()) : "";
+  const page = Math.max(1, params.page ?? 1);
+  const pageSize = Math.min(100, Math.max(1, params.pageSize ?? 25));
+
+  const filter: Record<string, unknown> = {};
+  if (params.plan) filter.plan = params.plan;
+  if (q) filter.email = new RegExp(q, "i");
+
+  const [items, total, byPlan] = await Promise.all([
+    TryOnUsage.find(filter)
+      .sort({ count: -1 })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .lean(),
+    TryOnUsage.countDocuments(filter),
+    TryOnUsage.aggregate<{ _id: string; n: number }>([{ $group: { _id: "$plan", n: { $sum: 1 } } }]),
+  ]);
+
+  const planCounts: Record<string, number> = { starter: 0, essentials: 0, atelier: 0 };
+  for (const c of byPlan) if (c._id in planCounts) planCounts[c._id] = c.n;
+
+  return {
+    accounts: items.map((doc) => ({
+      email: doc.email,
+      plan: doc.plan ?? "starter",
+      used: doc.count,
+      limit: doc.unlimited ? null : (doc.limit ?? PLAN_TRY_ON_LIMITS.starter),
+      unlimited: Boolean(doc.unlimited),
+      updatedAt: (doc as unknown as { updatedAt?: Date }).updatedAt,
+    })),
+    total,
+    page,
+    pageSize,
+    planCounts,
+  };
+};

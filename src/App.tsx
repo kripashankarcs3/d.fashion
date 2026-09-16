@@ -45,6 +45,7 @@ const Faq = lazy(() => import('@/pages/Faq'));
 const Blog = lazy(() => import('@/pages/Blog'));
 const Payment = lazy(() => import('@/pages/Payment'));
 const AdminPayments = lazy(() => import('@/pages/AdminPayments'));
+const AdminUsage = lazy(() => import('@/pages/AdminUsage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -228,11 +229,16 @@ function Router() {
                 <Payment />
               </AppRoute>
             </Route>
-            {/* Admin-only: AppRoute only checks for a session — AdminPayments
-                itself redirects a non-admin away via useIsAdmin(). */}
+            {/* Admin-only: AppRoute only checks for a session — the admin
+                pages themselves redirect a non-admin away via useIsAdmin(). */}
             <Route path={ROUTES.adminPayments}>
               <AppRoute name="Payment Review">
                 <AdminPayments />
+              </AppRoute>
+            </Route>
+            <Route path={ROUTES.adminUsage}>
+              <AppRoute name="Try-On Usage">
+                <AdminUsage />
               </AppRoute>
             </Route>
 

@@ -12,6 +12,7 @@ import {
   type NavLink,
 } from '@/config/navigation';
 import { signOut as firebaseSignOut } from '@/services/auth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useAuthStore } from '@/store/useAuthStore';
 import { scopeStoreToUser, useStyleStore } from '@/store/useStyleStore';
 import { BRAND } from '@/config/site';
@@ -50,6 +51,13 @@ export default function Navbar() {
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const clearSession = useAuthStore((s) => s.clearSession);
+  const isAdmin = useIsAdmin().data === true;
+
+  // Admin Panel appears only for the account(s) on ADMIN_EMAILS — everyone
+  // else sees exactly the same menu as before.
+  const accountMenuItems: NavLink[] = isAdmin
+    ? [...ACCOUNT_MENU, { href: ROUTES.adminPayments, label: 'Admin Panel' }]
+    : ACCOUNT_MENU;
 
   /* Signed-out visitors get the marketing story; signed-in members get the
      product. No nav link dead-ends at a login redirect; the CTA deliberately
@@ -250,7 +258,7 @@ export default function Navbar() {
                             {user?.email}
                           </span>
                         </p>
-                        {ACCOUNT_MENU.map((item) => (
+                        {accountMenuItems.map((item) => (
                           <Link
                             key={item.href}
                             href={item.href}
@@ -402,7 +410,7 @@ export default function Navbar() {
                     <span className="block">{user?.email}</span>
                   </p>
                   <ul className="mt-4 space-y-1">
-                    {ACCOUNT_MENU.map((item) => (
+                    {accountMenuItems.map((item) => (
                       <li key={item.href}>
                         <Link
                           href={item.href}

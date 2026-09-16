@@ -2,16 +2,19 @@ import { Router } from "express";
 import {
   listTemplates,
   getUsage,
+  listUsage,
   tryOnClothes,
   tryOnMakeup,
   tryOnHair,
 } from "../controllers/tryon.controller";
 import { authenticate } from "../middleware/auth.middleware";
+import { requireAdmin } from "../middleware/requireAdmin";
 import { aiLightLimiter } from "../middleware/rateLimiter";
 
 const router = Router();
 
 router.get("/usage", authenticate, aiLightLimiter, getUsage);
+router.get("/admin/usage", authenticate, requireAdmin, listUsage);
 router.get("/templates/:feature", authenticate, aiLightLimiter, listTemplates);
 router.post("/clothes", authenticate, aiLightLimiter, tryOnClothes);
 router.post("/makeup", authenticate, aiLightLimiter, tryOnMakeup);
