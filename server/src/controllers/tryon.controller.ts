@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import { URL } from "url";
 import YouCamService from "../services/youcam.service";
-import { reserveTryOnSlot, getTryOnUsage } from "../services/tryon.quota.service";
+import { reserveTryOnSlot, refundTryOnSlot, getTryOnUsage } from "../services/tryon.quota.service";
 import { PRIVATE_IPS, STATIC_ASSET_DIRS, TMP_DIR as UPLOADS_DIR } from "../constants";
 
 // Resolves a bundled asset path such as `/images/garments/foo.png` to a file on
@@ -119,7 +119,11 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
       return res.status(400).json({ success: false, message: "Invalid image URL" });
     }
 
-    // Paid AI calls are rationed per email so the YouCam bill stays predictable.
+    // Paid AI calls are rationed per email so the YouCam bill stays
+    // predictable. The reservation is provisional: if this call ends up
+    // falling back instead of producing a real image, it's refunded below —
+    // a click that renders a stand-in should never cost part of the quota.
+    let reserved = false;
     if (YouCamService.isAvailable()) {
       const remaining = await reserveTryOnSlot(req);
       if (remaining === null) {
@@ -129,6 +133,7 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
           remaining: 0,
         });
       }
+      reserved = true;
     }
 
     try {
@@ -158,7 +163,9 @@ export const tryOnClothes = async (req: Request, res: Response, next: NextFuncti
     }
 
     // Fallback: return garment image with colour hint so the client can
-    // apply a CSS colour-tint overlay as a visual preview.
+    // apply a CSS colour-tint overlay as a visual preview. No real image was
+    // produced, so give back the slot reserved above.
+    if (reserved) await refundTryOnSlot(req);
     return res.status(200).json({
       success: true,
       resultUrl: garmentImageUrl,
@@ -179,8 +186,10 @@ export const tryOnMakeup = async (req: Request, res: Response, next: NextFunctio
       return res.status(400).json({ success: false, message: "personImageUrl is required" });
     }
 
+    let reserved = false;
     if (productId) {
-      // Paid AI calls are rationed per email so the YouCam bill stays predictable.
+      // Paid AI calls are rationed per email so the YouCam bill stays
+      // predictable. Refunded below if this ends up falling back.
       if (YouCamService.isAvailable()) {
         const remaining = await reserveTryOnSlot(req);
         if (remaining === null) {
@@ -190,6 +199,7 @@ export const tryOnMakeup = async (req: Request, res: Response, next: NextFunctio
             remaining: 0,
           });
         }
+        reserved = true;
       }
 
       try {
@@ -212,7 +222,9 @@ export const tryOnMakeup = async (req: Request, res: Response, next: NextFunctio
       }
     }
 
-    // Fallback: return the person image unchanged
+    // Fallback: return the person image unchanged. No real image was
+    // produced, so give back the slot reserved above.
+    if (reserved) await refundTryOnSlot(req);
     return res.status(200).json({
       success: true,
       resultUrl: personImageUrl,
@@ -239,7 +251,9 @@ export const tryOnHair = async (req: Request, res: Response, next: NextFunction)
       });
     }
 
-    // Paid AI calls are rationed per email so the YouCam bill stays predictable.
+    // Paid AI calls are rationed per email so the YouCam bill stays
+    // predictable. Refunded below if this ends up falling back.
+    let reserved = false;
     if (YouCamService.isAvailable()) {
       const remaining = await reserveTryOnSlot(req);
       if (remaining === null) {
@@ -249,6 +263,7 @@ export const tryOnHair = async (req: Request, res: Response, next: NextFunction)
           remaining: 0,
         });
       }
+      reserved = true;
     }
 
     try {
@@ -277,7 +292,9 @@ export const tryOnHair = async (req: Request, res: Response, next: NextFunction)
       console.warn("YouCam hair try-on failed:", detail);
     }
 
-    // Fallback: return the person image unchanged
+    // Fallback: return the person image unchanged. No real image was
+    // produced, so give back the slot reserved above.
+    if (reserved) await refundTryOnSlot(req);
     return res.status(200).json({
       success: true,
       resultUrl: personImageUrl,

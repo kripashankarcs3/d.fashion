@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { randomUUID } from "node:crypto";
 import { env } from "../src/config/env";
 import TryOnUsage from "../src/models/tryon.usage.model";
-import { reserveTryOnSlot, getTryOnUsage, applyPaymentToUsage } from "../src/services/tryon.quota.service";
+import { reserveTryOnSlot, refundTryOnSlot, getTryOnUsage, applyPaymentToUsage } from "../src/services/tryon.quota.service";
 
 // A fake Express Request carrying just what resolveUserEmail() reads.
 const reqFor = (email: string) => ({ user: { id: "unused", email } }) as any;
@@ -97,5 +97,30 @@ describe("try-on quota engine", () => {
 
     const usage = await getTryOnUsage(reqFor(email));
     expect(usage.limit).toBe(env.TRY_ON_LIMIT_STARTER + 2);
+  });
+
+  it("refundTryOnSlot undoes exactly one reservation", async () => {
+    const email = freshEmail("refund");
+    await reserveTryOnSlot(reqFor(email));
+    await reserveTryOnSlot(reqFor(email));
+
+    await refundTryOnSlot(reqFor(email));
+
+    const usage = await getTryOnUsage(reqFor(email));
+    expect(usage.used).toBe(1);
+  });
+
+  it("refundTryOnSlot never takes a fresh account below zero", async () => {
+    const email = freshEmail("refund-floor");
+
+    await refundTryOnSlot(reqFor(email));
+    await refundTryOnSlot(reqFor(email));
+
+    const usage = await getTryOnUsage(reqFor(email));
+    expect(usage.used).toBe(0);
+
+    // The account still has its full allowance — the extra refunds did not
+    // leave it in some negative-count state that would corrupt the next check.
+    expect(await reserveTryOnSlot(reqFor(email))).toBe(env.TRY_ON_LIMIT_STARTER - 1);
   });
 });

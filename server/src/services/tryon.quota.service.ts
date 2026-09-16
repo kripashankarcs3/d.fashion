@@ -65,6 +65,23 @@ export const reserveTryOnSlot = async (req: Request): Promise<number | null> => 
   return Math.max(0, (doc.limit ?? PLAN_TRY_ON_LIMITS.starter) - doc.count);
 };
 
+/** Undoes a reservation from `reserveTryOnSlot` when the call it guarded did
+ *  not actually produce a real try-on image (the provider errored, or there
+ *  was nothing to extract a result from) — a member should never lose part
+ *  of their quota for a click that rendered a fallback, not a real result.
+ *  Floors at 0 via a pipeline update so an unexpected extra refund can never
+ *  push the count negative. Never throws: best-effort, and a request that
+ *  never reserved anything (unresolved email) is a silent no-op. */
+export const refundTryOnSlot = async (req: Request): Promise<void> => {
+  const email = await resolveUserEmail(req);
+  if (!email) return;
+  await TryOnUsage.updateOne(
+    { email },
+    [{ $set: { count: { $max: [{ $subtract: [{ $ifNull: ["$count", 0] }, 1] }, 0] } } }],
+    { updatePipeline: true }
+  );
+};
+
 /** Current usage for the requesting email. Never throws: unknown users
  *  simply report the default Starter allowance, unused. */
 export const getTryOnUsage = async (

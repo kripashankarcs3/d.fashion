@@ -14,7 +14,7 @@ export function TryOnQuotaPill({ full = false, className }: { full?: boolean; cl
       <span
         className={cn(
           'inline-flex items-center gap-2 rounded-sm border border-gold-hairline bg-surface-0/75 backdrop-blur-sm',
-          full ? 'w-full justify-center px-4 py-2.5' : 'px-3 py-1.5',
+          full ? 'w-full justify-center px-4 py-2' : 'px-3 py-1.5',
           className,
         )}
       >
@@ -32,7 +32,7 @@ export function TryOnQuotaPill({ full = false, className }: { full?: boolean; cl
     <span
       className={cn(
         'inline-flex items-center gap-2 rounded-sm border backdrop-blur-sm',
-        full ? 'w-full justify-center px-4 py-2.5' : 'px-3 py-1.5',
+        full ? 'w-full justify-center px-4 py-2' : 'px-3 py-1.5',
         exhausted
           ? 'border-gold-primary/60 bg-gold-primary/15 text-gold-primary'
           : 'border-gold-hairline bg-surface-0/75 text-cream-primary/70',
