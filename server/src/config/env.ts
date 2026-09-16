@@ -27,6 +27,15 @@ const envSchema = z.object({
 
   YOUCAM_API_KEY: z.string().default(""),
 
+  /* ------------------------------------------------------------- plans */
+  /** Lifetime AI try-on allowance for an account on the free Starter plan. */
+  TRY_ON_LIMIT_STARTER: int("TRY_ON_LIMIT_STARTER", 9),
+  /** Allowance granted when a member's Essentials payment is approved. */
+  TRY_ON_LIMIT_ESSENTIALS: int("TRY_ON_LIMIT_ESSENTIALS", 40),
+  /** Comma-separated emails allowed to review payments and manage products;
+   *  matched case-insensitively against the authenticated member's email. */
+  ADMIN_EMAILS: z.string().default(""),
+
   /* --------------------------------------------------- OpenCode stylist */
   /** "zen": call the Zen API directly (paid models; the workspace needs billing).
    *  "server": go through a local `opencode serve`, where Zen's free models work. */
@@ -66,10 +75,6 @@ const envSchema = z.object({
   UPLOAD_MAX_BYTES: int("UPLOAD_MAX_BYTES", 10 * 1024 * 1024),
   UPLOAD_TTL_MS: int("UPLOAD_TTL_MS", 2 * 60 * 60 * 1000),
 
-  /* ---------------------------------------------------- AI try-on quota */
-  /** Lifetime AI try-on attempts allowed per email (YouCam costs money). */
-  TRY_ON_LIMIT: int("TRY_ON_LIMIT", 9),
-
   /* ---------------------------------------------------- rate limiting */
   RATE_LIMIT_API_WINDOW_MS: int("RATE_LIMIT_API_WINDOW_MS", 60 * 1000),
   RATE_LIMIT_API_MAX: int("RATE_LIMIT_API_MAX", 100),
@@ -88,6 +93,9 @@ const envSchema = z.object({
 
   RATE_LIMIT_HISTORY_WINDOW_MS: int("RATE_LIMIT_HISTORY_WINDOW_MS", 60 * 60 * 1000),
   RATE_LIMIT_HISTORY_MAX: int("RATE_LIMIT_HISTORY_MAX", 60),
+
+  RATE_LIMIT_PAYMENT_WINDOW_MS: int("RATE_LIMIT_PAYMENT_WINDOW_MS", 60 * 60 * 1000),
+  RATE_LIMIT_PAYMENT_MAX: int("RATE_LIMIT_PAYMENT_MAX", 10),
 
   /* ------------------------------------------------- content security */
   /** Extra hosts allowed to load images via CSP, comma-separated. */

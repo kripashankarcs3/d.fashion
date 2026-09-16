@@ -8,6 +8,7 @@ export default defineConfig({
       JWT_SECRET: "test-secret",
       MONGODB_URI: "mongodb://localhost:27017/deestyle_test",
       YOUCAM_API_KEY: "test-key",
+      ADMIN_EMAILS: "admin@test.local",
     },
   },
 });

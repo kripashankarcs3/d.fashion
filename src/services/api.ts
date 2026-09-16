@@ -74,9 +74,14 @@ export const listTryOnTemplates = (feature: 'look-vto' | 'hair-style') =>
     `/tryon/templates/${feature}`,
   );
 
-/** Lifetime AI try-on usage for the signed-in account: `used` of `limit`. */
+/** Lifetime AI try-on usage for the signed-in account: `used` of `limit`.
+ *  `limit` is `null` on an unlimited (Atelier) account. */
 export const getTryOnUsage = async () =>
-  (await api.get<{ success: boolean; used: number; limit: number }>('/tryon/usage')).data;
+  (
+    await api.get<{ success: boolean; used: number; limit: number | null; plan: string; unlimited: boolean }>(
+      '/tryon/usage',
+    )
+  ).data;
 
 /** One prior turn replayed to the stylist so follow-up questions keep context. */
 export interface ChatTurn {
@@ -183,3 +188,74 @@ export const getGarmentRecommendations = async (params: {
       { params },
     )
   ).data.data;
+
+/* ------------------------------------------------------------- payments */
+
+export type PaymentKind = 'plan' | 'topup';
+export type PaymentStatus = 'pending' | 'verified' | 'rejected';
+
+export interface PaymentRecord {
+  id: string;
+  email: string;
+  kind: PaymentKind;
+  planId?: 'essentials' | 'atelier';
+  topupQty?: number;
+  amount: number;
+  utr: string;
+  status: PaymentStatus;
+  rejectionReason?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
+  createdAt: string;
+  screenshotUrl: string;
+}
+
+export const submitPayment = (input: {
+  kind: PaymentKind;
+  planId?: 'essentials' | 'atelier';
+  topupQty?: number;
+  utr: string;
+  screenshot: File;
+}) => {
+  const form = new FormData();
+  form.append('kind', input.kind);
+  if (input.planId) form.append('planId', input.planId);
+  if (input.topupQty) form.append('topupQty', String(input.topupQty));
+  form.append('utr', input.utr);
+  form.append('screenshot', input.screenshot);
+  return api.post<{ success: boolean; message: string; payment: PaymentRecord }>('/payments', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const getMyPayments = () =>
+  api.get<{ success: boolean; payments: PaymentRecord[] }>('/payments/mine');
+
+export const getPayment = (id: string) =>
+  api.get<{ success: boolean; payment: PaymentRecord }>(`/payments/${id}`);
+
+/** Screenshots live behind auth, so they can't be loaded with a plain <img
+ *  src>. Fetched as a blob and shown via URL.createObjectURL — the caller is
+ *  responsible for revoking the URL when done (see UploadFlow.tsx for the
+ *  same lifecycle pattern). */
+export const getPaymentScreenshotBlob = async (id: string) => {
+  const res = await api.get(`/payments/${id}/screenshot`, { responseType: 'blob' });
+  return URL.createObjectURL(res.data as Blob);
+};
+
+export interface AdminPaymentsPage {
+  payments: PaymentRecord[];
+  total: number;
+  page: number;
+  pageSize: number;
+  counts: { pending: number; verified: number; rejected: number };
+}
+
+export const listPayments = (params: { status?: PaymentStatus; q?: string; page?: number; pageSize?: number }) =>
+  api.get<{ success: boolean } & AdminPaymentsPage>('/payments', { params });
+
+export const approvePayment = (id: string) =>
+  api.post<{ success: boolean; message: string; payment: PaymentRecord }>(`/payments/${id}/approve`);
+
+export const rejectPayment = (id: string, reason?: string) =>
+  api.post<{ success: boolean; message: string; payment: PaymentRecord }>(`/payments/${id}/reject`, { reason });
