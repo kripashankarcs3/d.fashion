@@ -33,6 +33,16 @@ jobs:
   backend:
     name: Backend (build + unit tests)
     runs-on: ubuntu-latest
+    # Some unit tests (tryonQuota, payments) exercise the real quota/payment
+    # atomicity (Mongo partial indexes, pipeline updates, upsert races) against
+    # a live connection rather than a mocked model layer — that's the only way
+    # those guarantees actually get tested, so they need a real Mongo here,
+    # same as the e2e job below.
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
