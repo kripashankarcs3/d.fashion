@@ -30,6 +30,12 @@ services:
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:-}
+      # Manual-payment review: who can approve/reject at /admin/payments, and
+      # (optional) who gets emailed the moment a member submits one.
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_APP_PASSWORD: ${SMTP_APP_PASSWORD:-}
+      NOTIFY_EMAIL: ${NOTIFY_EMAIL:-}
     depends_on:
       - mongo
 

@@ -36,6 +36,18 @@ const envSchema = z.object({
    *  matched case-insensitively against the authenticated member's email. */
   ADMIN_EMAILS: z.string().default(""),
 
+  /* ------------------------------------------------ payment alert email */
+  /** Gmail account the alert is sent from (SMTP). Unset = no email is sent —
+   *  the payment still lands in /admin/payments either way. */
+  SMTP_USER: z.string().default(""),
+  /** A Gmail *App Password* (myaccount.google.com/apppasswords), never the
+   *  account's real login password — Gmail's SMTP rejects the latter for an
+   *  app like this one. */
+  SMTP_APP_PASSWORD: z.string().default(""),
+  /** Who receives the "new payment" alert. Defaults to the first address in
+   *  ADMIN_EMAILS so nothing extra has to be configured once that's set. */
+  NOTIFY_EMAIL: z.string().default(""),
+
   /* --------------------------------------------------- OpenCode stylist */
   /** "zen": call the Zen API directly (paid models; the workspace needs billing).
    *  "server": go through a local `opencode serve`, where Zen's free models work. */
