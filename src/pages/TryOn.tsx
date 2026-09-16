@@ -651,12 +651,16 @@ export default function TryOn() {
                       )}
 
                       {/* CTA Buttons Side-by-Side in 1 Row */}
-                      <TryOnQuotaPill full className="mt-4" />
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        <Button size="sm" onClick={handleTryOn} disabled={isPending} className="h-10 text-[0.6rem] px-1.5">
-                          {isPending ? <LoaderCircle className="animate-spin" aria-hidden /> : <RotateCw aria-hidden />}
+                      <TryOnQuotaPill full className="mt-2" />
+                      <div className="mt-1.5 grid grid-cols-2 gap-2">
+                        <button
+                          onClick={handleTryOn}
+                          disabled={isPending}
+                          className="inline-flex h-10 w-full items-center justify-center gap-1.5 bg-gold-primary px-1.5 text-[0.6rem] font-semibold uppercase tracking-wider text-surface-0 transition-all hover:bg-gold-dark hover:text-cream-primary active:scale-[0.98] rounded-sm disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {isPending ? <LoaderCircle className="size-4 animate-spin" aria-hidden /> : <RotateCw className="size-4" aria-hidden />}
                           {ctaLabel}
-                        </Button>
+                        </button>
                         {selectedGarment?.buyUrl && (
                           <a href={selectedGarment.buyUrl} target="_blank" rel="noopener noreferrer"
                             className="inline-flex h-10 w-full items-center justify-center bg-gold-primary px-2 text-[0.6rem] font-semibold uppercase tracking-wider text-surface-0 transition-all hover:bg-gold-dark hover:text-cream-primary active:scale-[0.98] rounded-sm">
