@@ -43,6 +43,8 @@ const About = lazy(() => import('@/pages/About'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const Faq = lazy(() => import('@/pages/Faq'));
 const Blog = lazy(() => import('@/pages/Blog'));
+const Payment = lazy(() => import('@/pages/Payment'));
+const AdminPayments = lazy(() => import('@/pages/AdminPayments'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -219,6 +221,18 @@ function Router() {
             <Route path={ROUTES.chat}>
               <AppRoute name={BRAND.stylistName}>
                 <Chat />
+              </AppRoute>
+            </Route>
+            <Route path={ROUTES.payment}>
+              <AppRoute name="Payment">
+                <Payment />
+              </AppRoute>
+            </Route>
+            {/* Admin-only: AppRoute only checks for a session — AdminPayments
+                itself redirects a non-admin away via useIsAdmin(). */}
+            <Route path={ROUTES.adminPayments}>
+              <AppRoute name="Payment Review">
+                <AdminPayments />
               </AppRoute>
             </Route>
 

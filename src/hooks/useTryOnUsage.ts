@@ -3,7 +3,10 @@ import { getTryOnUsage } from '@/services/api';
 
 export interface TryOnUsage {
   used: number;
-  limit: number;
+  /** `null` on an unlimited (Atelier) account. */
+  limit: number | null;
+  plan: string;
+  unlimited: boolean;
 }
 
 /** Lifetime AI try-on usage for the signed-in account (`used` of `limit`).
@@ -13,7 +16,7 @@ export const useTryOnUsage = () =>
     queryKey: ['tryon-usage'],
     queryFn: async () => {
       const res = await getTryOnUsage();
-      return { used: res.used, limit: res.limit };
+      return { used: res.used, limit: res.limit, plan: res.plan, unlimited: res.unlimited };
     },
     staleTime: 30_000,
     refetchOnWindowFocus: true,

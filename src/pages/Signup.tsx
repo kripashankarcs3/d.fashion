@@ -44,8 +44,13 @@ export default function Signup() {
   const [, navigate] = useLocation();
   const search = useSearch();
   const plan = new URLSearchParams(search).get('plan');
+  const explicitRedirect = new URLSearchParams(search).get('redirect');
+  // A paid plan carries straight through to payment; an explicit `?redirect=`
+  // (e.g. bounced here from a protected route) wins over that; otherwise home.
+  const paidPlanId = plan === 'Essentials' ? 'essentials' : plan === 'Atelier' ? 'atelier' : null;
   const redirectTo =
-    new URLSearchParams(search).get('redirect') || AUTHENTICATED_HOME;
+    explicitRedirect ||
+    (paidPlanId ? `${ROUTES.payment}?kind=plan&planId=${paidPlanId}` : AUTHENTICATED_HOME);
 
   const setSession = useAuthStore((s) => s.setSession);
   const [name, setName] = useState('');

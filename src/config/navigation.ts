@@ -32,6 +32,8 @@ export const ROUTES = {
   report: '/report',
   tryOn: '/try-on',
   chat: '/chat',
+  payment: '/payment',
+  adminPayments: '/admin/payments',
   privacy: '/privacy',
   terms: '/terms',
   about: '/about',
@@ -210,6 +212,14 @@ export const PAGE_META: Record<string, PageMeta> = {
     title: brandTitle(' — Dashboard'),
     description:
       'Your colour intelligence at a glance — palette, reports, wardrobe, and weekly guidance.',
+  },
+  [ROUTES.payment]: {
+    title: brandTitle(' — Complete Your Payment'),
+    description: 'Pay by UPI and submit your transaction for review.',
+  },
+  [ROUTES.adminPayments]: {
+    title: brandTitle(' — Payment Review'),
+    description: 'Review and approve pending UPI payments.',
   },
   [ROUTES.login]: {
     title: brandTitle(' — Sign In'),
