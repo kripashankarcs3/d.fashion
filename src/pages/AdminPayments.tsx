@@ -15,13 +15,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -35,7 +28,6 @@ import {
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import EditorialHeading from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
-import { PaymentScreenshotPreview } from '@/components/PaymentScreenshotPreview';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { ROUTES } from '@/config/navigation';
 import { formatPrice } from '@/config/pricing';
@@ -224,7 +216,6 @@ export default function AdminPayments() {
                 <TableHead>Request</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>UTR</TableHead>
-                <TableHead>Screenshot</TableHead>
                 <TableHead>Submitted</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -233,13 +224,13 @@ export default function AdminPayments() {
             <TableBody>
               {query.isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-10 text-center text-cream-primary/60">
+                  <TableCell colSpan={7} className="py-10 text-center text-cream-primary/60">
                     <Loader2 className="mx-auto h-5 w-5 animate-spin text-gold-primary" aria-hidden />
                   </TableCell>
                 </TableRow>
               ) : payments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-10 text-center text-cream-primary/60">
+                  <TableCell colSpan={7} className="py-10 text-center text-cream-primary/60">
                     No payment requests here.
                   </TableCell>
                 </TableRow>
@@ -250,19 +241,6 @@ export default function AdminPayments() {
                     <TableCell className="text-body-sm text-cream-primary/80">{describe(p)}</TableCell>
                     <TableCell className="text-body-sm text-cream-primary/80">{formatPrice(p.amount)}</TableCell>
                     <TableCell className="text-body-sm text-cream-primary/80">{p.utr}</TableCell>
-                    <TableCell>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="secondary" size="sm">View</Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Payment screenshot — {p.utr}</DialogTitle>
-                          </DialogHeader>
-                          <PaymentScreenshotPreview paymentId={p.id} />
-                        </DialogContent>
-                      </Dialog>
-                    </TableCell>
                     <TableCell className="text-body-sm text-cream-primary/60">
                       {new Date(p.createdAt).toLocaleString()}
                     </TableCell>

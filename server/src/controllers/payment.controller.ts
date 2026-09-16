@@ -1,14 +1,11 @@
 import { Request, Response } from "express";
 import { z } from "zod";
 import mongoose from "mongoose";
-import fs from "fs";
-import path from "path";
 import Payment from "../models/payment.model";
 import { asyncHandler } from "../utils/asyncHandler";
 import { PLAN_PRICES, TOPUP_PRICE_PER_UNIT } from "../config/plans";
 import { applyPaymentToUsage } from "../services/tryon.quota.service";
 import { sendPaymentAlert } from "../services/email.service";
-import { PAYMENT_PROOF_DIR } from "../constants";
 import { isAdminEmail } from "../middleware/requireAdmin";
 
 const currentUser = (req: Request) => (req as any).user as { id?: string; email?: string } | undefined;
@@ -28,11 +25,13 @@ const submitSchema = z.discriminatedUnion("kind", [
     kind: z.literal("plan"),
     planId: z.enum(["essentials", "atelier"]),
     utr: z.string().trim().min(4).max(64),
+    email: z.string().trim().toLowerCase().email(),
   }),
   z.object({
     kind: z.literal("topup"),
     topupQty: z.coerce.number().int().min(1).max(20).default(1),
     utr: z.string().trim().min(4).max(64),
+    email: z.string().trim().toLowerCase().email(),
   }),
 ]);
 
@@ -54,8 +53,6 @@ interface PaymentLike {
   createdAt: Date;
 }
 
-/** Never leaks `screenshotFile` (an on-disk path fragment) to the client — the
- *  authenticated screenshot route is the only way to read the image. */
 const toClientPayment = (p: PaymentLike) => ({
   id: String(p._id),
   email: p.email,
@@ -69,7 +66,6 @@ const toClientPayment = (p: PaymentLike) => ({
   verifiedBy: p.verifiedBy,
   verifiedAt: p.verifiedAt,
   createdAt: p.createdAt,
-  screenshotUrl: `/api/payments/${String(p._id)}/screenshot`,
 });
 
 export const submitPayment = asyncHandler(async (req: Request, res: Response) => {
@@ -84,14 +80,20 @@ export const submitPayment = asyncHandler(async (req: Request, res: Response) =>
     res.status(400).json({ success: false, message: "Invalid payment request" });
     return;
   }
+  const data = parsed.data;
 
-  const file = req.file;
-  if (!file) {
-    res.status(400).json({ success: false, message: "A payment screenshot is required" });
+  // The typed email is never trusted as an identity on its own (that would
+  // let a request claim someone else's account) — it must match the signed-in
+  // session's email. The check exists purely so the member re-confirms the
+  // right account on the form, and the admin sees an address they can act on
+  // without also having to cross-reference a separate login record.
+  if (data.email !== email) {
+    res.status(400).json({
+      success: false,
+      message: "That email doesn't match the account you're signed in with.",
+    });
     return;
   }
-
-  const data = parsed.data;
 
   // One open request per email+kind(+plan) at a time — a duplicate "I've
   // Paid" click should not create a second pending row.
@@ -115,7 +117,6 @@ export const submitPayment = asyncHandler(async (req: Request, res: Response) =>
       topupQty: data.kind === "topup" ? data.topupQty : undefined,
       amount: computeAmount(data),
       utr: data.utr,
-      screenshotFile: file.filename,
       status: "pending",
     });
     // Fire-and-forget: sendPaymentAlert never throws (best-effort), and a
@@ -148,42 +149,23 @@ export const getMyPayments = asyncHandler(async (req: Request, res: Response) =>
   res.status(200).json({ success: true, payments: payments.map(toClientPayment) });
 });
 
-const loadOwnedOrAdminPayment = async (req: Request, res: Response) => {
+export const getPayment = asyncHandler(async (req: Request, res: Response) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
     res.status(404).json({ success: false, message: "Not found" });
-    return null;
+    return;
   }
   const payment = await Payment.findById(req.params.id).lean();
   if (!payment) {
     res.status(404).json({ success: false, message: "Not found" });
-    return null;
+    return;
   }
   const email = resolveEmail(req);
   const isOwner = Boolean(email) && payment.email === email;
   if (!isOwner && !isAdminEmail(currentUser(req)?.email)) {
     res.status(403).json({ success: false, message: "Not allowed" });
-    return null;
-  }
-  return payment;
-};
-
-export const getPayment = asyncHandler(async (req: Request, res: Response) => {
-  const payment = await loadOwnedOrAdminPayment(req, res);
-  if (!payment) return;
-  res.status(200).json({ success: true, payment: toClientPayment(payment) });
-});
-
-export const getPaymentScreenshot = asyncHandler(async (req: Request, res: Response) => {
-  const payment = await loadOwnedOrAdminPayment(req, res);
-  if (!payment) return;
-  const filePath = path.join(PAYMENT_PROOF_DIR, path.basename(payment.screenshotFile));
-  if (!fs.existsSync(filePath)) {
-    res.status(404).json({ success: false, message: "Screenshot not found" });
     return;
   }
-  res.setHeader("Cache-Control", "private, no-store");
-  res.setHeader("X-Robots-Tag", "noindex");
-  res.sendFile(filePath);
+  res.status(200).json({ success: true, payment: toClientPayment(payment) });
 });
 
 /** Admin: paginated, filterable list with status counts for the dashboard header. */

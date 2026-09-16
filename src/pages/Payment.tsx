@@ -11,6 +11,7 @@ import { ROUTES } from '@/config/navigation';
 import { PLAN_LABELS, PLAN_PRICES, TOPUP_PRICE_PER_UNIT, UPI } from '@/config/payment';
 import { formatPrice } from '@/config/pricing';
 import { getPayment, submitPayment, type PaymentKind, type PaymentRecord } from '@/services/api';
+import { useAuthStore } from '@/store/useAuthStore';
 import { success, error as toastError } from '@/lib/toast';
 
 type PlanId = 'essentials' | 'atelier';
@@ -49,9 +50,10 @@ function QrImage() {
 
 export default function Payment() {
   const { kind, planId } = useIntent();
+  const accountEmail = useAuthStore((s) => s.user?.email) ?? '';
   const [step, setStep] = useState<'pay' | 'proof'>('pay');
   const [utr, setUtr] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [email, setEmail] = useState(accountEmail);
   const [copied, setCopied] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -66,7 +68,7 @@ export default function Payment() {
         planId: kind === 'plan' ? planId : undefined,
         topupQty: kind === 'topup' ? 1 : undefined,
         utr: utr.trim(),
-        screenshot: file as File,
+        email: email.trim(),
       }),
     onSuccess: (res) => {
       setPaymentId(res.data.payment.id);
@@ -96,14 +98,14 @@ export default function Payment() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!utr.trim() || !file) return;
+    if (!utr.trim() || !email.trim()) return;
     submit.mutate();
   };
 
   const resubmit = () => {
     setPaymentId(null);
     setUtr('');
-    setFile(null);
+    setEmail(accountEmail);
     queryClient.removeQueries({ queryKey: ['payment'] });
   };
 
@@ -189,19 +191,23 @@ export default function Payment() {
                 />
               </div>
               <div>
-                <label htmlFor="screenshot" className="text-caption uppercase tracking-eyebrow text-cream-primary/60">
-                  Payment Screenshot
+                <label htmlFor="account-email" className="text-caption uppercase tracking-eyebrow text-cream-primary/60">
+                  Your D&rsquo;Style account email
                 </label>
-                <input
-                  id="screenshot"
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                <Input
+                  id="account-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
                   required
-                  className="mt-2 block w-full text-body-sm text-cream-primary/80 file:mr-4 file:border file:border-gold-border file:bg-transparent file:px-4 file:py-2 file:text-caption file:uppercase file:tracking-eyebrow file:text-cream-primary"
+                  className="mt-2"
                 />
+                <p className="mt-1.5 text-caption text-cream-primary/45">
+                  Must match the email you signed in with — this is how we know whose access to activate.
+                </p>
               </div>
-              <Button type="submit" variant="primary" loading={submit.isPending} disabled={!utr.trim() || !file}>
+              <Button type="submit" variant="primary" loading={submit.isPending} disabled={!utr.trim() || !email.trim()}>
                 Submit Payment
               </Button>
               <button

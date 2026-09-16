@@ -36,11 +36,6 @@ export const TMP_DIR = path.resolve(__dirname, "../../tmp");
 /** Durable store for dashboard gallery images — never swept. */
 export const GALLERY_DIR = path.resolve(__dirname, "../../gallery");
 
-/** Durable store for payment (UPI) screenshots — never swept, and unlike
- *  GALLERY_DIR never statically mounted: a screenshot is only readable through
- *  the authenticated `/api/payments/:id/screenshot` route (owner or admin). */
-export const PAYMENT_PROOF_DIR = path.resolve(__dirname, "../../payment-proofs");
-
 /** Maximum bytes archived into the gallery from a remote URL. */
 export const GALLERY_MAX_BYTES = 12 * 1024 * 1024;
 

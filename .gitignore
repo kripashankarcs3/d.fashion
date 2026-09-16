@@ -56,7 +56,6 @@ server/tmp/
 
 # Runtime output written by the running server (try-on and analysis results).
 /server/gallery/
-/server/payment-proofs/
 
 # Third-party tool workspace
 /.abacusai/

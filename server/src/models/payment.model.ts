@@ -15,8 +15,6 @@ export interface IPayment extends Document {
   amount: number;
   /** UPI transaction reference the member typed in. */
   utr: string;
-  /** Filename inside PAYMENT_PROOF_DIR — never a public URL. */
-  screenshotFile: string;
   status: PaymentStatus;
   rejectionReason?: string;
   verifiedBy?: string;
@@ -40,7 +38,6 @@ const PaymentSchema = new Schema<IPayment>(
     topupQty: { type: Number, min: 1, max: 100 },
     amount: { type: Number, required: true, min: 0 },
     utr: { type: String, required: true, trim: true, maxlength: 64 },
-    screenshotFile: { type: String, required: true },
     status: { type: String, enum: ["pending", "verified", "rejected"], default: "pending", index: true },
     rejectionReason: { type: String, trim: true, maxlength: 300 },
     verifiedBy: { type: String, trim: true, lowercase: true },

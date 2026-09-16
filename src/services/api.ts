@@ -207,7 +207,6 @@ export interface PaymentRecord {
   verifiedBy?: string;
   verifiedAt?: string;
   createdAt: string;
-  screenshotUrl: string;
 }
 
 export const submitPayment = (input: {
@@ -215,33 +214,15 @@ export const submitPayment = (input: {
   planId?: 'essentials' | 'atelier';
   topupQty?: number;
   utr: string;
-  screenshot: File;
-}) => {
-  const form = new FormData();
-  form.append('kind', input.kind);
-  if (input.planId) form.append('planId', input.planId);
-  if (input.topupQty) form.append('topupQty', String(input.topupQty));
-  form.append('utr', input.utr);
-  form.append('screenshot', input.screenshot);
-  return api.post<{ success: boolean; message: string; payment: PaymentRecord }>('/payments', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-};
+  email: string;
+}) =>
+  api.post<{ success: boolean; message: string; payment: PaymentRecord }>('/payments', input);
 
 export const getMyPayments = () =>
   api.get<{ success: boolean; payments: PaymentRecord[] }>('/payments/mine');
 
 export const getPayment = (id: string) =>
   api.get<{ success: boolean; payment: PaymentRecord }>(`/payments/${id}`);
-
-/** Screenshots live behind auth, so they can't be loaded with a plain <img
- *  src>. Fetched as a blob and shown via URL.createObjectURL — the caller is
- *  responsible for revoking the URL when done (see UploadFlow.tsx for the
- *  same lifecycle pattern). */
-export const getPaymentScreenshotBlob = async (id: string) => {
-  const res = await api.get(`/payments/${id}/screenshot`, { responseType: 'blob' });
-  return URL.createObjectURL(res.data as Blob);
-};
 
 export interface AdminPaymentsPage {
   payments: PaymentRecord[];
