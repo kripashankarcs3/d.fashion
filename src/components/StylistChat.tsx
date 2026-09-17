@@ -7,6 +7,7 @@ import { error } from '@/lib/toast';
 import { sendChatMessage, type ChatTurn } from '@/services/api';
 import { useStyleStore } from '@/store/useStyleStore';
 import { BRAND } from '@/config/site';
+import { cn } from '@/lib/utils';
 
 interface Message {
   role: 'user' | 'ai';
@@ -31,6 +32,9 @@ function toHistory(messages: Message[]): ChatTurn[] {
 
 interface StylistChatProps {
   initialPrompt?: string;
+  /** Extra classes on the root — the parent decides the widget's height
+   *  (e.g. `flex-1` to fill the remaining space of a fixed-viewport page). */
+  className?: string;
 }
 
 function initialMessage(hasAnalysis: boolean): Message {
@@ -177,7 +181,7 @@ function TypingIndicator() {
   );
 }
 
-export default function StylistChat({ initialPrompt }: StylistChatProps) {
+export default function StylistChat({ initialPrompt, className }: StylistChatProps) {
   const analysisResult = useStyleStore((s) => s.analysisResult);
   const wardrobeItems = useStyleStore((s) => s.wardrobeItems);
   const [messages, setMessages] = useState<Message[]>(() => [
@@ -234,7 +238,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
   };
 
   return (
-    <div className="flex h-[min(38.75rem,calc(100vh-14rem))] flex-col overflow-hidden border border-border bg-surface-3">
+    <div className={cn('flex min-h-0 flex-col overflow-hidden border border-border bg-surface-3', className)}>
       {/* Header */}
       <div className="flex items-center gap-4 border-b border-border p-6">
         <span

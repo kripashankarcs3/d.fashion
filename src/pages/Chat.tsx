@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import StylistChat from '@/components/StylistChat';
-import PageMasthead from '@/components/editorial/PageMasthead';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
-import { Emphasis } from '@/components/editorial/EditorialHeading';
+import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EditorialContainer from '@/components/editorial/EditorialContainer';
 import { MessageSquare, Palette, Shirt, Sparkles } from 'lucide-react';
 import { BRAND } from '@/config/site';
@@ -57,7 +56,11 @@ export default function Chat() {
   const [activePrompt, setActivePrompt] = useState('');
 
   return (
-    <div className="w-full pt-28 pb-24 relative overflow-hidden">
+    // Fixed to the viewport and never scrolls — chatting must not require
+    // scrolling the page itself. Everything below fits within this one
+    // screen; only the message list and the sidebar (on large screens)
+    // scroll internally, the way a chat app shell does.
+    <div className="relative flex h-[100svh] w-full flex-col overflow-hidden pt-20 pb-4 md:pt-24 md:pb-6">
       {/* Subtle styling ambient glow */}
       <div
         aria-hidden
@@ -67,18 +70,16 @@ export default function Chat() {
           filter: 'blur(60px)',
         }}
       />
-      
-      <EditorialContainer width="content">
-        <PageMasthead
-          label="AI Stylist"
-          title={
-            <>
-              Ask <Emphasis>D&rsquo;Style.</Emphasis>
-            </>
-          }
-          lede="A knowledgeable, warm stylist who knows your colour season and your wardrobe."
-          className="pb-0"
-        />
+
+      <EditorialContainer width="content" className="flex min-h-0 flex-1 flex-col">
+        {/* Compact header — a full PageMasthead ate too much of the one
+            screen this page has to work with. */}
+        <div className="shrink-0 border-b border-gold-hairline pb-4 md:pb-5">
+          <EyebrowLabel tone="muted">AI Stylist</EyebrowLabel>
+          <EditorialHeading as="h1" size="sm" className="mt-1.5">
+            Ask <Emphasis>D&rsquo;Style.</Emphasis>
+          </EditorialHeading>
+        </div>
 
         {/* Floating animated accents */}
         <div aria-hidden className="pointer-events-none absolute right-10 top-32 -z-0 hidden lg:block">
@@ -104,15 +105,12 @@ export default function Chat() {
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start"
+          className="mt-4 grid min-h-0 flex-1 grid-cols-1 gap-6 md:mt-6 lg:grid-cols-[minmax(0,1fr)_320px]"
         >
-          {/* Conversation — sticky on large screens so, once scrolled into
-              view, the whole widget (header + messages + input) stays
-              anchored below the navbar instead of drifting off-screen and
-              forcing the page itself to be scrolled while chatting. */}
-          <motion.div variants={itemVariants} className="relative lg:sticky lg:top-24 lg:self-start">
+          {/* Conversation */}
+          <motion.div variants={itemVariants} className="flex min-h-0 flex-col">
             {/* Elegant AI Avatar header card */}
-            <div className="mb-4 flex items-center gap-3 border border-gold-hairline/40 bg-surface-3 px-4 py-3 rounded-sm">
+            <div className="mb-3 flex shrink-0 items-center gap-3 border border-gold-hairline/40 bg-surface-3 px-4 py-2.5 rounded-sm">
               <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full overflow-hidden border border-gold-hairline/60">
                 <motion.img
                   src="/images/campaign/model ok.png"
@@ -136,14 +134,19 @@ export default function Chat() {
                 <p className="text-[0.65rem] text-gold-primary uppercase tracking-widest font-semibold mt-0.5">Online &amp; Ready</p>
               </div>
             </div>
-            
-            <StylistChat initialPrompt={activePrompt} />
+
+            <StylistChat initialPrompt={activePrompt} className="flex-1" />
           </motion.div>
 
-          {/* Quick actions */}
-          <motion.div variants={itemVariants} className="space-y-12">
+          {/* Quick actions — hidden below lg, where there isn't room to show
+              them without pushing the chat off-screen; scrolls internally
+              so it never grows the page itself. */}
+          <motion.div
+            variants={itemVariants}
+            className="hidden min-h-0 flex-col space-y-10 overflow-y-auto scrollbar-none pr-1 lg:flex"
+          >
             {/* Quick questions — hairline list, no card chrome */}
-            <div className="border-b border-gold-hairline pb-8">
+            <div className="border-b border-gold-hairline pb-6">
               <EyebrowLabel tone="muted" className="mb-4">
                 Quick Questions
               </EyebrowLabel>
@@ -196,4 +199,3 @@ export default function Chat() {
     </div>
   );
 }
-
