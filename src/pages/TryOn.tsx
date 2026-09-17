@@ -1,10 +1,9 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation } from 'wouter';
+import { Link, Redirect, useLocation } from 'wouter';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { success } from '@/lib/toast';
-import { AlertTriangle, Bookmark, ChevronLeft, ChevronRight, Download, LoaderCircle, MoreVertical, RotateCw, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AlertTriangle, Bookmark, ChevronLeft, ChevronRight, Download, LoaderCircle, MoreVertical, RotateCw } from 'lucide-react';
 import { ROUTES } from '@/config/navigation';
 import EditorialHeading, { Emphasis } from '@/components/editorial/EditorialHeading';
 import EyebrowLabel from '@/components/editorial/EyebrowLabel';
@@ -347,19 +346,9 @@ export default function TryOn() {
       <EditorialContainer width="content" className="pt-2 max-w-[1440px] px-2 sm:px-4 lg:px-6 mx-auto">
 
         {!hasAnalysis ? (
-          <div className="mx-auto mt-14 w-full max-w-xl border border-gold-hairline bg-surface-3 p-8 text-center">
-            <span aria-hidden className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm bg-surface-4 text-gold-primary">
-              <Sparkles className="h-5 w-5" />
-            </span>
-            <h2 className="mt-6 font-serif text-[length:var(--text-h5)] text-cream-primary">Run your colour analysis first</h2>
-            <p className="mx-auto mt-2 max-w-sm text-[length:var(--text-body-sm)] text-cream-primary/80">
-              Virtual try-on renders onto your analysed photo. Upload a selfie and
-              analyse it once — then every garment, look and hairstyle here is yours to try.
-            </p>
-            <Link href={ROUTES.upload} className="mt-8 inline-block">
-              <Button size="lg">Analyse My Colours</Button>
-            </Link>
-          </div>
+          // No dead-end card to click through — try-on is meaningless without
+          // an analysed photo, so land straight on the page that gets one.
+          <Redirect to={ROUTES.upload} />
         ) : (
           <>
             {/* Mode tabs */}
