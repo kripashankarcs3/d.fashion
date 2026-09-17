@@ -386,7 +386,11 @@ export default function TryOn() {
             <div className="relative">
               <BeforeAfterSlider
                 beforeSrc="https://images.pexels.com/photos/2220316/pexels-photo-2220316.jpeg?auto=compress&cs=tinysrgb&w=500"
-                afterColour="#1E3A5F"
+                // A real YouCam clothes try-on run once against this same
+                // photo, archived locally — not a colour-tint demo, so the
+                // slider actually shows a different outfit, not the same
+                // photo darkened.
+                afterSrc="/images/tryon-demo/with-outfit.jpg"
                 beforeLabel="Original"
                 afterLabel="With Outfit"
                 className="h-[26rem] w-72 shadow-2xl"
