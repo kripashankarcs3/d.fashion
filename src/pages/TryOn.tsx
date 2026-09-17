@@ -80,6 +80,12 @@ export default function TryOn() {
   const [activeCategory, setActiveCategory] = useState<GarmentCategory>('Everyday');
   const [genderFilter, setGenderFilter] = useState<Gender>('All');
   const [selected, setSelected] = useState<Selected | null>(null);
+  // The item an in-flight (or just-finished) try-on belongs to — captured at
+  // the moment "Try On" is clicked, and deliberately independent of
+  // `selected`. Members can keep browsing other dresses/categories while a
+  // try-on runs; that browsing must never touch the request already under
+  // way or steal its result once it lands.
+  const [tryOnTarget, setTryOnTarget] = useState<Selected | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [isFallback, setIsFallback] = useState(false);
   const [quotaMessage, setQuotaMessage] = useState<string | null>(null);
@@ -131,20 +137,24 @@ export default function TryOn() {
   );
 
   const isPending = clothes.isPending || makeup.isPending || hair.isPending;
+  // Whether the currently browsed item is the one an in-flight/last try-on
+  // belongs to — only then does the studio panel show its result or spinner.
+  const isViewingActiveTryOn = Boolean(
+    selected && tryOnTarget && selected.kind === tryOnTarget.kind && selected.id === tryOnTarget.id,
+  );
 
   const handleSelect = (item: Selected) => {
-    // A try-on already in flight must run to completion — switching the
-    // selection mid-request would swap out what's showing (and what the
-    // in-flight result would apply to) before the member ever sees it finish.
-    if (isPending) return;
+    // Browsing is always free, even mid-try-on — it only changes what's
+    // previewed, never the request already running for tryOnTarget.
     setSelected(item);
-    setResultUrl(null);
-    setIsFallback(false);
     setQuotaMessage(null);
   };
 
   const handleTryOn = () => {
     if (!selected) return;
+    // One try-on at a time — the button is already disabled while pending,
+    // this just guards against a race on the click itself.
+    if (isPending) return;
     // Limit already reached — show the notice instead of firing another paid call.
     if (quotaMessage) return;
     // Reached without an analysis (a stale reference photo, or a direct link
@@ -154,6 +164,7 @@ export default function TryOn() {
       setLocation(ROUTES.upload);
       return;
     }
+    setTryOnTarget(selected);
     setResultUrl(null);
     setIsFallback(false);
     setQuotaMessage(null);
@@ -253,9 +264,17 @@ export default function TryOn() {
     }
   };
 
+  // Scoped to whatever is actually being browsed right now — browsing a
+  // different item while tryOnTarget's request is still running must show
+  // that OTHER item cleanly, not a stale or mismatched result/spinner.
+  const effectiveResultUrl = isViewingActiveTryOn ? resultUrl : null;
+  const effectiveIsFallback = isViewingActiveTryOn && isFallback;
+
   const ctaLabel = isPending
-    ? selected?.kind === 'look' ? 'Applying…' : 'Trying On…'
-    : resultUrl ? 'Try Again'
+    ? isViewingActiveTryOn
+      ? selected?.kind === 'look' ? 'Applying…' : 'Trying On…'
+      : 'Finishing previous try-on…'
+    : effectiveResultUrl ? 'Try Again'
       : selected?.kind === 'look' ? 'Apply This Look'
         : selected?.kind === 'hair' ? 'Try This Hairstyle'
           : 'Try On This Outfit';
@@ -356,9 +375,8 @@ export default function TryOn() {
               <div role="tablist" aria-label="Try-on category" className="flex gap-0 justify-start">
                 {tabs.map((tab) => (
                   <button key={tab.id} type="button" role="tab" aria-selected={mode === tab.id}
-                    onClick={() => { if (isPending) return; setMode(tab.id); setSelected(null); setResultUrl(null); }}
-                    disabled={isPending}
-                    className={cn('eyebrow relative px-5 py-2.5 text-xs transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50',
+                    onClick={() => { setMode(tab.id); setSelected(null); }}
+                    className={cn('eyebrow relative px-5 py-2.5 text-xs transition-colors duration-200',
                       mode === tab.id ? 'text-cream-primary font-medium' : 'text-cream-primary/55 hover:text-cream-primary')}
                   >
                     {tab.label}
@@ -388,10 +406,9 @@ export default function TryOn() {
                     <button
                       key={g}
                       type="button"
-                      onClick={() => { if (isPending) return; setGenderFilter(g); setSelected(null); setResultUrl(null); }}
-                      disabled={isPending}
+                      onClick={() => { setGenderFilter(g); setSelected(null); }}
                       className={cn(
-                        'inline-flex h-6 items-center rounded-sm border px-2.5 text-[0.58rem] font-semibold uppercase tracking-wider transition-all duration-200 shrink-0 disabled:cursor-not-allowed disabled:opacity-50',
+                        'inline-flex h-6 items-center rounded-sm border px-2.5 text-[0.58rem] font-semibold uppercase tracking-wider transition-all duration-200 shrink-0',
                         genderFilter === g
                           ? 'border-gold-primary bg-gold-primary text-surface-0 shadow-sm'
                           : 'border-gold-hairline/60 bg-surface-3/60 text-cream-primary/70 hover:border-gold-primary/60 hover:text-cream-primary'
@@ -414,9 +431,8 @@ export default function TryOn() {
                         <div role="group" aria-label="Garment categories" className="flex w-max gap-1 pb-0.5 justify-start">
                           {availableCategories.map((cat) => (
                             <button key={cat} type="button"
-                              onClick={() => { if (isPending) return; setActiveCategory(cat); setSelected(null); setResultUrl(null); }}
-                              disabled={isPending}
-                              className={cn('inline-flex h-7 items-center rounded-sm border px-2.5 text-[0.62rem] font-medium uppercase tracking-wider transition-colors duration-200 shrink-0 disabled:cursor-not-allowed disabled:opacity-50',
+                              onClick={() => { setActiveCategory(cat); setSelected(null); }}
+                              className={cn('inline-flex h-7 items-center rounded-sm border px-2.5 text-[0.62rem] font-medium uppercase tracking-wider transition-colors duration-200 shrink-0',
                                 activeCategory === cat
                                   ? 'border-gold-primary bg-gold-primary text-surface-0 font-semibold'
                                   : 'border-gold-hairline bg-surface-3 text-cream-primary/70 hover:border-gold-primary hover:text-cream-primary')}
@@ -461,8 +477,7 @@ export default function TryOn() {
                             <button type="button"
                               onClick={() => handleSelect({ kind: 'outfit', id: String(garment.id), name: garment.name, img: garment.img, colourName: garment.colourName, colourHex: garment.colourHex })}
                               aria-pressed={isSelected}
-                              disabled={isPending}
-                              className={cn('group w-full overflow-hidden border text-left transition-all duration-300 rounded-sm disabled:cursor-not-allowed disabled:opacity-50',
+                              className={cn('group w-full overflow-hidden border text-left transition-all duration-300 rounded-sm',
                                 isSelected ? 'border-gold-primary bg-surface-1 shadow-[0_0_10px_rgba(201,168,76,0.2)]' : 'border-gold-hairline/60 bg-surface-1/40 hover:border-gold-primary/60')}
                             >
                               <div className="aspect-[3/4] w-full overflow-hidden border-b border-gold-hairline/40 bg-surface-2">
@@ -493,7 +508,6 @@ export default function TryOn() {
                   <TemplateGrid
                     items={styleItems}
                     selectedId={selected?.id ?? null}
-                    disabled={isPending}
                     onSelect={(item) => handleSelect({ kind: mode === 'makeup' ? 'look' : 'hair', id: item.id, name: item.title, img: item.thumb })}
                   />
                 )}
@@ -519,7 +533,7 @@ export default function TryOn() {
                         </div>
                       )}
                       {/* Result: Pure BeforeAfter Slider view when try-on result available */}
-                      {resultUrl && !isFallback ? (
+                      {effectiveResultUrl && !effectiveIsFallback ? (
                         <div>
                           <p className="text-[0.52rem] uppercase tracking-wider text-cream-primary/55 mb-1">
                             Drag to compare
@@ -527,7 +541,7 @@ export default function TryOn() {
                           <div className="relative aspect-[3/4] max-h-[470px] w-full overflow-hidden border border-gold-hairline rounded-sm shadow-md mx-auto">
                             <BeforeAfterSlider
                               beforeSrc={assetUrl(referenceImageUrl)}
-                              afterSrc={resultUrl}
+                              afterSrc={effectiveResultUrl}
                               afterColour={selected.colourHex}
                               beforeLabel="You"
                               afterLabel="Try-On"
@@ -583,9 +597,9 @@ export default function TryOn() {
                         <div>
                           <div className="relative aspect-[3/4] max-h-[470px] w-full overflow-hidden border border-gold-hairline rounded-sm shadow-md mx-auto">
                             <AnimatePresence mode="wait">
-                              <motion.img key={resultUrl ?? selected.img}
-                                src={resultUrl ?? selected.img}
-                                alt={resultUrl ? `Try-on: ${selected.name}` : selected.name}
+                              <motion.img key={effectiveResultUrl ?? selected.img}
+                                src={effectiveResultUrl ?? selected.img}
+                                alt={effectiveResultUrl ? `Try-on: ${selected.name}` : selected.name}
                                 width={480} height={640}
                                 initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }}
                                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -596,7 +610,7 @@ export default function TryOn() {
                                 }}
                               />
                             </AnimatePresence>
-                            {isFallback && resultUrl && selected.colourHex && (
+                            {effectiveIsFallback && effectiveResultUrl && selected.colourHex && (
                               <div aria-hidden className="pointer-events-none absolute inset-0 mix-blend-multiply"
                                 style={{ backgroundColor: selected.colourHex, opacity: 0.4 }} />
                             )}
@@ -689,11 +703,10 @@ export default function TryOn() {
   );
 }
 
-function TemplateGrid({ items, selectedId, onSelect, disabled }: {
+function TemplateGrid({ items, selectedId, onSelect }: {
   items: TemplateItem[];
   selectedId: string | null;
   onSelect: (item: TemplateItem) => void;
-  disabled?: boolean;
 }) {
   return (
     <div>
@@ -702,8 +715,7 @@ function TemplateGrid({ items, selectedId, onSelect, disabled }: {
           const isSelected = selectedId === item.id;
           return (
             <button key={item.id} type="button" onClick={() => onSelect(item)} aria-pressed={isSelected}
-              disabled={disabled}
-              className={cn('group overflow-hidden border text-left transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50',
+              className={cn('group overflow-hidden border text-left transition-all duration-300',
                 isSelected ? 'border-gold-primary' : 'border-gold-hairline hover:border-gold-primary/50')}
             >
               <div className="aspect-[4/5] w-full overflow-hidden border-b border-gold-hairline bg-surface-3/40">
