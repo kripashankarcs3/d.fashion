@@ -5,7 +5,7 @@ import Payment from "../models/payment.model";
 import { asyncHandler } from "../utils/asyncHandler";
 import { PLAN_PRICES, TOPUP_PRICE_PER_UNIT } from "../config/plans";
 import { applyPaymentToUsage } from "../services/tryon.quota.service";
-import { sendPaymentAlert } from "../services/email.service";
+import { sendPaymentAlert, emailDiagnostics } from "../services/email.service";
 import { isAdminEmail } from "../middleware/requireAdmin";
 
 const currentUser = (req: Request) => (req as any).user as { id?: string; email?: string } | undefined;
@@ -166,6 +166,14 @@ export const getPayment = asyncHandler(async (req: Request, res: Response) => {
     return;
   }
   res.status(200).json({ success: true, payment: toClientPayment(payment) });
+});
+
+/** Admin: whether the "new payment" email alert is wired up, who it would go
+ *  to, and the outcome of the last attempt — so a misconfigured
+ *  SMTP_APP_PASSWORD or a missing NOTIFY_EMAIL shows up here instead of only
+ *  as a silently-missing inbox message. */
+export const getEmailStatus = asyncHandler(async (_req: Request, res: Response) => {
+  res.status(200).json({ success: true, ...emailDiagnostics() });
 });
 
 /** Admin: paginated, filterable list with status counts for the dashboard header. */

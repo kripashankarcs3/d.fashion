@@ -210,3 +210,20 @@ describe("GET /api/payments/:id", () => {
     expect(asStranger.status).toBe(403);
   });
 });
+
+describe("GET /api/payments/email-status", () => {
+  it("blocks a non-admin", async () => {
+    const member = freshMember("email-status-blocked");
+    const res = await fetch(`${base}/api/payments/email-status`, { headers: member.headers });
+    expect(res.status).toBe(403);
+  });
+
+  it("reports unconfigured for an admin when SMTP isn't set (the test env)", async () => {
+    const res = await fetch(`${base}/api/payments/email-status`, {
+      headers: { authorization: `Bearer ${adminToken}` },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toMatchObject({ success: true, configured: false, smtpUser: null });
+  });
+});

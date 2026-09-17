@@ -37,6 +37,11 @@ export interface PaymentAlertInput {
   utr: string;
 }
 
+/** Last outcome of sendPaymentAlert, so an operator can tell a misconfigured
+ *  SMTP_APP_PASSWORD from "no payment has been submitted since the last
+ *  restart" without digging through raw logs — see emailDiagnostics(). */
+let lastAlertOutcome: { at: string; ok: boolean; detail: string } | null = null;
+
 /** Emails whoever reviews payments as soon as one is submitted, so it never
  *  sits unnoticed in /admin/payments. Best-effort and silent: a member's
  *  submission must never fail (or even slow down) because an email couldn't
@@ -44,7 +49,14 @@ export interface PaymentAlertInput {
 export const sendPaymentAlert = async (payment: PaymentAlertInput): Promise<void> => {
   const mail = getTransporter();
   const to = notifyRecipient();
-  if (!mail || !to) return;
+  if (!mail) {
+    lastAlertOutcome = { at: new Date().toISOString(), ok: false, detail: "SMTP_USER/SMTP_APP_PASSWORD not set" };
+    return;
+  }
+  if (!to) {
+    lastAlertOutcome = { at: new Date().toISOString(), ok: false, detail: "No recipient — set NOTIFY_EMAIL or ADMIN_EMAILS" };
+    return;
+  }
 
   const what =
     payment.kind === "plan"
@@ -67,7 +79,20 @@ export const sendPaymentAlert = async (payment: PaymentAlertInput): Promise<void
         `Review it at /admin/payments.`,
       ].join("\n"),
     });
+    lastAlertOutcome = { at: new Date().toISOString(), ok: true, detail: `sent to ${to}` };
   } catch (err) {
-    console.warn("Payment alert email failed to send:", (err as Error).message);
+    const detail = (err as Error).message;
+    lastAlertOutcome = { at: new Date().toISOString(), ok: false, detail };
+    console.warn("Payment alert email failed to send:", detail);
   }
 };
+
+/** Public, secret-free view of the email alert wiring for operators —
+ *  mirrors stylistDiagnostics() in stylist.service.ts. Never exposes
+ *  SMTP_APP_PASSWORD itself, only whether it's set. */
+export const emailDiagnostics = () => ({
+  configured: getTransporter() !== null,
+  recipient: notifyRecipient(),
+  smtpUser: env.SMTP_USER || null,
+  lastAlertOutcome,
+});
