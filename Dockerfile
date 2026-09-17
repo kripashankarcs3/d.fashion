@@ -15,8 +15,7 @@ COPY server/tsconfig.json ./
 COPY server/src ./src
 RUN npm run build
 
-# ---- Stage 3: runtime (Express serves API + built frontend; also runs the
-#      local OpenCode server the AI stylist chats through) ----
+# ---- Stage 3: runtime (Express serves API + built frontend) ----
 FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=production
@@ -24,7 +23,8 @@ COPY --from=backend /app/server/package.json ./server/package.json
 COPY --from=backend /app/server/node_modules ./server/node_modules
 COPY --from=backend /app/server/dist ./server/dist
 COPY --from=frontend /app/dist ./dist
-# OpenCode CLI: the stylist "server" mode talks to `opencode serve` on loopback.
+# OpenCode CLI: only used when OPENCODE_MODE=server is explicitly set (the
+# default, "openrouter", never touches it — see docker-entrypoint.sh).
 RUN npm install -g opencode-ai@1.18.30
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
