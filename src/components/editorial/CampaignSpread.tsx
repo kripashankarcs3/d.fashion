@@ -106,6 +106,10 @@ export default function CampaignSpread({
             mirrored && 'campaign-dissolve-mirror',
           )}
         />
+        {/* Blends this photo's top/bottom edges into the shared ground so it
+            dissolves into the spread above and below it instead of cutting
+            hard where one section ends and the next begins. */}
+        <div aria-hidden="true" className="absolute inset-0 campaign-edge-blend" />
       </div>
 
       {/* Copy — vertically centred against the full spread */}
