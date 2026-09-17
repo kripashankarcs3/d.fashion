@@ -238,7 +238,7 @@ export default function StylistChat({ initialPrompt, className }: StylistChatPro
   };
 
   return (
-    <div className={cn('flex min-h-0 flex-col overflow-hidden border border-border bg-surface-3', className)}>
+    <div className={cn('flex min-h-0 flex-col overflow-hidden bg-surface-3', className)}>
       {/* Header */}
       <div className="flex items-center gap-4 border-b border-border p-6">
         <span
