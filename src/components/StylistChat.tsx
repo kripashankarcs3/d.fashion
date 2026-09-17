@@ -263,21 +263,16 @@ export default function StylistChat({
   return (
     <div className={cn('flex min-h-0 flex-col overflow-hidden bg-surface-3', className)}>
       {/* Header */}
-      <div className="flex items-center gap-4 border-b border-border p-6">
+      <div className="flex shrink-0 items-center gap-2.5 border-b border-border px-4 py-2.5">
         <span
           aria-hidden="true"
-          className="flex h-11 w-11 items-center justify-center rounded-none bg-gold-primary text-surface-0"
+          className="flex h-7 w-7 items-center justify-center rounded-none bg-gold-primary text-surface-0"
         >
-          <Sparkles className="h-5 w-5" />
+          <Sparkles className="h-3.5 w-3.5" />
         </span>
-        <div>
-          <p className="text-[0.8125rem] font-semibold text-gold-primary">
-            D&rsquo;Style
-          </p>
-          <p className="text-[length:var(--text-caption)] text-cream-primary/55">
-            Your personal stylist
-          </p>
-        </div>
+        <p className="text-[0.8125rem] font-semibold text-gold-primary">
+          D&rsquo;Style
+        </p>
       </div>
 
       {/* Messages */}
