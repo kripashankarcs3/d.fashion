@@ -57,6 +57,18 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
       enhancedImageUrl = `/uploads/${path.basename(optimizedImage)}`;
     }
 
+    // Archive to durable storage (Cloudinary when configured) — this is the
+    // photo every future try-on reads back from `enhancedImageUrl`, so if it
+    // stays on the ephemeral /uploads/ disk it silently 404s the moment this
+    // container redeploys (or after the 24h sweep), long before the member's
+    // analysis "expires" in their own mind. Try-on then falls back to the
+    // garment's own catalog photo and quietly spends real quota on it.
+    try {
+      enhancedImageUrl = await ImageService.saveGalleryImage(enhancedImageUrl, "reference");
+    } catch (err) {
+      console.warn("Reference photo archive failed, using ephemeral URL:", (err as Error).message);
+    }
+
     let youcamResult: any = null;
     // Provenance — surfaced to the client so estimated values are never
     // presented as real AI analysis.
