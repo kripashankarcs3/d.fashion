@@ -9,7 +9,7 @@ import { useStyleStore } from '@/store/useStyleStore';
 import { BRAND } from '@/config/site';
 import { cn } from '@/lib/utils';
 
-interface Message {
+export interface Message {
   role: 'user' | 'ai';
   text: string;
   link?: { href: string; label: string };
@@ -35,6 +35,17 @@ interface StylistChatProps {
   /** Extra classes on the root — the parent decides the widget's height
    *  (e.g. `flex-1` to fill the remaining space of a fixed-viewport page). */
   className?: string;
+  /** A saved conversation to persist turns into. Omitted for a fresh chat —
+   *  the first exchange then creates one server-side and reports its id back
+   *  via `onConversationId`. */
+  conversationId?: string;
+  /** Messages loaded from a saved conversation, replacing the canned intro.
+   *  Only read on mount — pair with `key={conversationId}` on this component
+   *  so switching conversations remounts it instead of merging state. */
+  initialMessages?: Message[];
+  /** Fired once, the first time a fresh chat is assigned a conversation id
+   *  by the server (i.e. after its first exchange). */
+  onConversationId?: (id: string) => void;
 }
 
 function initialMessage(hasAnalysis: boolean): Message {
@@ -181,24 +192,36 @@ function TypingIndicator() {
   );
 }
 
-export default function StylistChat({ initialPrompt, className }: StylistChatProps) {
+export default function StylistChat({
+  initialPrompt,
+  className,
+  conversationId,
+  initialMessages,
+  onConversationId,
+}: StylistChatProps) {
   const analysisResult = useStyleStore((s) => s.analysisResult);
   const wardrobeItems = useStyleStore((s) => s.wardrobeItems);
-  const [messages, setMessages] = useState<Message[]>(() => [
-    initialMessage(Boolean(analysisResult)),
-  ]);
+  const [messages, setMessages] = useState<Message[]>(
+    () => initialMessages ?? [initialMessage(Boolean(analysisResult))],
+  );
   const [input, setInput] = useState('');
   const messagesListRef = useRef<HTMLDivElement>(null);
   const submittedPromptRef = useRef('');
+  const conversationIdRef = useRef(conversationId);
 
   const mutation = useMutation({
     mutationFn: ({ text, history }: { text: string; history: ChatTurn[] }) =>
-      sendChatMessage(text, { analysisResult, wardrobeItems }, history),
+      sendChatMessage(text, { analysisResult, wardrobeItems }, history, conversationIdRef.current),
     onSuccess: (response) => {
       setMessages((prev) => [
         ...prev,
         { role: 'ai', text: response.data.reply },
       ]);
+      const newId = response.data.conversationId;
+      if (newId && newId !== conversationIdRef.current) {
+        conversationIdRef.current = newId;
+        onConversationId?.(newId);
+      }
     },
     onError: () => {
       error('Stylist is unavailable. Please try again.');

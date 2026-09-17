@@ -93,14 +93,43 @@ export const sendChatMessage = (
   message: string,
   context: { analysisResult: AnalysisResult | null; wardrobeItems: WardrobeItem[] },
   history: ChatTurn[] = [],
+  conversationId?: string,
 ) =>
-  api.post<{ reply: string; source: 'opencode' | 'rules' }>(
+  api.post<{ reply: string; source: 'opencode' | 'rules'; conversationId?: string }>(
     '/chat',
-    { message, context, history },
+    { message, context, history, conversationId },
     // The server gives the model up to 25s before falling back to its rules
     // engine, so the client must wait longer than that.
     { timeout: 45_000 },
   );
+
+/** One message stored in a saved conversation. */
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt?: string;
+}
+
+/** A conversation as it appears in the sidebar list — no message bodies. */
+export interface ChatConversationSummary {
+  id: string;
+  title: string;
+  updatedAt: string;
+  messageCount: number;
+}
+
+export interface ChatConversationDetail extends ChatConversationSummary {
+  messages: ChatMessage[];
+}
+
+export const listChatConversations = () =>
+  api.get<{ success: boolean; conversations: ChatConversationSummary[] }>('/chat/conversations');
+
+export const getChatConversation = (id: string) =>
+  api.get<{ success: boolean; conversation: ChatConversationDetail }>(`/chat/conversations/${id}`);
+
+export const deleteChatConversation = (id: string) =>
+  api.delete<{ success: boolean; message: string }>(`/chat/conversations/${id}`);
 
 /** One saved entry in a member's account history — an analysis or a try-on. */
 export interface HistoryEntry {
