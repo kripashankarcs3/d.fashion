@@ -591,16 +591,19 @@
     pointer-events: none;
   }
 
-  /* Softens the photo's own top and bottom edges toward the shared #0B0B0E
-     ground — a long, low-opacity taper (never fully opaque) so it reads as a
-     soft blur into the small gap between spreads, not a black band. */
+  /* Feathers the photo's own top and bottom edges into the shared #0B0B0E
+     ground — opaque right at the seam so there is no hard line against the
+     gap between spreads, but easing out fast (by ~18%) so it reads as a
+     soft blur, not a black band eating into the photo. */
   .campaign-edge-blend {
     background-image: linear-gradient(
       180deg,
-      rgba(11, 11, 14, 0.45) 0%,
-      transparent 24%,
-      transparent 76%,
-      rgba(11, 11, 14, 0.45) 100%
+      #0B0B0E 0%,
+      rgba(11, 11, 14, 0.55) 8%,
+      transparent 18%,
+      transparent 82%,
+      rgba(11, 11, 14, 0.55) 92%,
+      #0B0B0E 100%
     );
     pointer-events: none;
   }
