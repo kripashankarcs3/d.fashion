@@ -74,15 +74,19 @@ export default function BeforeAfterSlider({
           draggable={false}
           className="h-full w-full object-cover object-top"
         />
-        {/* In demo mode: gradient-masked colour overlay — fades in from 35%
-            down so only the outfit/body area is tinted, face is preserved */}
+        {/* In demo mode: gradient-masked colour overlay — fades in from 30%
+            down so only the outfit/body area is recoloured, face is
+            preserved. `color` blend mode replaces the hue/saturation of
+            what's underneath while keeping its lightness and fabric
+            texture, so a white tee actually reads as wearing afterColour —
+            `multiply` only darkened it, which barely looked different. */}
         {isDemoMode && (
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
-              background: `linear-gradient(to bottom, transparent 0%, transparent 30%, ${afterColour}99 55%, ${afterColour}cc 100%)`,
-              mixBlendMode: 'multiply',
+              background: `linear-gradient(to bottom, transparent 0%, transparent 22%, ${afterColour} 40%, ${afterColour} 100%)`,
+              mixBlendMode: 'color',
             }}
           />
         )}
