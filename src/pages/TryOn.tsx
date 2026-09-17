@@ -144,8 +144,12 @@ export default function TryOn() {
   );
 
   const handleSelect = (item: Selected) => {
-    // Browsing is always free, even mid-try-on — it only changes what's
-    // previewed, never the request already running for tryOnTarget.
+    // Scrolling/switching categories to look around stays free (see the mode,
+    // gender and category handlers below), but actually swapping the studio
+    // panel's item is held until the current try-on's output has landed —
+    // otherwise a click mid-request would change what's showing before the
+    // member ever sees it finish.
+    if (isPending) return;
     setSelected(item);
     setQuotaMessage(null);
   };
@@ -375,7 +379,7 @@ export default function TryOn() {
               <div role="tablist" aria-label="Try-on category" className="flex gap-0 justify-start">
                 {tabs.map((tab) => (
                   <button key={tab.id} type="button" role="tab" aria-selected={mode === tab.id}
-                    onClick={() => { setMode(tab.id); setSelected(null); }}
+                    onClick={() => { setMode(tab.id); if (!isPending) setSelected(null); }}
                     className={cn('eyebrow relative px-5 py-2.5 text-xs transition-colors duration-200',
                       mode === tab.id ? 'text-cream-primary font-medium' : 'text-cream-primary/55 hover:text-cream-primary')}
                   >
@@ -406,7 +410,7 @@ export default function TryOn() {
                     <button
                       key={g}
                       type="button"
-                      onClick={() => { setGenderFilter(g); setSelected(null); }}
+                      onClick={() => { setGenderFilter(g); if (!isPending) setSelected(null); }}
                       className={cn(
                         'inline-flex h-6 items-center rounded-sm border px-2.5 text-[0.58rem] font-semibold uppercase tracking-wider transition-all duration-200 shrink-0',
                         genderFilter === g
@@ -431,7 +435,7 @@ export default function TryOn() {
                         <div role="group" aria-label="Garment categories" className="flex w-max gap-1 pb-0.5 justify-start">
                           {availableCategories.map((cat) => (
                             <button key={cat} type="button"
-                              onClick={() => { setActiveCategory(cat); setSelected(null); }}
+                              onClick={() => { setActiveCategory(cat); if (!isPending) setSelected(null); }}
                               className={cn('inline-flex h-7 items-center rounded-sm border px-2.5 text-[0.62rem] font-medium uppercase tracking-wider transition-colors duration-200 shrink-0',
                                 activeCategory === cat
                                   ? 'border-gold-primary bg-gold-primary text-surface-0 font-semibold'
