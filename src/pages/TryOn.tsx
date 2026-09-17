@@ -38,6 +38,13 @@ interface Selected {
 
 const GARMENT_CATEGORIES: GarmentCategory[] = ['Everyday', 'Office', 'Casual', 'Festive', 'Wedding', 'Party', 'Bridal', 'Traditional', 'Suit', 'Lehenga'];
 
+/** "Bridal" is the same underlying category for both genders in the
+ *  catalogue, but menswear for that occasion is conventionally called
+ *  "Groom", not "Bridal" — a display-only relabel, the stored category
+ *  value never changes. */
+const categoryLabel = (cat: GarmentCategory, gender: Gender): string =>
+  cat === 'Bridal' && gender === 'Men' ? 'Groom' : cat;
+
 
 interface TemplateItem { id: string; title: string; thumb: string; }
 
@@ -129,12 +136,22 @@ export default function TryOn() {
     (g) => g.category === activeCategory && (genderFilter === 'All' || g.gender === genderFilter)
   );
 
-  // Categories present in the served catalogue (keeps static type as the
-  // ordering contract; filters out any the server doesn't actually carry).
+  // Categories present in the served catalogue for the current gender filter
+  // (keeps static type as the ordering contract) — "Suit"/"Lehenga" are
+  // women's-only categories in this catalogue, so they disappear entirely
+  // once "Men" is selected instead of leading to an empty grid.
   const availableCategories = useMemo(
-    () => GARMENT_CATEGORIES.filter((cat) => garments.some((g) => g.category === cat)),
-    [garments],
+    () =>
+      GARMENT_CATEGORIES.filter((cat) =>
+        garments.some((g) => g.category === cat && (genderFilter === 'All' || g.gender === genderFilter)),
+      ),
+    [garments, genderFilter],
   );
+
+  // Outfits/Hair suit every gender; Makeup is scoped to Women in this
+  // catalogue's product direction, so the tab itself is hidden under Men
+  // rather than showing a mode with nothing meant for that audience.
+  const visibleTabs = genderFilter === 'Men' ? tabs.filter((t) => t.id !== 'makeup') : tabs;
 
   const isPending = clothes.isPending || makeup.isPending || hair.isPending;
   // Whether the currently browsed item is the one an in-flight/last try-on
@@ -142,6 +159,27 @@ export default function TryOn() {
   const isViewingActiveTryOn = Boolean(
     selected && tryOnTarget && selected.kind === tryOnTarget.kind && selected.id === tryOnTarget.id,
   );
+
+  // If the active category/mode falls out of what's visible for the gender
+  // just switched to (e.g. was on "Lehenga" or "Makeup" and Men was picked),
+  // land on something that still exists instead of showing an empty grid.
+  // Skipped while a try-on is running so it can never touch the studio panel
+  // mid-request, same as every other browsing control on this page.
+  useEffect(() => {
+    if (isPending) return;
+    if (mode === 'makeup' && genderFilter === 'Men') {
+      setMode('outfits');
+      setSelected(null);
+    }
+  }, [mode, genderFilter, isPending]);
+
+  useEffect(() => {
+    if (isPending) return;
+    if (availableCategories.length > 0 && !availableCategories.includes(activeCategory)) {
+      setActiveCategory(availableCategories[0]);
+      setSelected(null);
+    }
+  }, [availableCategories, activeCategory, isPending]);
 
   const handleSelect = (item: Selected) => {
     // Scrolling/switching categories to look around stays free (see the mode,
@@ -376,7 +414,7 @@ export default function TryOn() {
             {/* Mode tabs */}
             <div className="mt-2 border-b border-gold-hairline w-full">
               <div role="tablist" aria-label="Try-on category" className="flex gap-0 justify-start">
-                {tabs.map((tab) => (
+                {visibleTabs.map((tab) => (
                   <button key={tab.id} type="button" role="tab" aria-selected={mode === tab.id}
                     onClick={() => { setMode(tab.id); if (!isPending) setSelected(null); }}
                     className={cn('eyebrow relative px-5 py-2.5 text-xs transition-colors duration-200',
@@ -440,7 +478,7 @@ export default function TryOn() {
                                   ? 'border-gold-primary bg-gold-primary text-surface-0 font-semibold'
                                   : 'border-gold-hairline bg-surface-3 text-cream-primary/70 hover:border-gold-primary hover:text-cream-primary')}
                             >
-                              {cat}
+                              {categoryLabel(cat, genderFilter)}
                             </button>
                           ))}
                         </div>
