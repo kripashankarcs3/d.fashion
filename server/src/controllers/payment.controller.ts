@@ -25,12 +25,14 @@ const submitSchema = z.discriminatedUnion("kind", [
     kind: z.literal("plan"),
     planId: z.enum(["essentials", "atelier"]),
     utr: z.string().trim().min(4).max(64),
+    name: z.string().trim().min(1).max(120),
     email: z.string().trim().toLowerCase().email(),
   }),
   z.object({
     kind: z.literal("topup"),
     topupQty: z.coerce.number().int().min(1).max(20).default(1),
     utr: z.string().trim().min(4).max(64),
+    name: z.string().trim().min(1).max(120),
     email: z.string().trim().toLowerCase().email(),
   }),
 ]);
@@ -41,6 +43,7 @@ const computeAmount = (data: z.infer<typeof submitSchema>): number =>
 interface PaymentLike {
   _id: unknown;
   email: string;
+  name?: string;
   kind: string;
   planId?: string;
   topupQty?: number;
@@ -56,6 +59,7 @@ interface PaymentLike {
 const toClientPayment = (p: PaymentLike) => ({
   id: String(p._id),
   email: p.email,
+  name: p.name,
   kind: p.kind,
   planId: p.planId,
   topupQty: p.topupQty,
@@ -112,6 +116,7 @@ export const submitPayment = asyncHandler(async (req: Request, res: Response) =>
   try {
     const payment = await Payment.create({
       email,
+      name: data.name,
       kind: data.kind,
       planId: data.kind === "plan" ? data.planId : undefined,
       topupQty: data.kind === "topup" ? data.topupQty : undefined,
@@ -123,6 +128,7 @@ export const submitPayment = asyncHandler(async (req: Request, res: Response) =>
     // member's submission must never wait on an SMTP round-trip.
     void sendPaymentAlert({
       email: payment.email,
+      name: payment.name,
       kind: payment.kind,
       planId: payment.planId,
       topupQty: payment.topupQty,

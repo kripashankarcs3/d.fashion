@@ -48,9 +48,13 @@ const freshMember = (label: string) => {
 
 const submit = (
   auth: { authorization: string; "content-type": string },
-  fields: { kind: "plan" | "topup"; planId?: string; topupQty?: number; utr: string; email: string },
+  fields: { kind: "plan" | "topup"; planId?: string; topupQty?: number; utr: string; name?: string; email: string },
 ) =>
-  fetch(`${base}/api/payments`, { method: "POST", headers: auth, body: JSON.stringify(fields) });
+  fetch(`${base}/api/payments`, {
+    method: "POST",
+    headers: auth,
+    body: JSON.stringify({ name: "Test Member", ...fields }),
+  });
 
 describe("POST /api/payments", () => {
   it("submits a top-up request as pending, amount computed server-side", async () => {

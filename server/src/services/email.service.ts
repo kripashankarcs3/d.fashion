@@ -30,6 +30,7 @@ const notifyRecipient = (): string | null => {
 
 export interface PaymentAlertInput {
   email: string;
+  name?: string;
   kind: "plan" | "topup";
   planId?: string;
   topupQty?: number;
@@ -71,7 +72,7 @@ export const sendPaymentAlert = async (payment: PaymentAlertInput): Promise<void
       text: [
         `A member submitted a payment for review.`,
         ``,
-        `Member: ${payment.email}`,
+        `Member: ${payment.name ? `${payment.name} (${payment.email})` : payment.email}`,
         `For: ${what}`,
         `Amount: ₹${payment.amount}`,
         `UTR: ${payment.utr}`,

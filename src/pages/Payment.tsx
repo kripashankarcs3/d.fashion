@@ -51,8 +51,10 @@ function QrImage() {
 export default function Payment() {
   const { kind, planId } = useIntent();
   const accountEmail = useAuthStore((s) => s.user?.email) ?? '';
+  const accountName = useAuthStore((s) => s.user?.name) ?? '';
   const [step, setStep] = useState<'pay' | 'proof'>('pay');
   const [utr, setUtr] = useState('');
+  const [name, setName] = useState(accountName);
   const [email, setEmail] = useState(accountEmail);
   const [copied, setCopied] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
@@ -68,6 +70,7 @@ export default function Payment() {
         planId: kind === 'plan' ? planId : undefined,
         topupQty: kind === 'topup' ? 1 : undefined,
         utr: utr.trim(),
+        name: name.trim(),
         email: email.trim(),
       }),
     onSuccess: (res) => {
@@ -98,13 +101,14 @@ export default function Payment() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!utr.trim() || !email.trim()) return;
+    if (!utr.trim() || !name.trim() || !email.trim()) return;
     submit.mutate();
   };
 
   const resubmit = () => {
     setPaymentId(null);
     setUtr('');
+    setName(accountName);
     setEmail(accountEmail);
     queryClient.removeQueries({ queryKey: ['payment'] });
   };
@@ -191,6 +195,19 @@ export default function Payment() {
                 />
               </div>
               <div>
+                <label htmlFor="payer-name" className="text-caption uppercase tracking-eyebrow text-cream-primary/60">
+                  Your Name
+                </label>
+                <Input
+                  id="payer-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Full name"
+                  required
+                  className="mt-2"
+                />
+              </div>
+              <div>
                 <label htmlFor="account-email" className="text-caption uppercase tracking-eyebrow text-cream-primary/60">
                   Your D&rsquo;Style account email
                 </label>
@@ -207,7 +224,7 @@ export default function Payment() {
                   Must match the email you signed in with — this is how we know whose access to activate.
                 </p>
               </div>
-              <Button type="submit" variant="primary" loading={submit.isPending} disabled={!utr.trim() || !email.trim()}>
+              <Button type="submit" variant="primary" loading={submit.isPending} disabled={!utr.trim() || !name.trim() || !email.trim()}>
                 Submit Payment
               </Button>
               <button

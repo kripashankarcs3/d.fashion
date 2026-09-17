@@ -197,6 +197,7 @@ export type PaymentStatus = 'pending' | 'verified' | 'rejected';
 export interface PaymentRecord {
   id: string;
   email: string;
+  name?: string;
   kind: PaymentKind;
   planId?: 'essentials' | 'atelier';
   topupQty?: number;
@@ -214,6 +215,7 @@ export const submitPayment = (input: {
   planId?: 'essentials' | 'atelier';
   topupQty?: number;
   utr: string;
+  name: string;
   email: string;
 }) =>
   api.post<{ success: boolean; message: string; payment: PaymentRecord }>('/payments', input);

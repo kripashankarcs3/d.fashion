@@ -273,7 +273,10 @@ export default function AdminPayments() {
               ) : (
                 payments.map((p) => (
                   <TableRow key={p.id} className="border-border">
-                    <TableCell className="text-body-sm text-cream-primary">{p.email}</TableCell>
+                    <TableCell className="text-body-sm text-cream-primary">
+                      {p.name && <div className="font-medium">{p.name}</div>}
+                      <div className={p.name ? 'text-cream-primary/60' : undefined}>{p.email}</div>
+                    </TableCell>
                     <TableCell className="text-body-sm text-cream-primary/80">{describe(p)}</TableCell>
                     <TableCell className="text-body-sm text-cream-primary/80">{formatPrice(p.amount)}</TableCell>
                     <TableCell className="text-body-sm text-cream-primary/80">{p.utr}</TableCell>
