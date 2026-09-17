@@ -134,6 +134,10 @@ export default function TryOn() {
   const isPending = clothes.isPending || makeup.isPending || hair.isPending;
 
   const handleSelect = (item: Selected) => {
+    // A try-on already in flight must run to completion — switching the
+    // selection mid-request would swap out what's showing (and what the
+    // in-flight result would apply to) before the member ever sees it finish.
+    if (isPending) return;
     setSelected(item);
     setResultUrl(null);
     setIsFallback(false);
@@ -363,8 +367,9 @@ export default function TryOn() {
               <div role="tablist" aria-label="Try-on category" className="flex gap-0 justify-start">
                 {tabs.map((tab) => (
                   <button key={tab.id} type="button" role="tab" aria-selected={mode === tab.id}
-                    onClick={() => { setMode(tab.id); setSelected(null); setResultUrl(null); }}
-                    className={cn('eyebrow relative px-5 py-2.5 text-xs transition-colors duration-200',
+                    onClick={() => { if (isPending) return; setMode(tab.id); setSelected(null); setResultUrl(null); }}
+                    disabled={isPending}
+                    className={cn('eyebrow relative px-5 py-2.5 text-xs transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50',
                       mode === tab.id ? 'text-cream-primary font-medium' : 'text-cream-primary/55 hover:text-cream-primary')}
                   >
                     {tab.label}
@@ -394,9 +399,10 @@ export default function TryOn() {
                     <button
                       key={g}
                       type="button"
-                      onClick={() => { setGenderFilter(g); setSelected(null); setResultUrl(null); }}
+                      onClick={() => { if (isPending) return; setGenderFilter(g); setSelected(null); setResultUrl(null); }}
+                      disabled={isPending}
                       className={cn(
-                        'inline-flex h-6 items-center rounded-sm border px-2.5 text-[0.58rem] font-semibold uppercase tracking-wider transition-all duration-200 shrink-0',
+                        'inline-flex h-6 items-center rounded-sm border px-2.5 text-[0.58rem] font-semibold uppercase tracking-wider transition-all duration-200 shrink-0 disabled:cursor-not-allowed disabled:opacity-50',
                         genderFilter === g
                           ? 'border-gold-primary bg-gold-primary text-surface-0 shadow-sm'
                           : 'border-gold-hairline/60 bg-surface-3/60 text-cream-primary/70 hover:border-gold-primary/60 hover:text-cream-primary'
@@ -419,8 +425,9 @@ export default function TryOn() {
                         <div role="group" aria-label="Garment categories" className="flex w-max gap-1 pb-0.5 justify-start">
                           {availableCategories.map((cat) => (
                             <button key={cat} type="button"
-                              onClick={() => { setActiveCategory(cat); setSelected(null); setResultUrl(null); }}
-                              className={cn('inline-flex h-7 items-center rounded-sm border px-2.5 text-[0.62rem] font-medium uppercase tracking-wider transition-colors duration-200 shrink-0',
+                              onClick={() => { if (isPending) return; setActiveCategory(cat); setSelected(null); setResultUrl(null); }}
+                              disabled={isPending}
+                              className={cn('inline-flex h-7 items-center rounded-sm border px-2.5 text-[0.62rem] font-medium uppercase tracking-wider transition-colors duration-200 shrink-0 disabled:cursor-not-allowed disabled:opacity-50',
                                 activeCategory === cat
                                   ? 'border-gold-primary bg-gold-primary text-surface-0 font-semibold'
                                   : 'border-gold-hairline bg-surface-3 text-cream-primary/70 hover:border-gold-primary hover:text-cream-primary')}
@@ -465,7 +472,8 @@ export default function TryOn() {
                             <button type="button"
                               onClick={() => handleSelect({ kind: 'outfit', id: String(garment.id), name: garment.name, img: garment.img, colourName: garment.colourName, colourHex: garment.colourHex })}
                               aria-pressed={isSelected}
-                              className={cn('group w-full overflow-hidden border text-left transition-all duration-300 rounded-sm',
+                              disabled={isPending}
+                              className={cn('group w-full overflow-hidden border text-left transition-all duration-300 rounded-sm disabled:cursor-not-allowed disabled:opacity-50',
                                 isSelected ? 'border-gold-primary bg-surface-1 shadow-[0_0_10px_rgba(201,168,76,0.2)]' : 'border-gold-hairline/60 bg-surface-1/40 hover:border-gold-primary/60')}
                             >
                               <div className="aspect-[3/4] w-full overflow-hidden border-b border-gold-hairline/40 bg-surface-2">
@@ -496,6 +504,7 @@ export default function TryOn() {
                   <TemplateGrid
                     items={styleItems}
                     selectedId={selected?.id ?? null}
+                    disabled={isPending}
                     onSelect={(item) => handleSelect({ kind: mode === 'makeup' ? 'look' : 'hair', id: item.id, name: item.title, img: item.thumb })}
                   />
                 )}
@@ -691,10 +700,11 @@ export default function TryOn() {
   );
 }
 
-function TemplateGrid({ items, selectedId, onSelect }: {
+function TemplateGrid({ items, selectedId, onSelect, disabled }: {
   items: TemplateItem[];
   selectedId: string | null;
   onSelect: (item: TemplateItem) => void;
+  disabled?: boolean;
 }) {
   return (
     <div>
@@ -703,7 +713,8 @@ function TemplateGrid({ items, selectedId, onSelect }: {
           const isSelected = selectedId === item.id;
           return (
             <button key={item.id} type="button" onClick={() => onSelect(item)} aria-pressed={isSelected}
-              className={cn('group overflow-hidden border text-left transition-all duration-300',
+              disabled={disabled}
+              className={cn('group overflow-hidden border text-left transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50',
                 isSelected ? 'border-gold-primary' : 'border-gold-hairline hover:border-gold-primary/50')}
             >
               <div className="aspect-[4/5] w-full overflow-hidden border-b border-gold-hairline bg-surface-3/40">
