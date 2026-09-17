@@ -265,3 +265,13 @@ export interface AdminUsagePage {
 
 export const listTryOnUsageAdmin = (params: { plan?: TryOnPlan; q?: string; page?: number; pageSize?: number }) =>
   api.get<{ success: boolean } & AdminUsagePage>('/tryon/admin/usage', { params });
+
+export interface EmailAlertStatus {
+  configured: boolean;
+  recipient: string | null;
+  smtpUser: string | null;
+  lastAlertOutcome: { at: string; ok: boolean; detail: string } | null;
+}
+
+export const getEmailAlertStatus = () =>
+  api.get<{ success: boolean } & EmailAlertStatus>('/payments/email-status');

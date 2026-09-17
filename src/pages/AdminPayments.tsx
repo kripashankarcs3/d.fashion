@@ -34,6 +34,7 @@ import { ROUTES } from '@/config/navigation';
 import { formatPrice } from '@/config/pricing';
 import {
   approvePayment,
+  getEmailAlertStatus,
   listPayments,
   rejectPayment,
   type PaymentRecord,
@@ -129,6 +130,38 @@ function ApproveAction({ id, onDone }: { id: string; onDone: () => void }) {
   );
 }
 
+/** Shows whether the "new payment" email alert is actually reaching an
+ *  inbox — sending is best-effort and silent by design, so without this a
+ *  misconfigured SMTP_APP_PASSWORD looks identical to "nobody has paid yet". */
+function EmailAlertStatusCard() {
+  const query = useQuery({
+    queryKey: ['email-alert-status'],
+    queryFn: getEmailAlertStatus,
+    staleTime: 30_000,
+  });
+  const status = query.data?.data;
+  if (!status) return null;
+
+  return (
+    <div className="mt-6 flex flex-wrap items-center gap-3 border border-gold-hairline bg-surface-3 px-4 py-3 text-body-sm">
+      <StatusBadge tone={status.configured ? 'success' : 'error'} hideDot>
+        {status.configured ? 'Email alert on' : 'Email alert off'}
+      </StatusBadge>
+      <span className="text-cream-primary/70">
+        {status.configured
+          ? `Sends to ${status.recipient ?? '—'} from ${status.smtpUser ?? '—'}`
+          : 'Set SMTP_USER, SMTP_APP_PASSWORD and NOTIFY_EMAIL to enable it.'}
+      </span>
+      {status.lastAlertOutcome && (
+        <span className={status.lastAlertOutcome.ok ? 'text-cream-primary/50' : 'text-error'}>
+          Last attempt ({new Date(status.lastAlertOutcome.at).toLocaleString()}):{' '}
+          {status.lastAlertOutcome.ok ? 'sent' : status.lastAlertOutcome.detail}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPayments() {
   const admin = useIsAdmin();
   const [status, setStatus] = useState<PaymentStatus | 'all'>('pending');
@@ -170,6 +203,7 @@ export default function AdminPayments() {
           Payment Verification
         </EditorialHeading>
         <AdminNav />
+        <EmailAlertStatusCard />
 
         <div className="mt-6 flex flex-wrap items-center gap-3 text-body-sm text-cream-primary/70">
           <span>Pending: <strong className="text-cream-primary">{counts.pending}</strong></span>
