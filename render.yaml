@@ -54,3 +54,12 @@ services:
         sync: false
       - key: NOTIFY_EMAIL
         sync: false
+      # Gallery image storage: without these, saved dashboard entries archive
+      # to the local disk, which this plan does not persist across deploys —
+      # set all three from a free Cloudinary account so they survive one.
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

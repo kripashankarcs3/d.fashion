@@ -3,6 +3,7 @@ import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
 import { fetchPublicImage } from "../utils/safeImageFetch";
+import { deleteFromCloudinary, isCloudinaryConfigured, isCloudinaryUrl, uploadToCloudinary } from "./cloudinary.service";
 import {
   GALLERY_DIR,
   GALLERY_IMAGE,
@@ -163,9 +164,11 @@ export class ImageService {
   }
 
   /**
-   * Copies an image into the durable gallery folder and returns its public
-   * `/gallery/...` path. Unlike `/uploads`, this folder is never swept by
-   * `cleanupStaleUploads`, so a saved dashboard entry keeps its picture.
+   * Archives an image for a saved dashboard entry and returns its durable,
+   * publicly-loadable URL. Uploads to Cloudinary when it's configured — that
+   * survives a redeploy with no disk to manage; otherwise falls back to the
+   * local `/gallery` folder (fine for dev, but on a host without a persistent
+   * disk it's wiped on every redeploy, unlike Cloudinary).
    *
    * `source` is either a public http(s) URL (a try-on provider result) or an
    * app-relative `/uploads/<file>` path this server wrote itself.
@@ -190,19 +193,30 @@ export class ImageService {
       buf = Buffer.from(arrayBuffer);
     }
 
-    const fileName = `${prefix}-${crypto.randomUUID()}.jpg`;
+    const fileName = `${prefix}-${crypto.randomUUID()}`;
     // Re-encoding through sharp also strips anything that is not an image.
-    await sharp(buf)
+    const processed = await sharp(buf)
       .resize({ width: GALLERY_IMAGE.width, height: GALLERY_IMAGE.height, fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: GALLERY_IMAGE.quality })
-      .toFile(path.join(GALLERY_DIR, fileName));
+      .toBuffer();
 
-    return `/gallery/${fileName}`;
+    if (isCloudinaryConfigured()) {
+      return uploadToCloudinary(processed, fileName);
+    }
+
+    await fs.promises.writeFile(path.join(GALLERY_DIR, `${fileName}.jpg`), processed);
+    return `/gallery/${fileName}.jpg`;
   }
 
-  /** Removes a gallery file given its public `/gallery/...` path. */
+  /** Removes a gallery file given its stored URL — Cloudinary's API for a
+   *  Cloudinary URL, the local file otherwise. */
   static async deleteGalleryImage(publicPath?: string | null) {
-    if (!publicPath || !publicPath.startsWith("/gallery/")) return;
+    if (!publicPath) return;
+    if (isCloudinaryUrl(publicPath)) {
+      await deleteFromCloudinary(publicPath);
+      return;
+    }
+    if (!publicPath.startsWith("/gallery/")) return;
     const fileName = path.basename(publicPath);
     await ImageService.deleteImage(path.join(GALLERY_DIR, fileName));
   }

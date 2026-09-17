@@ -48,6 +48,16 @@ const envSchema = z.object({
    *  ADMIN_EMAILS so nothing extra has to be configured once that's set. */
   NOTIFY_EMAIL: z.string().default(""),
 
+  /* ---------------------------------------------- gallery image storage */
+  /** Unset (any of the three) = saved dashboard entries fall back to the
+   *  local /gallery folder — fine for dev, but that folder lives on the
+   *  container's disk and is wiped on every redeploy in production unless a
+   *  persistent disk is attached. Set all three to archive to Cloudinary's
+   *  free tier instead, which survives redeploys with no disk to manage. */
+  CLOUDINARY_CLOUD_NAME: z.string().default(""),
+  CLOUDINARY_API_KEY: z.string().default(""),
+  CLOUDINARY_API_SECRET: z.string().default(""),
+
   /* --------------------------------------------------- OpenCode stylist */
   /** "zen": call the Zen API directly (paid models; the workspace needs billing).
    *  "server": go through a local `opencode serve`, where Zen's free models work. */
