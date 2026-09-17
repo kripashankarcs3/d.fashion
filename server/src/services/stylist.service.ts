@@ -202,11 +202,17 @@ let lastOpenCodeError: { at: string; message: string } | null = null;
 
 /** Public, secret-free view of the stylist wiring for operators. */
 export function stylistDiagnostics() {
-  const viaServer = env.OPENCODE_MODE === "server";
-  const configured = viaServer ? Boolean(env.OPENCODE_SERVER_PASSWORD) : Boolean(env.OPENCODE_API_KEY);
+  const mode = env.OPENCODE_MODE;
+  const viaServer = mode === "server";
+  const configured =
+    mode === "openrouter"
+      ? Boolean(env.OPENROUTER_API_KEY)
+      : viaServer
+        ? Boolean(env.OPENCODE_SERVER_PASSWORD)
+        : Boolean(env.OPENCODE_API_KEY);
   return {
-    mode: env.OPENCODE_MODE,
-    model: env.OPENCODE_MODEL,
+    mode,
+    model: mode === "openrouter" ? env.OPENROUTER_MODEL : env.OPENCODE_MODEL,
     viaServer,
     configured,
     lastOpenCodeError,
@@ -342,6 +348,64 @@ async function replyViaZen(
   throw new Error(`Zen kept throttling after ${lastAttempt} attempts`);
 }
 
+/** OpenRouter mode: a plain OpenAI-compatible chat completions call — no
+ *  background process, so this works anywhere a normal outbound HTTPS
+ *  request works (including a small container with no RAM to spare for a
+ *  second server, unlike OPENCODE_MODE=server). OPENROUTER_MODEL is sent to
+ *  the API exactly as configured, since a real OpenRouter model id already
+ *  contains a "/" (e.g. `inclusionai/ling-3.0-flash-vl:free`) and splitting
+ *  it the way openCodeModelRef() does for OpenCode would send the wrong id. */
+async function replyViaOpenRouter(message: string, ctx: StylistContext | undefined, history: ChatTurn[]) {
+  const lastAttempt = env.OPENROUTER_MAX_RETRIES;
+
+  for (let attempt = 1; attempt <= lastAttempt; attempt++) {
+    const res = await fetch(`${env.OPENROUTER_BASE_URL.replace(/\/+$/, "")}/chat/completions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        // OpenRouter's own convention for attributing traffic — harmless to
+        // omit, but keeps this app identifiable on their dashboard.
+        "HTTP-Referer": "https://dfashion-rust.vercel.app",
+        "X-Title": PRODUCT_NAME,
+      },
+      body: JSON.stringify({
+        model: env.OPENROUTER_MODEL,
+        max_tokens: env.OPENROUTER_MAX_TOKENS,
+        messages: [
+          { role: "system", content: buildSystemPrompt(ctx) },
+          ...history.slice(-MAX_HISTORY_TURNS),
+          { role: "user", content: message },
+        ],
+      }),
+      signal: AbortSignal.timeout(env.OPENROUTER_TIMEOUT_MS),
+    });
+
+    if (res.status === 429 && attempt < lastAttempt) {
+      const delayMs = 2 ** attempt * 1000;
+      console.warn(`OpenRouter throttled (429); retrying in ${delayMs}ms (attempt ${attempt}/${lastAttempt})`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      continue;
+    }
+
+    if (!res.ok) {
+      const detail = (await res.text().catch(() => "")).slice(0, 300);
+      throw new Error(`HTTP ${res.status} ${detail}`.trim());
+    }
+
+    const data = (await res.json()) as {
+      choices?: { message?: { content?: unknown } }[];
+    };
+    const content = data.choices?.[0]?.message?.content;
+    if (typeof content !== "string" || !content.trim()) {
+      throw new Error("Completion contained no text");
+    }
+    return content.trim();
+  }
+
+  throw new Error(`OpenRouter kept throttling after ${lastAttempt} attempts`);
+}
+
 /** Folder the local OpenCode server's sessions run in. Must stay an empty
  *  sandbox, never this checkout; scripts/opencode-serve.mjs uses the same default. */
 export function openCodeSandboxDirectory(): string {
@@ -469,14 +533,23 @@ export async function generateStylistReplyAI(
     source: "rules",
   });
 
-  const viaServer = env.OPENCODE_MODE === "server";
-  const configured = viaServer ? Boolean(env.OPENCODE_SERVER_PASSWORD) : Boolean(env.OPENCODE_API_KEY);
+  const mode = env.OPENCODE_MODE;
+  const configured =
+    mode === "openrouter"
+      ? Boolean(env.OPENROUTER_API_KEY)
+      : mode === "server"
+        ? Boolean(env.OPENCODE_SERVER_PASSWORD)
+        : Boolean(env.OPENCODE_API_KEY);
   if (!configured) return fromRules();
 
   try {
-    const reply = await (viaServer
-      ? replyViaOpenCodeServer(message, ctx, history)
-      : replyViaZen(message, ctx, history, opts?.sessionId)).then(sanitiseReply);
+    const replyPromise =
+      mode === "openrouter"
+        ? replyViaOpenRouter(message, ctx, history)
+        : mode === "server"
+          ? replyViaOpenCodeServer(message, ctx, history)
+          : replyViaZen(message, ctx, history, opts?.sessionId);
+    const reply = await replyPromise.then(sanitiseReply);
     lastOpenCodeError = null;
     return { reply, source: "opencode" };
   } catch (err) {

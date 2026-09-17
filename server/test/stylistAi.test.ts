@@ -23,19 +23,22 @@ const completion = (content: unknown) =>
     headers: { "content-type": "application/json" },
   });
 
-describe("generateStylistReplyAI", () => {
+describe("generateStylistReplyAI (Zen mode)", () => {
   const originalKey = env.OPENCODE_API_KEY;
+  const originalMode = env.OPENCODE_MODE;
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
     vi.spyOn(console, "warn").mockImplementation(() => {});
+    env.OPENCODE_MODE = "zen";
     env.OPENCODE_API_KEY = "zen-test-key";
   });
 
   afterEach(() => {
     env.OPENCODE_API_KEY = originalKey;
+    env.OPENCODE_MODE = originalMode;
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -107,6 +110,81 @@ describe("generateStylistReplyAI", () => {
   it("falls back when the completion carries no text", async () => {
     fetchMock.mockResolvedValue(completion(null));
     expect((await generateStylistReplyAI("hi", ctx)).source).toBe("rules");
+  });
+});
+
+describe("generateStylistReplyAI (OpenRouter mode, the default)", () => {
+  const originalKey = env.OPENROUTER_API_KEY;
+  const originalMode = env.OPENCODE_MODE;
+  const originalModel = env.OPENROUTER_MODEL;
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    env.OPENCODE_MODE = "openrouter";
+    env.OPENROUTER_API_KEY = "openrouter-test-key";
+    // A real OpenRouter id has its own "/" — this is what openCodeModelRef()'s
+    // split-on-"/" would have mangled if replyViaOpenRouter reused it.
+    env.OPENROUTER_MODEL = "inclusionai/ling-3.0-flash-vl:free";
+  });
+
+  afterEach(() => {
+    env.OPENROUTER_API_KEY = originalKey;
+    env.OPENCODE_MODE = originalMode;
+    env.OPENROUTER_MODEL = originalModel;
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("answers from the rules engine without calling the provider when no key is set", async () => {
+    env.OPENROUTER_API_KEY = "";
+    const r = await generateStylistReplyAI("What colours suit me best?", ctx);
+    expect(r.source).toBe("rules");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("posts the full multi-segment model id to OpenRouter, unsplit", async () => {
+    fetchMock.mockResolvedValue(completion("Wear **rust** and **olive**."));
+
+    const r = await generateStylistReplyAI("Wedding outfit?", ctx);
+
+    expect(r).toEqual({ reply: "Wear **rust** and **olive**.", source: "opencode" });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(`${env.OPENROUTER_BASE_URL}/chat/completions`);
+    expect(init.headers.Authorization).toBe("Bearer openrouter-test-key");
+    const body = JSON.parse(init.body);
+    expect(body.model).toBe("inclusionai/ling-3.0-flash-vl:free");
+  });
+
+  it("never sends the member's photo URL to the provider", async () => {
+    fetchMock.mockResolvedValue(completion("ok"));
+    await generateStylistReplyAI("hi", ctx);
+    expect(fetchMock.mock.calls[0][1].body).not.toContain("secret-selfie");
+  });
+
+  it("falls back to the rules engine when the provider returns an error", async () => {
+    fetchMock.mockResolvedValue(new Response("invalid api key", { status: 401 }));
+    const r = await generateStylistReplyAI("What colours suit me best?", ctx);
+    expect(r.source).toBe("rules");
+  });
+
+  it("retries a 429 with backoff before succeeding", async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response("slow down", { status: 429 }))
+      .mockResolvedValueOnce(completion("ok, retried"));
+
+    const timeoutSpy = vi.spyOn(global, "setTimeout").mockImplementation(((fn: () => void) => {
+      fn();
+      return 0 as unknown as NodeJS.Timeout;
+    }) as typeof setTimeout);
+
+    const r = await generateStylistReplyAI("hi", ctx);
+
+    expect(r).toEqual({ reply: "ok, retried", source: "opencode" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    timeoutSpy.mockRestore();
   });
 });
 

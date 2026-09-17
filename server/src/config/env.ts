@@ -59,9 +59,13 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string().default(""),
 
   /* --------------------------------------------------- OpenCode stylist */
-  /** "zen": call the Zen API directly (paid models; the workspace needs billing).
-   *  "server": go through a local `opencode serve`, where Zen's free models work. */
-  OPENCODE_MODE: z.enum(["zen", "server"]).default("zen"),
+  /** "openrouter": call OpenRouter's free tier directly — no background
+   *  process, works anywhere a normal outbound HTTPS call works. Recommended.
+   *  "zen": call the Zen API directly (paid models; the workspace needs billing).
+   *  "server": go through a local `opencode serve`, where Zen's free models
+   *  work — needs a persistent process with real memory, unsuitable for a
+   *  small container (see OPENROUTER_* below for the lighter alternative). */
+  OPENCODE_MODE: z.enum(["openrouter", "zen", "server"]).default("openrouter"),
   /** Zen mode. Unset = the stylist chat answers from the built-in rules engine. */
   OPENCODE_API_KEY: z.string().default(""),
   OPENCODE_BASE_URL: z.string().default("https://opencode.ai/zen/v1"),
@@ -79,6 +83,19 @@ const envSchema = z.object({
   /** Zen's free-tier bursts are throttled with 429s; retry with backoff
    *  before giving up and falling back to the rules engine. */
   OPENCODE_ZEN_MAX_RETRIES: int("OPENCODE_ZEN_MAX_RETRIES", 4),
+
+  /** OpenRouter mode (recommended default). Unset key = the chat answers
+   *  from the built-in rules engine, same as an unconfigured Zen key. */
+  OPENROUTER_API_KEY: z.string().default(""),
+  OPENROUTER_BASE_URL: z.string().default("https://openrouter.ai/api/v1"),
+  /** A real OpenRouter model id, including any `:free` suffix — sent to the
+   *  API exactly as given, unlike OPENCODE_MODEL this is never split on "/". */
+  OPENROUTER_MODEL: z.string().default("inclusionai/ling-3.0-flash-vl:free"),
+  OPENROUTER_MAX_TOKENS: int("OPENROUTER_MAX_TOKENS", 1024),
+  OPENROUTER_TIMEOUT_MS: int("OPENROUTER_TIMEOUT_MS", 25000),
+  /** Free-tier bursts are throttled with 429s; retry with backoff before
+   *  giving up and falling back to the rules engine. */
+  OPENROUTER_MAX_RETRIES: int("OPENROUTER_MAX_RETRIES", 4),
 
   /* -------------------------------------------------- brand / persona */
   PRODUCT_NAME: z.string().default("D'Fashion"),

@@ -22,22 +22,18 @@ services:
         sync: false
       - key: YOUCAM_API_KEY
         sync: false
-      # OpenCode Zen powers the AI stylist chat, but free-tier bursts are
-      # throttled server-side right now. In Docker the container runs its own
-      # `opencode serve` (server mode) with the machine's auth — set
-      # OPENCODE_AUTH_B64 (base64 of ~/.local/share/opencode/auth.json) and
-      # OPENCODE_SERVER_PASSWORD in the dashboard alongside OPENCODE_API_KEY.
-      # Set OPENCODE_MODE=server to use that local server.
-      - key: OPENCODE_API_KEY
-        sync: false
+      # AI stylist chat via OpenRouter's free tier — a plain outbound HTTPS
+      # call, no background process, so it fits a small instance. Get a free
+      # key at openrouter.ai/keys and set it as OPENROUTER_API_KEY.
+      # (OPENCODE_MODE=server — a second persistent `opencode serve` process
+      # alongside this app — needs more RAM than this plan has; that's why
+      # /api/chat used to 502.)
       - key: OPENCODE_MODE
-        value: server
-      - key: OPENCODE_MODEL
-        value: big-pickle
-      - key: OPENCODE_SERVER_PASSWORD
+        value: openrouter
+      - key: OPENROUTER_API_KEY
         sync: false
-      - key: OPENCODE_AUTH_B64
-        sync: false
+      - key: OPENROUTER_MODEL
+        value: inclusionai/ling-3.0-flash-vl:free
       - key: FIREBASE_PROJECT_ID
         sync: false
       - key: FIREBASE_CLIENT_EMAIL
