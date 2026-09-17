@@ -41,6 +41,10 @@ const ACTION_LABEL: Record<string, string> = {
   report: 'Report viewed',
 };
 
+/** How close two timestamps have to be to treat a local try-on and its
+ *  account copy as the same event (see mergedTryOns below). */
+const TRYON_SYNC_WINDOW_MS = 5 * 60 * 1000;
+
 // ---------------------------------------------------------------------------
 // Chart colour constants
 // ---------------------------------------------------------------------------
@@ -1086,10 +1090,18 @@ export default function Dashboard() {
     [accountEntries],
   );
 
-  // The account copy wins; anything only on this device is appended.
+  // The account copy wins; anything only on this device is appended. Matched
+  // by garment + kind + a time window, not resultUrl: saving a try-on to the
+  // account re-archives the image into /gallery under a brand-new filename
+  // (see history.controller.ts's archiveImage), so the cloud copy's URL never
+  // equals the provider URL this device stored locally for the same try-on —
+  // comparing URLs directly showed every synced try-on twice.
   const mergedTryOns = useMemo(() => {
-    const seen = new Set(accountTryOns.map((e) => e.resultUrl));
-    const localOnly = tryOnHistory.filter((e) => !seen.has(e.resultUrl));
+    const isSameTryOn = (local: TryOnHistoryEntry, cloud: TryOnHistoryEntry) =>
+      local.kind === cloud.kind &&
+      local.garmentName === cloud.garmentName &&
+      Math.abs(new Date(local.timestamp).getTime() - new Date(cloud.timestamp).getTime()) < TRYON_SYNC_WINDOW_MS;
+    const localOnly = tryOnHistory.filter((local) => !accountTryOns.some((cloud) => isSameTryOn(local, cloud)));
     return [...accountTryOns, ...localOnly].sort(
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
