@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Redirect, useLocation } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { success } from '@/lib/toast';
@@ -368,12 +368,11 @@ export default function TryOn() {
 
       <EditorialContainer width="content" className="pt-2 max-w-[1440px] px-2 sm:px-4 lg:px-6 mx-auto">
 
-        {!hasAnalysis ? (
-          // No dead-end card to click through — try-on is meaningless without
-          // an analysed photo, so land straight on the page that gets one.
-          <Redirect to={ROUTES.upload} />
-        ) : (
-          <>
+        {/* The catalogue itself is always browsable, analysed or not — the
+            "Try On"/"Apply"/etc. CTA is what actually needs a photo, and
+            handleTryOn sends the member to /upload right when they click it
+            without one, instead of the whole page redirecting on arrival. */}
+        <>
             {/* Mode tabs */}
             <div className="mt-2 border-b border-gold-hairline w-full">
               <div role="tablist" aria-label="Try-on category" className="flex gap-0 justify-start">
@@ -701,7 +700,6 @@ export default function TryOn() {
               </section>
             </motion.div>
           </>
-        )}
       </EditorialContainer>
     </div>
   );
