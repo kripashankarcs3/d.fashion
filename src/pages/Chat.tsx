@@ -106,8 +106,11 @@ export default function Chat() {
           variants={containerVariants}
           className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start"
         >
-          {/* Conversation */}
-          <motion.div variants={itemVariants} className="relative">
+          {/* Conversation — sticky on large screens so, once scrolled into
+              view, the whole widget (header + messages + input) stays
+              anchored below the navbar instead of drifting off-screen and
+              forcing the page itself to be scrolled while chatting. */}
+          <motion.div variants={itemVariants} className="relative lg:sticky lg:top-24 lg:self-start">
             {/* Elegant AI Avatar header card */}
             <div className="mb-4 flex items-center gap-3 border border-gold-hairline/40 bg-surface-3 px-4 py-3 rounded-sm">
               <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full overflow-hidden border border-gold-hairline/60">

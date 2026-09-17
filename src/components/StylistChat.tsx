@@ -234,7 +234,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
   };
 
   return (
-    <div className="flex h-[38.75rem] flex-col overflow-hidden border border-border bg-surface-3">
+    <div className="flex h-[min(38.75rem,calc(100vh-14rem))] flex-col overflow-hidden border border-border bg-surface-3">
       {/* Header */}
       <div className="flex items-center gap-4 border-b border-border p-6">
         <span
