@@ -254,7 +254,7 @@ export default function StylistChat({ initialPrompt }: StylistChatProps) {
       </div>
 
       {/* Messages */}
-      <div ref={messagesListRef} role="log" aria-live="polite" className="flex-1 space-y-6 overflow-y-auto p-6">
+      <div ref={messagesListRef} role="log" aria-live="polite" className="scrollbar-none flex-1 space-y-6 overflow-y-auto p-6">
         {messages.map((msg, i) => (
           <motion.div
             key={i}
