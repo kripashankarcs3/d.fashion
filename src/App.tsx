@@ -121,7 +121,11 @@ function Router() {
         initial={entrance}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        className="will-change-transform"
+        // h-full only takes effect when `main` itself has a definite height
+        // (full-screen app routes like /chat) — on ordinary pages `main`'s
+        // height is content-driven, so this resolves to auto and changes
+        // nothing there.
+        className="flex h-full min-h-0 flex-col will-change-transform"
       >
         <ScrollManager path={location} />
         <Suspense fallback={<PageFallback />}>
