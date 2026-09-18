@@ -69,6 +69,9 @@ before making a purchase.
 | Smart Recommendations      | Garments matched to the user's colour profile.                                           |
 | Saved Looks                | Favourites, saved reports and fashion inspiration.                                       |
 | Personal Dashboard         | Analysis history, saved images and favourites in one place.                              |
+| Saved Conversations        | Stylist chats persist to the account and reopen from a history rail.                      |
+| Plans & Try-On Credits     | Starter (9 try-ons), Essentials (40/month) and Atelier (unlimited), metered per account.  |
+| Manual UPI Payments        | Pay by UPI, submit the reference, and an owner approves it before access is granted.      |
 
 ---
 
@@ -120,7 +123,23 @@ before making a purchase.
 6. **AI styling** - D'Style answers styling questions in clear structured
    sections, grounded in the member's season and palette. It stays in persona
    and never describes itself as an AI model; off-topic questions are steered
-   back to style and colour.
+   back to style and colour. Conversations are saved to the account, so an
+   earlier thread can be reopened from the history rail beside the chat.
+
+---
+
+## Plans and Payments
+
+Every account gets nine AI try-ons. Beyond that there are two plans —
+Essentials at INR 200 a month for forty, and Atelier at INR 999 a month for
+unlimited — or a single extra try-on for INR 5 when that is all someone needs.
+
+Payment is handled manually rather than through a gateway. The member pays the
+UPI ID shown on `/payment`, submits the transaction reference with their name
+and account email, and the request sits as pending until the owner reviews it
+in `/admin/payments`. Approving it is what raises the quota; rejecting it
+releases the reference so it can be submitted again. Every submission also
+emails the owner, and `/admin/usage` shows try-on consumption per account.
 
 ---
 
@@ -142,16 +161,17 @@ before making a purchase.
       ┌──────────────────────┐            ┌──────────────────────────┐
       │ YouCam AI            │            │ D'Style AI Stylist       │
       │ Skin AI + VTO        │            │ Rules engine (fallback)  │
-      │                      │            │ or LLM: local serve / Zen│
-      └──────────────────────┘            └──────────────────────────┘
-                  │                                    │
-                  └─────────────── ────────────────────┘
+      │                      │            │ or LLM: OpenRouter / Zen │
+      └──────────┬───────────┘            └────────────┬─────────────┘
+                 │                                     │
+                 └──────────────── ────────────────────┘
                                   ▼
-                       ┌───────────────────┐
-                       │     MongoDB       │
-                       │ Users / History   │
-                       │ Products / Saves  │
-                       └───────────────────┘
+             ┌───────────────────┐   ┌────────────────────────┐
+             │     MongoDB       │   │      Cloudinary        │
+             │ Users / History   │   │ Analysed photos and    │
+             │ Payments / Usage  │   │ saved try-on results   │
+             │ Conversations     │   │                        │
+             └───────────────────┘   └────────────────────────┘
 ```
 
 ---
@@ -163,9 +183,14 @@ before making a purchase.
 - JWT-based authentication with bcrypt password hashing
 - Helmet security headers and a content security policy
 - API rate limiting on auth, AI-heavy, chat and history routes
-- Protected and guest-only routes, admin-gated product routes
+- Protected and guest-only routes, admin-gated product, payment and usage routes
+- Admin access needs both an allowlisted email and a verified one, so a
+  self-registered account cannot claim an owner address
+- Security headers on the static frontend too, including `frame-ancestors`
+  so the admin screens cannot be framed
 - Private upload handling with `no-store` responses and `noindex`
-- SSRF protection for remote image inputs
+- SSRF protection for remote image inputs: every hop is checked against the
+  addresses it actually resolves to, not the hostname it was written as
 
 ---
 
@@ -185,12 +210,15 @@ before making a purchase.
 
 - YouCam AI (colour analysis and virtual try-on)
 - Rules-based styling engine
-- LLM-powered stylist via a local model server (`opencode serve`) or the
-  OpenCode Zen API, with structured GPT-style reply rendering
+- LLM-powered stylist via OpenRouter (default), the OpenCode Zen API, or a
+  local model server (`opencode serve`), with structured GPT-style reply
+  rendering and a rules-engine fallback whenever none is configured
 
 **Infrastructure**
 
 - Vercel and Render, with GitHub Actions running the verification pipeline
+- Cloudinary for durable image storage, so analysed photos and saved try-ons
+  survive a redeploy on hosts with no persistent disk
 
 ---
 
@@ -214,6 +242,9 @@ before making a purchase.
 | `/report`    | Members | Colour report                          |
 | `/try-on`    | Members | Virtual try-on                         |
 | `/chat`      | Members | D'Style stylist chat                   |
+| `/payment`   | Members | UPI payment for a plan or a top-up     |
+| `/admin/payments` | Owner | Review and approve payment requests  |
+| `/admin/usage`    | Owner | Try-on usage across every account    |
 
 ---
 
@@ -228,10 +259,11 @@ All endpoints are mounted under `/api`.
 | `/api/seasons`    | Season catalogue                     |
 | `/api/garments`   | Garment catalogue and recommendations |
 | `/api/tryon`      | Try-on jobs (clothes, makeup, hair)  |
-| `/api/chat`       | D'Style stylist chat                 |
+| `/api/chat`       | D'Style stylist chat and saved conversations |
 | `/api/products`   | Product catalogue                    |
 | `/api/favorites`  | Saved products and looks             |
 | `/api/history`    | Analysis history                     |
+| `/api/payments`   | Payment submission and owner review  |
 | `/api/newsletter` | Newsletter subscriptions             |
 | `/api/health`     | Health check                         |
 
@@ -275,13 +307,20 @@ Environment variables (see `server/src/config/env.ts` for the full schema):
 | `FIREBASE_PROJECT_ID`         | Yes      | Firebase auth                           |
 | `FIREBASE_CLIENT_EMAIL`       | Yes      | Firebase service account                |
 | `FIREBASE_PRIVATE_KEY`        | Yes      | Firebase service account                |
-| `OPENCODE_MODE`               | No       | `zen` (model API) or `server` (local serve) |
-| `OPENCODE_MODEL`              | No       | Model id for the stylist chat           |
+| `OPENCODE_MODE`               | No       | Stylist provider: `openrouter` (default), `zen` or `server` |
+| `OPENROUTER_API_KEY`          | No       | OpenRouter key for the stylist chat     |
+| `OPENROUTER_MODEL`            | No       | Model id (a free one is the default)    |
 | `OPENCODE_API_KEY`            | No       | Zen-mode API key                        |
-| `OPENCODE_SERVER_URL`         | No       | Local model server address              |
-| `OPENCODE_SERVER_USERNAME`    | No       | Local model server username             |
-| `OPENCODE_SERVER_PASSWORD`    | No       | Local model server password             |
-| `OPENCODE_TIMEOUT_MS`         | No       | Model reply timeout (rules engine on timeout) |
+| `OPENCODE_MODEL`              | No       | Zen-mode model id                       |
+| `ADMIN_EMAILS`                | No       | Emails allowed to review payments and usage |
+| `TRY_ON_LIMIT_STARTER`        | No       | Free try-ons per account (default 9)    |
+| `TRY_ON_LIMIT_ESSENTIALS`     | No       | Try-ons granted by an Essentials plan (default 40) |
+| `CLOUDINARY_CLOUD_NAME`       | No       | Durable image storage (falls back to local disk) |
+| `CLOUDINARY_API_KEY`          | No       | Cloudinary credentials                  |
+| `CLOUDINARY_API_SECRET`       | No       | Cloudinary credentials                  |
+| `SMTP_USER`                   | No       | Gmail address that sends payment alerts |
+| `SMTP_APP_PASSWORD`           | No       | Gmail app password (never the login one) |
+| `NOTIFY_EMAIL`                | No       | Who receives payment alerts             |
 | `CLIENT_ORIGIN`               | No       | Frontend origin                         |
 | `PORT`                        | No       | Backend port (default 3001)             |
 
