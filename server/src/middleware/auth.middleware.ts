@@ -56,6 +56,12 @@ export const authenticate = async (
         (req as any).user = {
           id: decoded.uid,
           email: decoded.email,
+          // Anyone can self-register a Firebase account against an email they
+          // do not own, so the claim is carried through and admin access is
+          // gated on it (see requireAdmin). `provider` marks the token as
+          // Firebase-issued: locally-issued JWTs have no such claim to check.
+          emailVerified: decoded.email_verified === true,
+          provider: "firebase" as const,
         };
         next();
         return;

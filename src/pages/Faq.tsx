@@ -24,12 +24,17 @@ const FAQ_JSON_LD = {
   })),
 };
 
+/** JSON-LD goes into a raw <script> block, where a literal `</script>` inside
+ *  any string would close it early and let the rest run as markup. Escaping
+ *  `<` keeps that impossible no matter where the FAQ copy comes from. */
+const jsonLd = (data: unknown): string => JSON.stringify(data).replace(/</g, "\\u003c");
+
 export default function Faq() {
   return (
     <div className="w-full bg-surface-1">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(FAQ_JSON_LD) }}
       />
 
       {/* ── Hero masthead ── */}

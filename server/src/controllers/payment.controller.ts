@@ -6,9 +6,12 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { PLAN_PRICES, TOPUP_PRICE_PER_UNIT } from "../config/plans";
 import { applyPaymentToUsage } from "../services/tryon.quota.service";
 import { sendPaymentAlert, emailDiagnostics } from "../services/email.service";
-import { isAdminEmail } from "../middleware/requireAdmin";
+import { isAdminRequest } from "../middleware/requireAdmin";
 
-const currentUser = (req: Request) => (req as any).user as { id?: string; email?: string } | undefined;
+const currentUser = (req: Request) =>
+  (req as any).user as
+    | { id?: string; email?: string; emailVerified?: boolean; provider?: string }
+    | undefined;
 
 const resolveEmail = (req: Request): string | null => {
   const email = currentUser(req)?.email;
@@ -167,7 +170,7 @@ export const getPayment = asyncHandler(async (req: Request, res: Response) => {
   }
   const email = resolveEmail(req);
   const isOwner = Boolean(email) && payment.email === email;
-  if (!isOwner && !isAdminEmail(currentUser(req)?.email)) {
+  if (!isOwner && !isAdminRequest(currentUser(req))) {
     res.status(403).json({ success: false, message: "Not allowed" });
     return;
   }

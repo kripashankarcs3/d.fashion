@@ -18,11 +18,25 @@ const adminEmailSet = new Set(
 export const isAdminEmail = (email?: string | null): boolean =>
   Boolean(email) && adminEmailSet.has(String(email).trim().toLowerCase());
 
+/** The admin check for a request: the allowlist, plus proof the requester
+ *  actually owns that address. A Firebase account can be self-registered
+ *  against any email, so an unverified one never counts as admin; locally
+ *  issued JWTs carry no `provider` claim and are unaffected. */
+export const isAdminRequest = (
+  user?: { email?: string; emailVerified?: boolean; provider?: string } | null,
+): boolean => {
+  if (!isAdminEmail(user?.email)) return false;
+  if (user?.provider === "firebase" && user?.emailVerified !== true) return false;
+  return true;
+};
+
 export const requireAdmin = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as any).user as { id?: string; email?: string } | undefined;
+    const user = (req as any).user as
+      | { id?: string; email?: string; emailVerified?: boolean; provider?: string }
+      | undefined;
 
-    if (isAdminEmail(user?.email)) {
+    if (isAdminRequest(user)) {
       next();
       return;
     }
