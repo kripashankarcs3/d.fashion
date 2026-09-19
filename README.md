@@ -388,7 +388,6 @@ makes a confident choice.
 
 Built for the **YouCam AI Hackathon**.
 
-- Deepali Kumari
 - Kripashankar Yadav
 
 ---
